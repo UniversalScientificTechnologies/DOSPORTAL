@@ -1,0 +1,40 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="pt-3">Měření: {{ measurement.name }}</h1>
+  <h3 class="text-muted small">{{ measurement.id }}</h3>
+  <hr>
+
+  <p><strong>Autor:</strong> <a href="">{{ measurement.author }}</a></p>
+  <p><strong>Popis:</strong> {{ measurement.description }}</p>
+  <p><strong>Type:</strong> {{ measurement.measurement_type }}</p>
+  <p><strong>Zacatek:</strong> {{ measurement.time_start }}</p>
+  <p><strong>Konec:</strong> {{ measurement.time_konec }}</p>
+  <p><strong>Zaznamy:</strong> {{ measurement.records.all|join:", " }}</p>
+
+  <hr>
+
+
+  <div class="column is-one-third">
+    <form method="post" action="./record/new/" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ record_form.as_p }}
+        <button class="button is-success is-fullwidth is-medium mt-5" type="submit"> Submit </button>
+
+    </form>
+</div>
+  <hr>
+
+  <div>
+    <h4>Data details</h4>
+
+    <div class="card">
+        <div id="data_container" class="card-body">
+            <h3> NOT INITIALIZED </h3>
+        </div>
+    </div>
+
+  </div>
+{% endblock %}

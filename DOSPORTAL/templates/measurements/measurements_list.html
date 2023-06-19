@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Measurement List</h1>
+
+  <a href="/measurement/new"> Create new measurement </a>
+
+  {% if measurements_list %}
+    <ul>
+      {% for measurement in measurements_list %}
+      <li>
+        <a href="{{ measurement.get_absolute_url }}">{{ measurement.name }}</a> ({{measurement.author}})
+        {{measurement.measurement_type}}, {{measurement.description}}, {{measurement.author.email}}
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>There are no measurements in database.</p>
+  {% endif %}
+{% endblock %}
