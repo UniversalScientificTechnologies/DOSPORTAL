@@ -1,0 +1,37 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+  <span class="pt-3">Detektor: <span class="h1">{{ detector.name }}</span> {% if user.is_authenticated %}<a href="{{detector.get_admin_url}}">  <i class="bi bi-pencil"></i></a>{%endif%}</span>
+  <h3 class="text-muted small">DOSPORTAL ID: {{ detector.id }}</h3>
+  <h3 class="text-muted small">Serial number: {{ detector.sn }}</h3>
+  <h3 class="text-muted small">Type: {{ detector.type }}</h3>
+  <hr>
+
+<h2>Měření s tímto detektorem: </h2>
+
+<ul>
+{%for record in detector.records.all %}
+ <li> record {{record.id}} -> <a href="/measurement/{{ record.measurement.id }}/">{{ record.measurement }}</a>
+{%endfor%}
+</ul>
+
+<hr>
+<h2>Servisní záznamy: </h2>
+{% for logbook in detector.logbook.all %}
+<div class="card mb-3">
+
+  <div class="card-header">
+    #{{ forloop.counter }} {{logbook.author}} @ {{logbook.created}} {% if user.is_authenticated %}<a href="{{logbook.get_admin_url}}" class="small text-muted"> <i class="bi bi-pencil"></i></a>{%endif%}
+  </div>
+
+  <div class="card-body">
+    {{logbook.text | safe }}
+  </div>
+
+</div>
+
+{%endfor%}
+
+{% endblock %}

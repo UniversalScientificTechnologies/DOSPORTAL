@@ -1,19 +1,38 @@
 {% extends "base.html" %}
+{% load martortags %}
 
 {% block content %}
-  <h1>Measurement List</h1>
+  <div class="d-flex justify-content-between"><div class="h1">Measurement List </div>
 
-  <a href="/measurement/new"> Create new measurement </a>
+  {% if user.is_authenticated %}
+  <a href="/measurement/new" class="btn btn-outline-success" role="button" style="height: max-content;"><i class="bi bi-plus-square me-2"></i>  New measurement </a>
+  {% endif %}
+  </div>
 
   {% if measurements_list %}
-    <ul>
-      {% for measurement in measurements_list %}
-      <li>
-        <a href="{{ measurement.get_absolute_url }}">{{ measurement.name }}</a> ({{measurement.author}})
-        {{measurement.measurement_type}}, {{measurement.description}}, {{measurement.author.email}}
-      </li>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Type</th>
+        <th scope="col">Autor</th>
+        <th scope="col">Popis</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for measurement in measurements_list.reverse %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td><a href="/measurement/{{measurement.id}}/" class="link" style="text-decoration: none;">{{ measurement.name }}</a></td>
+      <td>{{ measurement.measurement_type }}</td>
+      <td>{{measurement.author}}</td>
+      <td> <div style="max-height: 50pt;overflow-y: auto;">{{measurement.description | safe_markdown }}</div></td>
+    </tr>
+
       {% endfor %}
-    </ul>
+    </tbody>
+    </table>
   {% else %}
     <p>There are no measurements in database.</p>
   {% endif %}

@@ -1,40 +1,83 @@
 
-
 {% extends "base.html" %}
+{% load martortags %}
 
 {% block content %}
-  <h1 class="pt-3">Měření: {{ measurement.name }}</h1>
-  <h3 class="text-muted small">{{ measurement.id }}</h3>
-  <hr>
-
-  <p><strong>Autor:</strong> <a href="">{{ measurement.author }}</a></p>
-  <p><strong>Popis:</strong> {{ measurement.description }}</p>
-  <p><strong>Type:</strong> {{ measurement.measurement_type }}</p>
-  <p><strong>Zacatek:</strong> {{ measurement.time_start }}</p>
-  <p><strong>Konec:</strong> {{ measurement.time_konec }}</p>
-  <p><strong>Zaznamy:</strong> {{ measurement.records.all|join:", " }}</p>
-
-  <hr>
 
 
-  <div class="column is-one-third">
+  <div class="card my-4">
+    <div class="card-header d-flex justify-content-between">
+        <span > Měření: <span class="h2">{{measurement.name}} </span></span>
+        <span class="text-muted"> {{measurement.id}} 
+          {% if user.is_authenticated %}
+        <a href="{{measurement.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+        {%endif%}
+        </span>
+    </div>
+    <div class="card-body">
+      {% if measurement.description %}
+      <div class="m-3 callout">
+      {{measurement.description |safe_markdown}}
+      </div>
+      {%endif%}
+  <ul>
+    <li><strong>Autor:</strong> <a href="">{{ measurement.author }}</a>
+    <li><strong>Type:</strong> {{ measurement.measurement_type }}
+    <li><strong>Zacatek:</strong> {{ measurement.time_start }}
+    <li><strong>Konec:</strong> {{ measurement.time_konec }}
+    <li><strong>Let:</strong> {{ measurement.flight }}
+    <li><strong>Zaznamy:</strong> 
+      <ul>
+      {% for record in measurement.records.all %}
+        <li>{{record.description}} {{record.type}} {%if record.detector %}(<a href="/detector/{{record.detector.id}}/" data-bs-toggle="tooltip" data-bs-placement="top" title="SN: {{record.detector.sn}}">{{record.detector.name}}</a>){%endif%} </li>
+      {% endfor %}
+      </ul>
+      <li><strong>Měřící kampaně:</strong>
+        <ul>
+        {% for camp in measurement.campaings.all %}
+          <li>{{camp.name}} </li>
+        {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+  </ul>
+
+  </div>
+  {% if user.is_authenticated %}
+  <div class="card my-4">
+  <div class="card-header">
+  <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#upload_data_collapse" aria-expanded="false" aria-controls="collapseExample">
+    Uploadovat data
+  </button>
+  </div>
+  
+  <div class="card-body is-one-third collapse py-2" id="upload_data_collapse">
     <form method="post" action="./record/new/" enctype="multipart/form-data">
         {% csrf_token %}
         {{ record_form.as_p }}
         <button class="button is-success is-fullwidth is-medium mt-5" type="submit"> Submit </button>
 
     </form>
+    </div>
 </div>
-  <hr>
+
+{%endif%}
 
   <div>
-    <h4>Data details</h4>
-
-    <div class="card">
+    <div class="card my-4">
+      <div class="card-header"><h3>Data details:</h3></div>
         <div id="data_container" class="card-body">
             <h3> NOT INITIALIZED </h3>
         </div>
     </div>
 
   </div>
+
+
+<script> 
+  $('#data_container').load('./visualizate/');
+
+</script>
+
 {% endblock %}

@@ -20,7 +20,8 @@ from . import views
 from django.views.generic.base import TemplateView
 import uuid
 
-from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, RecordNewView
+from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, RecordNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet
+from .views_detectors import DetectorView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,9 +30,23 @@ urlpatterns = [
     path("measurements/", MeasurementsListView.as_view(), name="measurements"),
     path("measurement/new/", MeasurementNewView, name='measurement-new'),
     path('measurement/<uuid:pk>/record/new/', RecordNewView, name="record-upload"),
+    path('measurement/<uuid:pk>/visualizate/', MeasurementDataView, name="measurement-data-view"),
+    # path('measurement/<uuid:pk>/metadata/', MeasurementDataView, name="measurement-data-view"),
+    path('measurement/<uuid:pk>/measured_data/', measuredDataGet, name="measurement-data-get"),
+    path('measurement/<uuid:pk>/measured_spectra/', measuredSpectraGet, name="measurement-spectra-get"),
     path('measurement/<uuid:pk>/', MeasurementDetailView, name='measurement-detail'),
+
+
+    path('detector/<uuid:pk>/', DetectorView, name="detector-view"),
+    
+    path("select2/", include("django_select2.urls")),
+    path('martor/', include('martor.urls')),
+
+    path('analysis/', TemplateView.as_view(template_name='home.html'), name='analysis'),
 
     #path("record/"),
 
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api/', include('api.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 ]
