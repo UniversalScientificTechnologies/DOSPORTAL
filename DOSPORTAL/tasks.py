@@ -16,19 +16,20 @@ import datetime
 import os
 
 def process_flight_entry(Flight):
-    print(Flight)
+    print("FLIGHT:", Flight)
 
     ## CARI PART 
 
-    folder = '/tmp/{}/cari'.format(Flight.id)
+    folder = 'data/cari/{}/cari'.format(Flight.id)
 
     if not os.path.exists(folder):
         os.makedirs(folder)
-    os.system('unzip data/cari7a.zip -d {}'.format(folder))
+    os.system('unzip -o data/cari7a.zip -d {}'.format(folder))
 
 
     df = pd.read_csv(Flight.trajectory_file, sep=',')
-    df['UTC'] = pd.to_datetime(df['UTC'], format='%Y-%m-%dT%H:%M:%S', errors='coerce')
+    print("Nacteny DF", df)
+    df['UTC'] = pd.to_datetime(df['UTC'])
     df['Position'] = df['Position'].str.split(',')
     df['Latitude'] = df['Position'].str[0].astype(float)
     df['Longitude'] = df['Position'].str[1].astype(float)
@@ -45,6 +46,8 @@ def process_flight_entry(Flight):
     for radiation in radiation_list:
         for tally in tally_list:
             filename = folder + '/' + radiation + '_' + tally + '.LOC'
+            print("BUDU POCITAT CARI.. ", tally, radiation, filename)
+            print(df)
             create_cari_input(df, tally, radiation, filename)
             #run_cari(filename)
 

@@ -21,7 +21,9 @@ services:
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+#    platform: linux/amd64
+#    command: python manage.py runserver 0.0.0.0:8000
+#    entrypoint: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/DOSPORTAL
     ports:
@@ -31,3 +33,17 @@ services:
     networks:
       inet:
         ipv4_address: 10.5.0.6
+
+
+#  redis:
+#    build: .
+#    #command: redis-server && python qcluster
+#    entrypoint: redis-server && python3 manage.py qcluster
+#    volumes:
+#      - .:/DOSPORTAL
+#    depends_on:
+#      - db
+#      - web
+#    networks:
+#      inet:
+#        ipv4_address: 10.5.0.7
