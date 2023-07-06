@@ -5,6 +5,10 @@ from django.conf import settings
 from django.urls import reverse
 from matplotlib.colors import LightSource
 from martor.models import MartorField
+from django_q.tasks import async_task
+
+from .tasks import process_flight_entry
+
 
 def get_enum_dsc(enum, t):
     for r in enum:
@@ -28,6 +32,12 @@ class UUIDMixin(models.Model):
 
     class Meta:
     	abstract = True
+
+
+
+class CARImodel(UUIDMixin):
+    data = models.JSONField()
+
 
 
 class Airports(UUIDMixin):
@@ -68,16 +78,31 @@ class Flight(UUIDMixin):
 
 
     def user_directory_path(instance, filename):
-        return "data/flights/{0}/{1}".format(instance.flight_number, instance.departure_time)
+        return "data/flights/{0}/{1}/path.txt".format(instance.flight_number.rstrip(), instance.departure_time.strftime("%Y-%m-%d %H:%M"))
 
     trajectory_file = models.FileField(
         verbose_name=_("Trajectory log"),
         upload_to=user_directory_path,
     )
 
+    cari = models.ForeignKey(
+        CARImodel,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
+
+    def get_absolute_url(self):
+        return reverse('flight-detail', args=[str(self.id)])
+    
     def __str__(self) -> str:
         return "Flight {} ({}->{}) @ {}".format(self.flight_number, self.takeoff.code_iata, self.land.code_iata, self.departure_time.strftime("%Y-%m-%d %H:%M"))
+
+    def save(self, *args, **kwargs):
+        print("ASYNYC..", self)
+        async_task(process_flight_entry, self)
+        super(Flight, self).save(*args, **kwargs)
 
     class Meta:
       unique_together = ('flight_number', 'departure_time')
@@ -287,7 +312,7 @@ class measurement(UUIDMixin):
     flight = models.ForeignKey(
         Flight,
         on_delete=models.CASCADE,
-        related_name = "record",
+        related_name = "measurement",
         null = True,
         verbose_name=_("Reference na objekt s informacemi o letu"),
         blank = True

@@ -25,8 +25,9 @@ SECRET_KEY = 'django-insecure-)&9q7=6szljptu&2a11rq1k-ofhz1s$nxk&t+f=3xk74(vq4jq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://portal.dos.ust.cz']
 
 # Application definition
 
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     'martor',
 
     'DOSPORTAL',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -186,3 +188,20 @@ MARTOR_TOOLBAR_BUTTONS = [
     'direct-mention', 'toggle-maximize', 'help'
 ]
 MARTOR_ENABLE_LABEL = False
+
+
+Q_CLUSTER = {
+    'name': 'dosportal',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    #'redis': {
+    #    'host': '127.0.0.1',
+    #    'port': 6379,
+    #    'db': 0, }
+}

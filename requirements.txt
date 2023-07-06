@@ -2,7 +2,7 @@ django
 django-bootstrap-v5
 psycopg2
 matplotlib
-basemap
+#basemap
 
 djangorestframework
 django-cors-headers
@@ -13,6 +13,9 @@ djangorestframework
 martor
 markdown
 django-filter
+django-q
+
+redis
 
 pandas 
 numpy

@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from DOSPORTAL import models
 
+from django_q.tasks import async_task
+
 import pandas as pd
 import numpy as np
 import matplotlib
@@ -106,6 +108,7 @@ def RecordNewView(request, pk):
             data.measurement = measurement.objects.get(pk=pk)
             handle_uploaded_file(request.FILES["log_file"], data.log_file.name)
             data.save()
+            
         else:
             print("Form není validni")
             print(form.errors)

@@ -26,3 +26,19 @@ admin.site.register(Airports, AirportsAdmin)
 admin.site.register(Flight)
 admin.site.register(MeasurementDataFlight)
 admin.site.register(measurement_campaign)
+
+
+from django_q import models as q_models
+from django_q import admin as q_admin
+
+admin.site.unregister([q_models.Failure])
+@admin.register(q_models.Failure)
+class ChildClassAdmin(q_admin.FailAdmin):
+    list_display = (
+        'name',
+        'func',
+        'result',
+        'started',
+        # add attempt_count to list_display
+        'attempt_count'
+    )

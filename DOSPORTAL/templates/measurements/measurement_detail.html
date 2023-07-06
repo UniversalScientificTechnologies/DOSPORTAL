@@ -25,11 +25,14 @@
     <li><strong>Type:</strong> {{ measurement.measurement_type }}
     <li><strong>Zacatek:</strong> {{ measurement.time_start }}
     <li><strong>Konec:</strong> {{ measurement.time_konec }}
-    <li><strong>Let:</strong> {{ measurement.flight }}
+    <li><strong>Let:</strong> <a href="{{measurement.flight.get_absolute_url}}">{{ measurement.flight }}</a> {% if user.is_authenticated %} <a href="{{measurement.flight.get_admin_url}}"><i class="bi bi-pencil"></i></a>{%endif%}
     <li><strong>Zaznamy:</strong> 
       <ul>
       {% for record in measurement.records.all %}
-        <li>{{record.description}} {{record.type}} {%if record.detector %}(<a href="/detector/{{record.detector.id}}/" data-bs-toggle="tooltip" data-bs-placement="top" title="SN: {{record.detector.sn}}">{{record.detector.name}}</a>){%endif%} </li>
+        <li>{{record.description}} {{record.type}} {%if record.detector %}(<a href="/detector/{{record.detector.id}}/" data-bs-toggle="tooltip" data-bs-placement="top" title="SN: {{record.detector.sn}}">{{record.detector.name}}</a>){%endif%}  
+          {% if user.is_authenticated %}
+          <a href="{{record.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+          {%endif%}</li>
       {% endfor %}
       </ul>
       <li><strong>Měřící kampaně:</strong>

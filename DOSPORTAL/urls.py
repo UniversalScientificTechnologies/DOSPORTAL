@@ -22,6 +22,7 @@ import uuid
 
 from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, RecordNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet
 from .views_detectors import DetectorView
+from .views_flights import FlightView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,6 +37,8 @@ urlpatterns = [
     path('measurement/<uuid:pk>/measured_spectra/', measuredSpectraGet, name="measurement-spectra-get"),
     path('measurement/<uuid:pk>/', MeasurementDetailView, name='measurement-detail'),
 
+
+    path('flight/<uuid:pk>/', FlightView, name='flight-detail'),
 
     path('detector/<uuid:pk>/', DetectorView, name="detector-view"),
     
