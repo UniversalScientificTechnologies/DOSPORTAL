@@ -20,13 +20,17 @@ from . import views
 from django.views.generic.base import TemplateView
 import uuid
 
-from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, RecordNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet
-from .views_detectors import DetectorView
+from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, RecordNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, user_profile
+from .views_detectors import DetectorView, DetectorOverview, DetectorNewLogbookRecord
 from .views_flights import FlightView
+from .views_record import RecordView, GetSpectrum, GetEvolution
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+
+    path('user/', user_profile, name='my_user_profile'),
+    path('user/<str:username>', user_profile, name='user_profile'),
 
     path("measurements/", MeasurementsListView.as_view(), name="measurements"),
     path("measurement/new/", MeasurementNewView, name='measurement-new'),
@@ -34,12 +38,19 @@ urlpatterns = [
     path('measurement/<uuid:pk>/visualizate/', MeasurementDataView, name="measurement-data-view"),
     # path('measurement/<uuid:pk>/metadata/', MeasurementDataView, name="measurement-data-view"),
     path('measurement/<uuid:pk>/measured_data/', measuredDataGet, name="measurement-data-get"),
+    path('measurement/<uuid:pk>/measured_evolution/', measuredDataGet, name="measurement-evolution-get"),
     path('measurement/<uuid:pk>/measured_spectra/', measuredSpectraGet, name="measurement-spectra-get"),
     path('measurement/<uuid:pk>/', MeasurementDetailView, name='measurement-detail'),
+
+    path('record/<uuid:pk>/', RecordView, name='record-view'),
+    path('record/<uuid:pk>/get_spectrum/', GetSpectrum, name='record-GetSpectrum'),
+    path('record/<uuid:pk>/get_evolution/', GetEvolution, name='record-GetEvolution'),
 
 
     path('flight/<uuid:pk>/', FlightView, name='flight-detail'),
 
+    path('detector/<uuid:pk>/new_logbook_record', DetectorNewLogbookRecord),
+    path('detectors/', DetectorOverview.as_view(), name="detector-overview"),
     path('detector/<uuid:pk>/', DetectorView, name="detector-view"),
     
     path("select2/", include("django_select2.urls")),

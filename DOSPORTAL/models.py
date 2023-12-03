@@ -191,8 +191,19 @@ class Detector(UUIDMixin):
         related_name="detectors"
     )
 
+    manufactured_date = models.DateField(
+        _("Manufactured date"),
+        help_text=_("Date when detector was manufactured"),
+        null=True,  blank=True
+    )
+
+    data = models.JSONField(
+        _("Detector metadata"),
+        help_text="Detector metadata, used for advanced data processing and maintaining"
+    )
+
     def __str__(self) -> str:
-        return "Detector {} ({})".format(self.name, self.type.manufacturer.name)
+        return "Detector {} ({}), SN:{}".format(self.name, self.type.manufacturer.name, self.sn)
 
 class DetectorLogbook(UUIDMixin):
 
@@ -210,8 +221,13 @@ class DetectorLogbook(UUIDMixin):
     created = models.DateTimeField(auto_now_add=True)
 
     text = models.TextField(
-        _("Description zásahu")
+        _("Logbook text"),
+        help_text="Detailed description of activity made on the detector."
     )
+    public = models.BooleanField(
+        _("Wish to be visible to everyone?"),
+        help_text=_("Private logbook will be visible for maintainers of detector and for dosportal admins."),
+        default=True)
 
 class measurement_campaign(UUIDMixin):
 
@@ -342,9 +358,6 @@ class record(UUIDMixin):
     )
 
     def user_directory_path(instance, filename):
-        # return "data/user_records/{0}/{1}".format(instance.user.id, filename)
-        print(".....")
-        print(instance.measurement.author.pk)
         return "data/user_records/log_{1}".format(instance.measurement.author.pk, instance.pk)
 
     log_file = models.FileField(
@@ -361,9 +374,11 @@ class record(UUIDMixin):
         null=True,
     )
 
-    time_end = models.DateTimeField(
-        verbose_name = _("Measurement beginning time"),
-        null=True,
+
+    record_duration = models.DurationField(
+        verbose_name = _("Record duration"),
+        help_text=_("Duration of record"),
+        null=True
     )
 
 
@@ -378,6 +393,12 @@ class record(UUIDMixin):
         choices=RECORD_TYPES,
         default="S",
         help_text=_("Type of log file")
+    )
+
+    metadata = models.JSONField(
+        _("record_metadata"),
+        help_text=_("record metadata, used for advanced data processing and maintaining"),
+        null=True
     )
 
     def __str__(self) -> str:
