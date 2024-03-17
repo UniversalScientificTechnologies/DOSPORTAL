@@ -5,12 +5,16 @@ networks:
      config:
        - subnet: 10.5.0.0/16
          gateway: 10.5.0.1
+  default:
+    driver: bridge
+    ipam:
+      driver: default
 
 services:
-  db:
+  db_dosportal:
     image: postgres
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/dosportal/db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=dosportal
       - POSTGRES_USER=dosportal_user
@@ -20,19 +24,22 @@ services:
         ipv4_address: 10.5.0.5
 
   web:
-    build: .
+    build:
+     context: .
+     network: host
 #    platform: linux/amd64
 #    command: python manage.py runserver 0.0.0.0:8000
 #    entrypoint: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/DOSPORTAL
     ports:
-      - "8000:8000"
+      - "8100:8000"
     depends_on:
-      - db
+      - db_dosportal
     networks:
       inet:
         ipv4_address: 10.5.0.6
+#      default:
 
 
 #  redis:

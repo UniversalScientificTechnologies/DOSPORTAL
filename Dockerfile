@@ -3,8 +3,8 @@ FROM debian:latest
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN apt update
-RUN apt install -y python3 net-tools python3-pip libpq-dev redis
+RUN apt-get update
+RUN apt-get install -y python3 net-tools python3-pip libpq-dev redis
 
 WORKDIR /DOSPORTAL
 COPY requirements.txt /DOSPORTAL/

@@ -1,0 +1,45 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a>Records</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ record.id }}</li>
+  </ol>
+</nav>
+
+<div class="card my-4">
+  <div class="card-header d-flex justify-content-between">
+      <span > Record: <span class="h2">{{record.id}} </span></span>
+      <span class="text-muted"> 
+        {% if user.is_authenticated %}
+      <a href="{{record.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+      {%endif%}
+      </span>
+  </div>
+  <div class="card-body">
+
+<ul>
+  <li><strong>Detector:</strong> <a href="/detector/{{record.detector.id}}">{{ record.detector }}</a>
+  <li><strong>Record start time:</strong> {{ record.time_start }}
+  <li><strong>Record duration:</strong> {{ record.record_duration }}</li>
+  <li><strong>Type:</strong> {{ record.record_type }}
+  <li><strong>Advanced metadata:</strong></li>
+  <div class="callout">{{record.metadata }}</div>
+  <li><strong>Description:</strong> {{record.description}}
+  <li><strong>File size:</strong> {{record.log_file.size}}
+  
+  </ul>
+    </div>
+  </div>
+</ul>
+
+</div>
+
+
+
+
+{% endblock %}
