@@ -61,7 +61,8 @@ class NewMeasurementForm(forms.ModelForm):
     )
 
     public = forms.BooleanField(
-        required=True,
+        required=False,
+        initial=True,
         label = "Will be this log public?"
     )
 
@@ -116,7 +117,7 @@ def obtain_parameters_from_log(file):
     return record_metadata
 
 
-def RecordNewView(request, pk):
+def MeasurementRecordNewView(request, pk):
     if request.method == "POST":
         print("POST... s formulářem :) ")
         form = RecordForm(request.POST, request.FILES)
@@ -130,6 +131,8 @@ def RecordNewView(request, pk):
             #data.log_filename = request.FILES['log_file'].name.split("/")[-1]
             handle_uploaded_file(request.FILES['log_file'], data.log_file.name)
             metadata = obtain_parameters_from_log(data.log_file.path)
+            print("Medatada z logu")
+            print(metadata)
             if metadata:
                 detector_pk = Detector.objects.get(sn=metadata['detector']['detector_sn'])
                 if detector_pk:
@@ -451,17 +454,3 @@ def measurementGetData(request, pk):
     rec=record.objects.filter(measurement=pk, record_type="S")
     loc=record.objects.filter(measurement=pk, record_type="L")
 
-
-
-@login_required
-def user_profile(request, username = None):
-    if username is None:
-        return redirect('user_profile', username=request.user.username)
-
-    user = get_object_or_404(User, username = username)
-    #user = request.user
-    context = {
-        'user': user
-    }
-
-    return render(request, 'user/user_profile.html', context)

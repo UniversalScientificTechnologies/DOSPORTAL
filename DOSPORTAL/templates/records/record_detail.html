@@ -4,6 +4,12 @@
 
 {% block content %}
 
+
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script charset="utf-8" src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a>Records</a></li>
@@ -29,7 +35,7 @@
   <li><strong>Type:</strong> {{ record.record_type }}
   <li><strong>Advanced metadata:</strong></li>
   <div class="callout">{{record.metadata }}</div>
-  <li><strong>Description:</strong> {{record.description}}
+  <li><strong>Description:</strong> {{record}}
   <li><strong>File size:</strong> {{record.log_file.size}}
   
   </ul>
@@ -40,6 +46,201 @@
 </div>
 
 
+<div class="card my-4">
+  <div class="card-header"><h3>Graphs:</h3></div>
+  <div class="card-body">
+    <div id="graph1"></div>
+    <div id="graph2"></div>
+  </div>
+</div>
+
+
+<script> 
+
+
+
+
+  function makeDataZoom(opt) {
+    return Object.assign(
+      {
+        type: 'slider',
+        filterMode: 'empty',
+        realtime: false
+      },
+      opt
+    );
+  }
+
+ // $('#data_container').load('./visualizate/');
+
+ // https://portal.dos.ust.cz/measurement/94d199b7-3c76-4154-a6c5-5c81236b3e71/visualizate/
+
+ var myChart = echarts.init(document.getElementById('graph1'), {
+  width: 'auto',
+ });
+ myChart.setOption({
+  title: {
+    text: 'Dose'
+  },
+  toolbox: {
+    right: 10,
+    feature: {
+     
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+  legend: {
+    data: ['CTS']
+  },
+  grid: [
+  {
+    left: '5%',
+    right: '5%',
+    height: '40%',
+    bottom: '58%'
+  },
+  {
+    left: '5%',
+    right: '5%',
+    height: '40%',
+    bottom: '8%',
+  }
+  ],
+  dataZoom: [
+    makeDataZoom({
+      height: '5%',
+      bottom: '50%',
+      xAxisIndex: 0
+    }),
+    makeDataZoom({
+      height: '5%',
+      bottom: 0,
+      xAxisIndex: 1
+    }),
+  ],
+  xAxis: [{
+
+   // type: 'time',
+   // min: 'dataMin',
+//max: 'dataMax'
+
+  },{
+
+    gridIndex: 1,
+    //type: 'time',
+    min: 'dataMin',
+  max: 'dataMax'
+
+  }],
+  yAxis: [{
+    min: 0,
+    max: 'dataMax',
+  }, {
+
+    gridIndex: 1,
+    min: 'dataMin',
+    max: 'dataMax',
+  }],
+  series: [
+  {
+    datasetId: 'evolution A',
+    name: 'cts',
+    type: 'scatter',
+    xAxisIndex: 0,
+    yAxisIndex: 0,
+    encode: {x:'time',y:'cts'},
+    symbolSize: 3,
+  },
+  {
+    name: 'Energetic spectrum',
+    type: 'scatter',
+    datasetId: 'spectrum A',
+    xAxisIndex: 1,
+    yAxisIndex: 1,
+    encode: {x:'energy',y:'cts'},
+    symbolSize: 4,
+  },
+  {
+    datasetId: 'evolution B',
+    name: 'cts',
+    type: 'scatter',
+    xAxisIndex: 0,
+    yAxisIndex: 0,
+    encode: {x:'time',y:'cts'},
+    symbolSize: 6,
+  },
+  {
+    name: 'Energetic spectrum',
+    type: 'scatter',
+    datasetId: 'spectrum B',
+    xAxisIndex: 1,
+    yAxisIndex: 1,
+    encode: {x:'energy',y:'cts'},
+    symbolSize: 8,
+  }
+  ]
+
+});
+
+myChart.showLoading();
+
+d3.csv("./get_evolution/",
+ d3.autotype).then(function (data) {
+  console.log(data);
+  myChart.hideLoading();
+  myChart.setOption({
+    dataset: [{
+      id: 'evolution A',
+      source: data,
+    }],
+   
+  });
+});
+
+
+d3.csv("./get_spectrum/",
+ d3.autotype).then(function (data) {
+  console.log(data);
+  myChart.hideLoading();
+  myChart.setOption({
+    dataset: [{
+      id: 'spectrum A',
+      source: data,
+    }],
+   
+  });
+});
+
+d3.csv("./get_evolution/",
+ d3.autotype).then(function (data) {
+  console.log(data);
+  myChart.hideLoading();
+  myChart.setOption({
+    dataset: [{
+      id: 'evolution B',
+      source: data,
+    }],
+   
+  });
+});
+
+
+d3.csv("./get_spectrum/",
+ d3.autotype).then(function (data) {
+  console.log(data);
+  myChart.hideLoading();
+  myChart.setOption({
+    dataset: [{
+      id: 'spectrum B',
+      source: data,
+    }],
+   
+  });
+});
+
+
+</script>
 
 
 {% endblock %}

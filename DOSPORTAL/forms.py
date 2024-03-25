@@ -20,6 +20,7 @@ class RecordForm(forms.ModelForm):
             'class': 'form-control',
         }),
         label="Log file",
+        help_text="Select a log file to upload."
         #widget=forms.FileInput(attrs={
         #    'class': 'form-control',
         #})
@@ -30,7 +31,9 @@ class RecordForm(forms.ModelForm):
         widget=forms.Select(attrs={
             'class': 'form-control',
         }),
-        required=False
+        required=False,
+        label="Detector",
+        help_text="Select used detector. It is not mandatory in case of detectors with auto-detect feature."
     )
 
     record_type = forms.ChoiceField(
@@ -39,15 +42,8 @@ class RecordForm(forms.ModelForm):
             'class': 'form-control',
         })
     )
-    
-    time_start = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={
-            'type': "datetime-local",
-            'class': 'form-control datetimepicker-input',
-        })
-    )
 
 
     class Meta:
         model = record
-        exclude = ("time_end", "measurement", "log_filename", "metadata", "duration")
+        exclude = ("time_end", "measurement", "log_filename", "metadata", "duration", "time_start", "record_duration")

@@ -6,6 +6,7 @@ from django.urls import reverse
 from matplotlib.colors import LightSource
 from martor.models import MartorField
 from django_q.tasks import async_task
+from django.utils.text import slugify   
 
 from .tasks import process_flight_entry
 
@@ -18,7 +19,6 @@ def get_enum_dsc(enum, t):
 
 
 class UUIDMixin(models.Model):
-
     id = models.UUIDField(
         primary_key = True,
         default = uuid.uuid4,
@@ -29,11 +29,63 @@ class UUIDMixin(models.Model):
     def get_admin_url(self):
         return reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
 
-
     class Meta:
     	abstract = True
+        
 
 
+class Organization(UUIDMixin):
+    DATA_POLICY_CHOICES = [
+        ('PR', 'Private'),
+        ('PU', 'Public'),
+        ('NV', 'Non-public'),
+    ]
+
+    name = models.CharField(max_length=200)
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='organizations', through='OrganizationUser')
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    data_policy = models.CharField(max_length=2, choices=DATA_POLICY_CHOICES, default='PR')
+    can_users_change_policy = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    website = models.URLField(max_length=200, null=True, blank=True)
+    contact_email = models.EmailField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Aktualizace slug pole na základě názvu, pokud není zadáno
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super(Organization, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    def get_members(self):
+        return ", ".join([str(user) for user in self.users.all()])
+
+    def get_admin_url(self):
+        return reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
+
+
+
+class OrganizationUser(models.Model):
+
+    USER_TYPE_CHOICES = [
+        ('ME', 'Member'),
+        ('AD', 'Admin'),
+        ('OW', 'Owner'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='organization_users')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='user_organizations')
+    user_type = models.CharField(max_length=2, choices=USER_TYPE_CHOICES, default='ME')
+
+    class Meta:
+        unique_together = ('user', 'organization')
+
+    def __str__(self):
+        return f'{self.user.username}: {self.get_user_type_display()} of {self.organization.name}'
 
 class CARImodel(UUIDMixin):
     data = models.JSONField()
@@ -154,6 +206,21 @@ class DetectorCalib(UUIDMixin):
     date = models.DateTimeField(
     )
 
+    coef0 = models.FloatField(
+        _("Coefficient 0 (offset)"),
+        default=0.0
+    )
+
+    coef1 = models.FloatField(
+        _("Coefficient 1, (linear)"),
+        default=1
+    )
+
+    coef2 = models.FloatField(
+        _("Coefficient 2, (quadratic)"),
+        default=0.0
+    )
+
     # author = models.ForeignKey(
     #     settings.AUTH_USER_MODEL,
     #     on_delete=models.CASCADE,
@@ -161,7 +228,8 @@ class DetectorCalib(UUIDMixin):
 
 
     cabib = models.JSONField(
-        _("Slozky kalibrace, json")
+        _("Slozky kalibrace, json"),
+        null=True
     )
 
     
@@ -384,14 +452,16 @@ class record(UUIDMixin):
 
     # Tohle pole by melo obsahovat nasledujici typy:
     RECORD_TYPES = (
+        ('U', 'Unknown'),
         ('S', 'Spectral measurements'),
+        ('E', 'Event measurements'),
         ('L', 'Location')
     )
 
     record_type = models.CharField(
         verbose_name=_("Certain record type, enum"),
         choices=RECORD_TYPES,
-        default="S",
+        default="U",
         help_text=_("Type of log file")
     )
 

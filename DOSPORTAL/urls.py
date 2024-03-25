@@ -20,21 +20,28 @@ from . import views
 from django.views.generic.base import TemplateView
 import uuid
 
-from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, RecordNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, user_profile
+from .users.views_users import user_profile
+from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, MeasurementNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, MeasurementRecordNewView
 from .views_detectors import DetectorView, DetectorOverview, DetectorNewLogbookRecord
 from .views_flights import FlightView
-from .views_record import RecordView, GetSpectrum, GetEvolution
+from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution
+
+#from organizations.backends import invitation_backend
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
 
-    path('user/', user_profile, name='my_user_profile'),
+    #path(r'accounts/', include('organizations.urls')),
+    #path(r'invitations/', include(invitation_backend().get_urls())),
+
+    path('user/', user_profile, name='profile'),
     path('user/<str:username>', user_profile, name='user_profile'),
 
     path("measurements/", MeasurementsListView.as_view(), name="measurements"),
     path("measurement/new/", MeasurementNewView, name='measurement-new'),
-    path('measurement/<uuid:pk>/record/new/', RecordNewView, name="record-upload"),
+    path('measurement/<uuid:pk>/new/', MeasurementRecordNewView, name="record-upload"),
     path('measurement/<uuid:pk>/visualizate/', MeasurementDataView, name="measurement-data-view"),
     # path('measurement/<uuid:pk>/metadata/', MeasurementDataView, name="measurement-data-view"),
     path('measurement/<uuid:pk>/measured_data/', measuredDataGet, name="measurement-data-get"),
@@ -42,6 +49,10 @@ urlpatterns = [
     path('measurement/<uuid:pk>/measured_spectra/', measuredSpectraGet, name="measurement-spectra-get"),
     path('measurement/<uuid:pk>/', MeasurementDetailView, name='measurement-detail'),
 
+
+    path('records/', RecordsListView.as_view(), name='records'),
+
+    path('record/new/', RecordNewView, name='record-new'),
     path('record/<uuid:pk>/', RecordView, name='record-view'),
     path('record/<uuid:pk>/get_spectrum/', GetSpectrum, name='record-GetSpectrum'),
     path('record/<uuid:pk>/get_evolution/', GetEvolution, name='record-GetEvolution'),

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load martortags %}
+
+{% block content %}
+  <div class="d-flex justify-content-between"><div class="h1">Recorded data</div>
+
+  {% if user.is_authenticated %}
+  <a href="/record/new" class="btn btn-outline-success" role="button" style="height: max-content;"><i class="bi bi-plus-square me-2"></i>  New record </a>
+  {% endif %}
+  </div>
+
+  {% if record_list %}
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Type</th>
+        <th scope="col">Autor</th>
+        <th scope="col">Popis</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in record_list.reverse %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td><a href="/record/{{record.id}}/" class="link" style="text-decoration: none;">{{ record.name }}</a></td>
+      <td>{{ record.record_type }}</td>
+      <td>{{record.author}}</td>
+      <td> <div style="max-height: 50pt;overflow-y: auto;">{{record.description | safe_markdown }}</div></td>
+    </tr>
+
+      {% endfor %}
+    </tbody>
+    </table>
+  {% else %}
+    <p>There are no records in the database.</p>
+  {% endif %}
+{% endblock %}

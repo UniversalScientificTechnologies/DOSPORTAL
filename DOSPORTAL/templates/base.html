@@ -89,6 +89,9 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             <a class="nav-link" href="/measurements">Measurements</a>
             </li>
             <li class="nav-item">
+            <a class="nav-link" href="/records">Records</a>
+            </li>
+            <li class="nav-item">
             <a class="nav-link" href="/analysis">Analysis</a>
             </li>
             <li class="nav-item">
@@ -99,7 +102,7 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 
         {% if user.is_authenticated %}
             
-              <span class="mx-4"> Hi <b>{{ user.username }}</b>! </span>
+              <span class="mx-4"> Hi <b><a href="{% url 'profile' %}">{{ user.username }}</a></b>! </span>
               <a href="{% url 'logout' %}" class="btn btn-outline-dark">Log Out</a>
         {% else %}
             <a href="{% url 'login' %}" class="btn btn-outline-dark">Log In</a>

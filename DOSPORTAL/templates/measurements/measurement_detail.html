@@ -37,7 +37,7 @@
     <li><strong>Records:</strong> 
       <ul>
       {% for record in measurement.records.all %}
-        <li><a href="/record/{{record.id}}/">{{record.description}} {{record.type}}</a> {%if record.detector %}(<a href="/detector/{{record.detector.id}}/" data-bs-toggle="tooltip" data-bs-placement="top" title="SN: {{record.detector.sn}}">{{record.detector.name}}</a>){%endif%}  
+        <li><a href="/record/{{record.id}}/"> {{record}}</a> {%if record.detector %}(<a href="/detector/{{record.detector.id}}/" data-bs-toggle="tooltip" data-bs-placement="top" title="SN: {{record.detector.sn}}">{{record.detector.name}}</a>){%endif%}  
           {% if user.is_authenticated %}
           <a href="{{record.get_admin_url}}"><i class="bi bi-pencil"></i></a>
           {%endif%}</li>
@@ -64,10 +64,11 @@
   </div>
   
   <div class="card-body is-one-third collapse py-2" id="upload_data_collapse">
+    {% load crispy_forms_tags %}
     <form method="post" action="./record/new/" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ record_form.as_p }}
-        <button class="button is-success is-fullwidth is-medium" type="submit"> Submit </button>
+        {{ record_form | crispy }}
+    <button class="btn btn-primary" type="submit"> Submit </button>
 
     </form>
     </div>
@@ -90,11 +91,7 @@
     <div class="card-body">
       <div id="graph1"></div>
       <div id="graph2"></div>
-      
-
     </div>
-
-
   </div>
 
 

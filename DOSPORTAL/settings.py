@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)&9q7=6szljptu&2a11rq1k-ofhz1s$nxk&t+f=3xk74(vq4jq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','localhost', '127.0.0.1', '0.0.0.0']
 
 CSRF_TRUSTED_ORIGINS = ['https://portal.dos.ust.cz']
 
@@ -41,17 +41,23 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'bootstrap5',
     #'background_task',
-    'django_json_widget',
+    #'django_json_widget',
     'rest_framework',
     'corsheaders',
     'jquery',
     'import_export',
     'django_select2',
     'martor',
-    'django_tables2',
+    #'django_tables2',
 
     'DOSPORTAL',
     'django_q',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'django_gravatar',
+
+
+    'organizations',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +71,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 ROOT_URLCONF = 'DOSPORTAL.urls'
 

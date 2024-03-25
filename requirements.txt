@@ -23,3 +23,8 @@ pandas
 numpy
 plotly
 gpxpy
+
+django-crispy-forms
+crispy-bootstrap5
+django-organizations
+django-gravatar2
