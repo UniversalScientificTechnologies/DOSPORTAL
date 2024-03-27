@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'django.contrib.gis',
     'bootstrap5',
     #'background_task',
     #'django_json_widget',
@@ -105,7 +106,8 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        #"ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "dosportal",
         "USER": "dosportal_user",
         "PASSWORD": "dosportal_password",
@@ -147,15 +149,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -167,6 +160,9 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / 'static'
 STATIC_URL = 'static/'
+
+MEDIA_ROOT = BASE_DIR / 'data/media'
+MEDIA_URL = 'media/'
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -211,9 +207,10 @@ Q_CLUSTER = {
     'save_limit': 250,
     'queue_limit': 500,
     'cpu_affinity': 1,
-    'label': 'Django Q',
-    #'redis': {
-    #    'host': '127.0.0.1',
+    'label': 'Worker',
+    'redis': {
+        'host': 'redis',
     #    'port': 6379,
     #    'db': 0, }
+    }
 }
