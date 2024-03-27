@@ -11,10 +11,22 @@ networks:
       driver: default
 
 services:
+  # db_dosportal:
+  #   image: postgres
+  #   volumes:
+  #     - ./data/dosportal/db:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=dosportal
+  #     - POSTGRES_USER=dosportal_user
+  #     - POSTGRES_PASSWORD=dosportal_password
+  #   networks:
+  #     inet:
+  #       ipv4_address: 10.5.0.5
+
   db_dosportal:
-    image: postgres
+    image: postgis/postgis
     volumes:
-      - ./data/dosportal/db:/var/lib/postgresql/data
+      - ./data/dosportal/db_pg:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=dosportal
       - POSTGRES_USER=dosportal_user
@@ -22,6 +34,9 @@ services:
     networks:
       inet:
         ipv4_address: 10.5.0.5
+
+
+        
 
   web:
     build:
@@ -36,21 +51,22 @@ services:
       - "8100:8000"
     depends_on:
       - db_dosportal
+      -redis
     networks:
       inet:
         ipv4_address: 10.5.0.6
 #      default:
 
 
-#  redis:
-#    build: .
-#    #command: redis-server && python qcluster
-#    entrypoint: redis-server && python3 manage.py qcluster
-#    volumes:
-#      - .:/DOSPORTAL
-#    depends_on:
-#      - db
-#      - web
-#    networks:
-#      inet:
-#        ipv4_address: 10.5.0.7
+  redis:
+    image: redis
+    #build: .
+    #command: redis-server && python qcluster
+    #entrypoint: redis-server && python3 manage.py qcluster
+    volumes:
+      - .:/DOSPORTAL  
+    depends_on:
+      - db_dosportal
+    networks:
+      inet:
+        ipv4_address: 10.5.0.7

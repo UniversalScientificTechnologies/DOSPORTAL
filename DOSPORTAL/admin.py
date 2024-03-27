@@ -38,6 +38,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 
+admin.site.register(Profile)
 admin.site.register(DetectorManufacturer)
 admin.site.register(measurement)
 admin.site.register(Organization, OrganizationAdmin)
@@ -52,6 +53,11 @@ admin.site.register(Flight)
 admin.site.register(MeasurementDataFlight)
 admin.site.register(measurement_campaign)
 
+
+admin.site.register(Trajectory)
+admin.site.register(TrajectoryPoint)
+
+admin.site.register(SpectrumData)
 
 from django_q import models as q_models
 from django_q import admin as q_admin

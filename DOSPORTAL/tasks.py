@@ -53,3 +53,12 @@ def process_flight_entry(Flight):
 
             
 
+def process_record_entry(Record):
+    print(Record)
+    print(".................")
+    print(".....")
+
+    Record.record_duration = 10
+    Record.save()
+
+    return "OK"

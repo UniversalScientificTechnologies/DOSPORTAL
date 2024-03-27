@@ -16,13 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
+from django.conf import settings
 from . import views
 from django.views.generic.base import TemplateView
+
 import uuid
 
 from .users.views_users import user_profile
+from .users import urls as user_urls
 from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, MeasurementNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, MeasurementRecordNewView
-from .views_detectors import DetectorView, DetectorOverview, DetectorNewLogbookRecord
+from .views_detectors import DetectorView, DetectorEditView,DetectorOverview, DetectorNewLogbookRecord
 from .views_flights import FlightView
 from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution
 
@@ -36,8 +40,12 @@ urlpatterns = [
     #path(r'accounts/', include('organizations.urls')),
     #path(r'invitations/', include(invitation_backend().get_urls())),
 
-    path('user/', user_profile, name='profile'),
-    path('user/<str:username>', user_profile, name='user_profile'),
+    #path('user/', user_profile, name='profile'),
+    #path('user/<str:username>', user_profile, name='user_profile'),
+
+    path('user/', include('DOSPORTAL.users.urls')),
+    path('organization/', include('DOSPORTAL.PART_organizations.urls')),
+    #path('account/', include('DOSPORTAL.users.urls')),
 
     path("measurements/", MeasurementsListView.as_view(), name="measurements"),
     path("measurement/new/", MeasurementNewView, name='measurement-new'),
@@ -61,7 +69,9 @@ urlpatterns = [
     path('flight/<uuid:pk>/', FlightView, name='flight-detail'),
 
     path('detector/<uuid:pk>/new_logbook_record', DetectorNewLogbookRecord),
+    path('detector/new/', DetectorEditView, name="detector-new"),
     path('detectors/', DetectorOverview.as_view(), name="detector-overview"),
+    path('detector/<uuid:pk>/edit/', DetectorEditView, name="detector-edit"),
     path('detector/<uuid:pk>/', DetectorView, name="detector-view"),
     
     path("select2/", include("django_select2.urls")),
@@ -75,3 +85,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 ]
+
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

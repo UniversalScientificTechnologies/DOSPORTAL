@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import generic
 from .models import (DetectorManufacturer, measurement, 
                      record, Detector, DetectorType, DetectorLogbook)
-from .forms import DetectorLogblogForm
+from .forms import DetectorLogblogForm, DetectorEditForm
 
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -21,6 +21,16 @@ def DetectorView(request, pk):
     #return HttpResponse(a)
     return render(request, 'detectors/detectors_detail.html', context={'detector': detector, 'DetectorLogblogForm': DetectorLogblogForm})
 
+def DetectorEditView(request, pk=None):
+    detectorEditForm = DetectorEditForm( instance=Detector.objects.get(pk=pk) if pk else None)
+
+    if request.method == 'POST':
+        detectorEditForm = DetectorEditForm(request.POST)
+        if detectorEditForm.is_valid():
+            detectorEditForm.save()
+            return redirect('detector-view', pk=detectorEditForm.instance.pk)
+
+    return render(request, 'detectors/detector_edit.html', context={'detectorEditForm': detectorEditForm})
 
 
 class  DetectorOverview(generic.ListView):

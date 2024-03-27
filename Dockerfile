@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update
-RUN apt-get install -y python3 net-tools python3-pip libpq-dev redis
+RUN apt-get install -y python3 net-tools python3-pip libpq-dev redis binutils libproj-dev gdal-bin
 
 WORKDIR /DOSPORTAL
 COPY requirements.txt /DOSPORTAL/
