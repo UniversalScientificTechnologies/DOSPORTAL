@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from DOSPORTAL.models import measurement, record, Detector
+from DOSPORTAL.models import measurement, Record, Detector
 
 
 
@@ -12,7 +12,7 @@ class DetectorSerializer(serializers.ModelSerializer):
 class RecordSerializer(serializers.ModelSerializer):
     #detector = DetectorSerializer(read_only = True, many=True)
     class Meta:
-        model = record
+        model = Record
         fields = '__all__'
 
 

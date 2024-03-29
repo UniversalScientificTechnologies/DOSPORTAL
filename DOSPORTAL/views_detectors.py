@@ -2,7 +2,7 @@ from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
 from .models import (DetectorManufacturer, measurement, 
-                     record, Detector, DetectorType, DetectorLogbook)
+                     Record, Detector, DetectorType, DetectorLogbook)
 from .forms import DetectorLogblogForm, DetectorEditForm
 
 from django.shortcuts import get_object_or_404, redirect, render

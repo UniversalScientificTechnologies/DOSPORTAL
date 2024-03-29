@@ -1,5 +1,5 @@
 from django import forms
-from .models import Detector, record, Profile, Organization
+from .models import Detector, Record, Profile, Organization
 
 from django import forms
 from django.contrib.auth.models import User
@@ -70,7 +70,7 @@ class RecordForm(forms.ModelForm):
     )
 
     record_type = forms.ChoiceField(
-        choices=record.RECORD_TYPES
+        choices=Record.RECORD_TYPES
     )
 
     belongs = forms.ModelChoiceField(
@@ -81,8 +81,8 @@ class RecordForm(forms.ModelForm):
     )
 
     class Meta:
-        model = record
-        exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "time_start", "record_duration")
+        model = Record
+        exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "time_start", "record_duration", "author", 'data_file')
 
 
 class DetectorEditForm(forms.ModelForm):

@@ -1,10 +1,7 @@
 
 
 {% extends "base.html" %}
-
 {% block content %}
-
-
 
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script charset="utf-8" src="https://d3js.org/d3.v7.min.js"></script>
@@ -34,7 +31,7 @@
   <li><strong>Record duration:</strong> {{ record.record_duration }}</li>
   <li><strong>Type:</strong> {{ record.record_type }}
   <li><strong>Advanced metadata:</strong></li>
-  <div class="callout">{{record.metadata }}</div>
+  <div class="callout">{{ record.metadata }}</div>
   <li><strong>Description:</strong> {{record}}
   {# <li><strong>File size:</strong> {{record.log_file.size}} #}
   

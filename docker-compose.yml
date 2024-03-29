@@ -51,7 +51,7 @@ services:
       - "8100:8000"
     depends_on:
       - db_dosportal
-      -redis
+      - redis
     networks:
       inet:
         ipv4_address: 10.5.0.6

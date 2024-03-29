@@ -2,7 +2,7 @@ from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
 from .models import (DetectorManufacturer, measurement, 
-                     record, Detector, DetectorType)
+                     Record, Detector, DetectorType)
 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
@@ -184,8 +184,8 @@ def MeasurementDataView(request, pk):
         print("MAM GET... ")
 
         a=measurement.objects.get(pk=pk)
-        rec=record.objects.filter(measurement=pk, record_type="S")
-        loc=record.objects.filter(measurement=pk, record_type="L")
+        rec=Record.objects.filter(measurement=pk, record_type="S")
+        loc=Record.objects.filter(measurement=pk, record_type="L")
 
 
         #return HttpResponse(a)
@@ -204,8 +204,8 @@ def measuredDataGet(request, pk):
 
     series = []
     a=measurement.objects.get(pk=pk)
-    rec=record.objects.filter(measurement=pk, record_type="S")
-    loc=record.objects.filter(measurement=pk, record_type="L")
+    rec=Record.objects.filter(measurement=pk, record_type="S")
+    loc=Record.objects.filter(measurement=pk, record_type="L")
 
 
     b = rec[0]
@@ -383,7 +383,7 @@ def measuredSpectraGet(request, pk):
     part_from = int(float(request.GET.get('start', 0)))  
     part_to = int(float(request.GET.get('end', 0)))    
 
-    rec=record.objects.filter(measurement=pk, record_type="S")
+    rec=Record.objects.filter(measurement=pk, record_type="S")
     #loc=record.objects.filter(measurement=pk, record_type="L")
 
     #l=[]
@@ -451,6 +451,6 @@ def measuredSpectraGet(request, pk):
 def measurementGetData(request, pk):
 
     a=measurement.objects.get(pk=pk)
-    rec=record.objects.filter(measurement=pk, record_type="S")
-    loc=record.objects.filter(measurement=pk, record_type="L")
+    rec=Record.objects.filter(measurement=pk, record_type="S")
+    loc=Record.objects.filter(measurement=pk, record_type="L")
 

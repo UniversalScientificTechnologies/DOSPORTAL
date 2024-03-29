@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.contrib.gis.db import models as geomodels
 
+import json
 
 from .tasks import process_flight_entry, process_record_entry
 
@@ -447,17 +448,8 @@ class measurement(UUIDMixin):
 
 
 
-class record(UUIDMixin):
-    """
-    Obsahuje jednotlivý log z detektoru
-    """
+class Record(UUIDMixin):
 
-    # measurement = models.ForeignKey(
-    #     measurement,
-    #     on_delete=models.CASCADE,
-    #     related_name='records'
-    # )
-    
     detector = models.ForeignKey(
         Detector,
         on_delete=models.CASCADE,
@@ -469,6 +461,10 @@ class record(UUIDMixin):
     def user_directory_path(instance, filename):
         print("USER FILENAME", filename)
         return "user_records/record_{0}".format(instance.pk)
+    
+    def user_directory_path_data(instance, filename):
+        print("USER FILENAME", filename)
+        return "user_records/record_{0}.pk".format(instance.pk)
 
     log_file = models.FileField(
         verbose_name=_("File log"),
@@ -478,14 +474,24 @@ class record(UUIDMixin):
 
 
     log_original_filename = models.CharField(
+        verbose_name = _("Original filename of log file"),
+        null=True,
+        blank=True,
+        max_length=150
+    )
 
+    data_file = models.FileField(
+        verbose_name=_("Log file"),
+        help_text=_("Processed spectral file"),
+        upload_to=user_directory_path_data,
+        null=True,
+        blank=True
     )
 
     time_start = models.DateTimeField(
         verbose_name = _("Measurement beginning time"),
         null=True,
     )
-
 
     record_duration = models.DurationField(
         verbose_name = _("Record duration"),
@@ -512,8 +518,9 @@ class record(UUIDMixin):
     metadata = models.JSONField(
         _("record_metadata"),
         help_text=_("record metadata, used for advanced data processing and maintaining"),
-        null=True
+        default='[{}]'
     )
+
 
     belongs = models.ForeignKey(
         Organization,
@@ -533,10 +540,10 @@ class record(UUIDMixin):
     )
 
     def save(self, *args, **kwargs):
-        super(record, self).save(*args, **kwargs)
+        super(Record, self).save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return "record ({}, {}, start {}, {})".format( get_enum_dsc(self.RECORD_TYPES, self.record_type), self.id, self.time_start, 0)
+        return "record ({}, {}, start {}, {})".format(self.belongs, self.log_original_filename, self.time_start, 0)
 
     def description(self) -> str:
         return "Record ({}, {})".format(get_enum_dsc(self.RECORD_TYPES, self.record_type), self.time_start.strftime("%Y-%m-%d_%H:%M"))
@@ -596,11 +603,13 @@ class SpectrumData(UUIDMixin):
         verbose_name=_("Record")
     )
 
-    spectrum = models.JSONField(
-        _("Spectrum data"),
-        help_text=_("Energy spectrum data as an array of integers"),
-        default=list(),
-    )
+    # spectrum = models.JSONField(
+    #     _("Spectrum data"),
+    #     help_text=_("Energy spectrum data as an array of integers"),
+    #     default=list(),
+    # )
+
+    spectrum = ArrayField(models.IntegerField(), blank=True, null=True, size=None)
 
     integration = models.FloatField(
         _("Integration time"),
@@ -615,14 +624,15 @@ class SpectrumData(UUIDMixin):
         null=True,
         blank=True,
     )
+    
 
-    metadata = HStoreField(
-        _("Metadata"),
-        help_text=_("Additional metadata for the spectrum data"),
-        null=True,
-        blank=True,
-        default=dict()
-    )
+    # metadata = HStoreField(
+    #     _("Metadata"),
+    #     help_text=_("Additional metadata for the spectrum data"),
+    #     null=True,
+    #     blank=True,
+    #     default=dict()
+    # )
     
     location = models.ForeignKey(
         TrajectoryPoint,
@@ -631,7 +641,7 @@ class SpectrumData(UUIDMixin):
         null=True,
         blank=True
     )
-    time_difference = models.DurationField(
+    time = models.DurationField(
         verbose_name=_("Time difference"),
         help_text=_("Time difference from the start of the measurement"),
         null=True
@@ -642,9 +652,9 @@ class SpectrumData(UUIDMixin):
         return f"Spectrum data {self.record.id}"
     
     def save(self, *args, **kwargs):
-        self.particles = sum(self.spectrum)
+        #self.particles = sum(self.spectrum)
 
-        self.metadata['particles'] = self.particles
+        #self.metadata['particles'] = self.particles
 
         super(SpectrumData, self).save(*args, **kwargs)
 

@@ -11,23 +11,23 @@
   {% endif %}
   </div>
 
-  {% if record_list %}
+  {% if records_list %}
   <table class="table table-hover">
     <thead>
       <tr>
         <th scope="col">#</th>
         <th scope="col">Name</th>
         <th scope="col">Type</th>
-        <th scope="col">Author</th>
+        <th scope="col">Organization/Author</th>
       </tr>
     </thead>
     <tbody>
-      {% for record in record_list.reverse %}
+      {% for record in records_list.reverse %}
     <tr>
       <th scope="row"><a href="{%url 'record-view' pk=record.id %}">{{ forloop.counter }}</a></th>
       <td><a href="{%url 'record-view' pk=record.id %}" class="link" style="text-decoration: none;">{{ record | truncatechars:50 }}</a></td>
       <td>{{ record.record_type }}</td>
-      <td>{{record.author}}</td>
+      <td>{{record.belongs}}, {{record.author}}</td>
       <td> <div style="max-height: 50pt;overflow-y: auto;">{{ record }}</div></td>
     </tr>
 

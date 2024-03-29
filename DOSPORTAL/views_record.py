@@ -1,7 +1,7 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from .models import (DetectorManufacturer, measurement, record, 
+from .models import (DetectorManufacturer, measurement, Record, 
                      Detector, DetectorType, DetectorLogbook)
 from .forms import DetectorLogblogForm
 import os
@@ -19,9 +19,9 @@ from .forms import RecordForm
 FIRST_CHANNEL = 10
 
 class RecordsListView(generic.ListView):
-    model = record
+    model = Record
     context_object_name = 'records_list' 
-    queryset = record.objects.all()
+    queryset = Record.objects.all()
     template_name = 'records/records_list.html' 
 
     def get_context_data(self, **kwargs):
@@ -122,6 +122,7 @@ def RecordNewView(request):
             #     data.record_duration = timedelta(seconds = metadata['record']['duration'])
             # #data.measurement = measurement.objects.get(pk=pk)
             pk = data.pk
+            data.author = request.user
 
             print(data)
             data.save()
@@ -138,13 +139,13 @@ def RecordNewView(request):
         return render(request, 'records/record_new.html', {'form': form})
 
 def RecordView(request, pk):
-    rec = record.objects.get(pk=pk)
+    rec = Record.objects.get(pk=pk)
     return render(request, 'records/record_detail.html', context={'record': rec})
 
 
 def GetSpectrum(request, pk):
 
-    record_o = record.objects.filter(pk=pk)
+    record_o = Record.objects.filter(pk=pk)
     print(record_o)
     pass
 
@@ -152,6 +153,6 @@ def GetSpectrum(request, pk):
 
 def GetEvolution(request, pk):
 
-    record_o = record.objects.filter(pk=pk)
+    record_o = Record.objects.filter(pk=pk)
     print(record_o)
     pass

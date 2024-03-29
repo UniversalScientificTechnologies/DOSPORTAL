@@ -4,7 +4,7 @@ from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
 from ..models import (DetectorManufacturer, measurement, 
-                     record, Detector, DetectorType)
+                     Record, Detector, DetectorType)
 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required

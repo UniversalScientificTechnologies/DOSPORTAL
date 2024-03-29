@@ -28,3 +28,6 @@ django-crispy-forms
 crispy-bootstrap5
 django-organizations
 django-gravatar2
+django-prettyjson
+
+tables
