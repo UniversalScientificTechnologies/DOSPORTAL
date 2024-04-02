@@ -13,6 +13,8 @@ from DOSPORTAL import models
 from django.views import generic
 from django.views.generic import ListView
 
+import pandas as pd
+
 from .forms import RecordForm
 
 
@@ -145,9 +147,17 @@ def RecordView(request, pk):
 
 def GetSpectrum(request, pk):
 
-    record_o = Record.objects.filter(pk=pk)
-    print(record_o)
-    pass
+    print("Get Spectrum", pk)
+
+    record = Record.objects.filter(pk=pk)
+    print(record)
+
+    df = pd.read_pickle(record[0].data_file.path)
+    print(df)
+    
+    
+
+    return JsonResponse({'data': 'data'})
 
 
 
@@ -155,4 +165,7 @@ def GetEvolution(request, pk):
 
     record_o = Record.objects.filter(pk=pk)
     print(record_o)
-    pass
+    
+    
+
+    return JsonResponse({'data': 'data'})

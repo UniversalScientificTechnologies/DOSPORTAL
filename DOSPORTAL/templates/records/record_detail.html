@@ -25,16 +25,24 @@
   </div>
   <div class="card-body">
 
+
 <ul>
+  <li> {{record}} </li>
   <li><strong>Detector:</strong> <a href="/detector/{{record.detector.id}}">{{ record.detector }}</a>
   <li><strong>Record start time:</strong> {{ record.time_start }}
   <li><strong>Record duration:</strong> {{ record.record_duration }}</li>
   <li><strong>Type:</strong> {{ record.record_type }}
+  <li><strong>Organization:</strong> {{ record.belongs }}, {{record.data_policy}}, {{record.author}}</li>
   <li><strong>Advanced metadata:</strong></li>
   <div class="callout">{{ record.metadata }}</div>
   <li><strong>Description:</strong> {{record}}
   {# <li><strong>File size:</strong> {{record.log_file.size}} #}
-  
+
+    <li>{{record.log_file}}</li>
+    <li>{{record.log_file.size}}</li>
+    <li>{{record.log_file.url}}</li>
+    <li>{{record.log_original_filename}}</li>
+    <li>{{record.data_file}}</li>  
   </ul>
     </div>
   </div>
@@ -72,9 +80,86 @@
 
  // https://portal.dos.ust.cz/measurement/94d199b7-3c76-4154-a6c5-5c81236b3e71/visualizate/
 
+ var chart = echarts.init(document.getElementById('graph2'), {
+  width: 'auto',
+ });
+
+ chart.setOption({
+  title: {
+    text: 'Energy'
+  },
+  toolbox: {
+    right: 10,
+    feature: {
+     
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+  legend: {
+    data: ['CTS']
+  },
+  grid: [
+  {
+    left: '5%',
+    right: '5%',
+    height: '40%',
+    bottom: '58%',
+  },
+  {
+    left: '5%',
+    right: '5%',
+    height: '40%',
+    bottom: '8%',
+  }
+  ],
+  dataZoom: [
+    makeDataZoom({
+      height: '5%',
+      bottom: '50%',
+      xAxisIndex: 0
+    }),
+    makeDataZoom({
+      height: '5%',
+      bottom: 0,
+      xAxisIndex: 1
+    }),
+  ],
+  xAxis: [{
+    type: 'time',
+    min: 'dataMin',
+    max: 'dataMax'
+  }, {
+    gridIndex: 1,
+    type: 'time',
+    min: 'dataMin',
+    max: 'dataMax'
+  }],
+  yAxis: [{
+    min: 0,
+    max: 'dataMax',
+  }, {
+    gridIndex: 1,
+    min: 'dataMin',
+    max: 'dataMax',
+  }],
+  
+  series: [
+    {
+      datasetId: 'evolution',
+      data: [120, 200, 150],
+      type: 'line'
+    }
+  ]
+
+});
+
+
+/*
  var myChart = echarts.init(document.getElementById('graph1'), {
   width: 'auto',
  });
+
  myChart.setOption({
   title: {
     text: 'Dose'
@@ -141,7 +226,7 @@
   }],
   series: [
   {
-    datasetId: 'evolution A',
+    datasetId: 'evolution',
     name: 'cts',
     type: 'scatter',
     xAxisIndex: 0,
@@ -152,90 +237,53 @@
   {
     name: 'Energetic spectrum',
     type: 'scatter',
-    datasetId: 'spectrum A',
+    datasetId: 'spectrum',
     xAxisIndex: 1,
     yAxisIndex: 1,
     encode: {x:'energy',y:'cts'},
-    symbolSize: 4,
-  },
-  {
-    datasetId: 'evolution B',
-    name: 'cts',
-    type: 'scatter',
-    xAxisIndex: 0,
-    yAxisIndex: 0,
-    encode: {x:'time',y:'cts'},
-    symbolSize: 6,
-  },
-  {
-    name: 'Energetic spectrum',
-    type: 'scatter',
-    datasetId: 'spectrum B',
-    xAxisIndex: 1,
-    yAxisIndex: 1,
-    encode: {x:'energy',y:'cts'},
-    symbolSize: 8,
+    symbolSize: 3,
   }
   ]
 
 });
 
-myChart.showLoading();
+//myChart.showLoading();
+//myChart.hideLoading();
 
-d3.csv("./get_evolution/",
- d3.autotype).then(function (data) {
+myChart.setOption({
+  series: [{
+    id: 'spectrum',
+    data: [100, 1, 120, 2, 110, 1],
+  }],
+ 
+});
+
+
+d3.csv("./get_spectrum/", d3.autotype).then(function (data) {
   console.log(data);
   myChart.hideLoading();
   myChart.setOption({
     dataset: [{
-      id: 'evolution A',
-      source: data,
+      id: 'spectrum',
+      source: [[100, 1], [120, 2], [110, 1]],
     }],
    
   });
 });
 
+d3.csv("./get_evolution/", d3.autotype).then(function (data) {
 
-d3.csv("./get_spectrum/",
- d3.autotype).then(function (data) {
   console.log(data);
   myChart.hideLoading();
-  myChart.setOption({
-    dataset: [{
-      id: 'spectrum A',
-      source: data,
-    }],
-   
-  });
+  //myChart.setOption({
+  //  dataset: [{
+  //    id: 'evolution',
+  //    source: data,
+  //  }],
+  // });
 });
 
-d3.csv("./get_evolution/",
- d3.autotype).then(function (data) {
-  console.log(data);
-  myChart.hideLoading();
-  myChart.setOption({
-    dataset: [{
-      id: 'evolution B',
-      source: data,
-    }],
-   
-  });
-});
-
-
-d3.csv("./get_spectrum/",
- d3.autotype).then(function (data) {
-  console.log(data);
-  myChart.hideLoading();
-  myChart.setOption({
-    dataset: [{
-      id: 'spectrum B',
-      source: data,
-    }],
-   
-  });
-});
-
+*/
 
 </script>
 
