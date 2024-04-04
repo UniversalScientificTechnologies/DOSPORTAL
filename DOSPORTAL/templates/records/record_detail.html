@@ -6,12 +6,12 @@
 <script charset="utf-8" src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
-<nav aria-label="breadcrumb">
+<!-- <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a>Records</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ record.id }}</li>
     </ol>
-</nav>
+</nav> -->
 
 <div class="card my-4">
     <div class="card-header d-flex justify-content-between">
@@ -30,18 +30,18 @@
             <li><strong>Detector:</strong> <a href="/detector/{{record.detector.id}}">{{ record.detector }}</a>
             <li><strong>Record start time:</strong> {{ record.time_start }}
             <li><strong>Record duration:</strong> {{ record.record_duration }}</li>
-            <li><strong>Type:</strong> {{ record.record_type }}
-            <li><strong>Organization:</strong> {{ record.belongs }}, {{record.data_policy}}, {{record.author}}</li>
+            <li><strong>Type:</strong> {{ record.get_record_type_display }}
+            <li><strong>Author:</strong> {{record.author}} behalf of {{ record.belongs }}, Log is {{record.get_data_policy_display}}, {{record.author}}</li>
+            {% if record.metadata|length > 4 %}
             <li><strong>Advanced metadata:</strong></li>
-            <div class="callout">{{ record.metadata }}</div>
-            <li><strong>Description:</strong> {{record}}
+                <div class="callout">{{ record.metadata }}</div>
+            {% endif %}
+            {% if record.description|length > 1 %}
+            <li><strong>Description:</strong>
+                <div class="callout"> {{record.formatted_markdown | safe }} </div>
+            {% endif %}
             <li><strong>Log file: </strong> {{record.log_original_filename}} ({{ record.log_file | filesize_mb }})
 
-            <li>{{record.log_file}}</li>
-            <li>{{record.log_file.size}}</li>
-            <li>{{record.log_file.url}}</li>
-            <li>{{record.log_original_filename}}</li>
-            <li>{{record.data_file}}</li>
         </ul>
     </div>
 </div>
@@ -59,7 +59,7 @@
     </div>
 </div>
 
-
+<!-- 
 <div class="card my-4">
     <div class="card-header">
         <h3>Energetic spectrogram:</h3>
@@ -67,7 +67,7 @@
     <div class="card-body p-1">
         <div id="graph2" style="width:100%;height:1000px;"></div>
     </div>
-</div>
+</div> -->
 
 </div>
 

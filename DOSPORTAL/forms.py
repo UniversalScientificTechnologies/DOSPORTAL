@@ -4,7 +4,7 @@ from .models import Detector, Record, Profile, Organization
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-
+from markdownx.fields import MarkdownxFormField
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -79,6 +79,10 @@ class RecordForm(forms.ModelForm):
         required=False,
         label="Detector",
         help_text="Select used detector. It is not mandatory in case of detectors with auto-detect feature."
+    )
+
+    description = MarkdownxFormField(
+
     )
 
     record_type = forms.ChoiceField(

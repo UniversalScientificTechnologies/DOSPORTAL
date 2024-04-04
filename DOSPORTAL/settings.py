@@ -56,10 +56,14 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_gravatar',
-
+    'markdownx',
 
     'prettyjson',
     'organizations',
+]
+
+MARKDOWNX_MARKDOWN_EXTENSIONS = [
+    'markdown.extensions.extra'
 ]
 
 MIDDLEWARE = [

@@ -13,8 +13,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.contrib.gis.db import models as geomodels
-
+from markdownx.models import MarkdownxField
 import json
+from markdownx.utils import markdownify
 
 from .tasks import process_flight_entry, process_record_entry
 
@@ -472,6 +473,11 @@ class Record(UUIDMixin):
         blank=True
     )
 
+    description = MarkdownxField(
+        verbose_name=_("Description"),
+        help_text=_("Description of the record"),
+        blank=True
+    )
 
     log_original_filename = models.CharField(
         verbose_name = _("Original filename of log file"),
@@ -552,10 +558,13 @@ class Record(UUIDMixin):
     def __str__(self) -> str:
         return "record ({}, {}, start {}, {})".format(self.belongs, self.log_original_filename, self.time_start, 0)
 
-    def description(self) -> str:
-        return "Record ({}, {})".format(get_enum_dsc(self.RECORD_TYPES, self.record_type), self.time_start.strftime("%Y-%m-%d_%H:%M"))
+    # def description(self) -> str:
+    #     return "Record ({}, {})".format(get_enum_dsc(self.RECORD_TYPES, self.record_type), self.time_start.strftime("%Y-%m-%d_%H:%M"))
 
 
+    @property
+    def formatted_markdown(self):
+        return markdownify(self.description)
 
 
 
