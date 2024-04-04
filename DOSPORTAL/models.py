@@ -493,6 +493,13 @@ class Record(UUIDMixin):
         null=True,
     )
 
+    created = models.DateTimeField(
+        verbose_name = _("Time of creation"),
+        null=False,
+        editable=False,
+        auto_now_add=True
+    )
+
     record_duration = models.DurationField(
         verbose_name = _("Record duration"),
         help_text=_("Duration of record"),
@@ -547,7 +554,6 @@ class Record(UUIDMixin):
 
     def description(self) -> str:
         return "Record ({}, {})".format(get_enum_dsc(self.RECORD_TYPES, self.record_type), self.time_start.strftime("%Y-%m-%d_%H:%M"))
-
 
 
 

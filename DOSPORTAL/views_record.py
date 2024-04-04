@@ -13,6 +13,17 @@ from DOSPORTAL import models
 from django.views import generic
 from django.views.generic import ListView
 
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin, SingleTableView
+import django_tables2 as tables
+from django_tables2.utils import Accessor
+from django_tables2 import RequestConfig
+from django.utils.html import format_html
+from django.urls import reverse
+
+
+import itertools
+
 import pandas as pd
 
 from .forms import RecordForm
@@ -20,15 +31,42 @@ from .forms import RecordForm
 
 FIRST_CHANNEL = 10
 
-class RecordsListView(generic.ListView):
-    model = Record
-    context_object_name = 'records_list' 
-    queryset = Record.objects.all()
-    template_name = 'records/records_list.html' 
+# class RecordsListView(generic.ListView):
+#     model = Record
+#     context_object_name = 'records_list' 
+#     queryset = Record.objects.all()
+#     template_name = 'records/records_list.html' 
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         return context
+
+
+
+class RecordTable(tables.Table):
+    row_number = tables.Column(empty_values=(), verbose_name='#')
+    link = tables.LinkColumn('record-view', args=[tables.A('pk')], verbose_name='Link', accessor='pk', attrs={'a': {'target': '_blank'}})
+
+    class Meta:
+        model = Record
+        fields = ("row_number", "belongs", "author", "data_policy", "log_original_filename")  # replace with your field names
+
+    def render_row_number(self, record):
+        self.row_number = getattr(self, 'row_number', itertools.count(self.page.start_index()))
+        return format_html('<a href="{}">{}</a>', reverse('record-view', args=[record.pk]), next(self.row_number))
+
+
+
+def RecordsListView(request):
+    table = RecordTable(Record.objects.all(), 
+        template_name="django_tables2/bootstrap5-responsive.html")
+
+    table.paginate(page=request.GET.get("page", 1), per_page=25)
+
+    return render(request, "records/records_list.html", {
+        "table": table
+    })
+
 
 
 def handle_uploaded_file(f, file):
@@ -126,13 +164,13 @@ def RecordNewView(request):
             pk = data.pk
             data.author = request.user
 
-            print(data)
+            #print(data)
             data.save()
 
             return redirect("record-view", pk=pk)    
             
         else:
-            print("Form není validni")
+            print("Form neni validni")
             print(form.errors)
             return render(request, 'records/record_new.html', {'form': form})
     
@@ -147,25 +185,69 @@ def RecordView(request, pk):
 
 def GetSpectrum(request, pk):
 
-    print("Get Spectrum", pk)
+    minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
+    maxEnergy = request.GET.get('maxEnergy', 'nan')
+
+    #print("Get Spectrum", pk)
 
     record = Record.objects.filter(pk=pk)
-    print(record)
-
     df = pd.read_pickle(record[0].data_file.path)
-    print(df)
     
+    # if not (minEnergy != 'nan' and maxEnergy != 'nan'):
+    #     minEnergy = float(minEnergy)
+    #     maxEnergy = float(maxEnergy)
+    #     df = df[(df['energy'] > minEnergy) & (df['energy'] < maxEnergy)]
+    
+    total_time = df['time'].max()
+    sums = df.drop('time', axis=1).sum().to_frame('counts')
+
+    sums_list = sums
+    sums_list['channel'] = sums_list.index
+
+    sums_list = sums_list[['channel', 'counts']].apply(tuple, axis=1).tolist()
     
 
-    return JsonResponse({'data': 'data'})
+    return JsonResponse({'spectrum_values': sums_list, 'total_time': total_time})
 
 
 
 def GetEvolution(request, pk):
 
-    record_o = Record.objects.filter(pk=pk)
-    print(record_o)
-    
-    
+    minTime = request.GET.get('minTime', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
+    maxTime = request.GET.get('maxTime', 'nan')
 
-    return JsonResponse({'data': 'data'})
+    record = Record.objects.filter(pk=pk)
+    df = pd.read_pickle(record[0].data_file.path)
+
+    df['time'] = df['time'].astype(float)
+
+    start_time = record[0].time_start.timestamp()*1000
+    print(start_time)
+
+    if not (minTime != 'nan' and maxTime != 'nan'):
+        minTime = (float(minTime)-start_time)*1000
+        maxTime = (float(maxTime)-start_time)*1000
+        df = df[(df['time'] >= minTime) & (df['time'] <= maxTime)]
+
+    time = df['time'].astype(float).add(start_time)*1000
+    sums = df.drop('time', axis=1).sum(axis=1)
+
+    data = pd.DataFrame({'time': time, 'value': sums})
+    data_list = data[['time', 'value']].apply(tuple, axis=1).tolist()
+
+
+    return JsonResponse({'evolution_values': data_list})
+
+def GetHistogram(request, pk):
+
+    record = Record.objects.filter(pk=pk)
+    df = pd.read_pickle(record[0].data_file.path).drop('time', axis=1)
+
+    #print(df)
+
+    data_list = []
+    for row in df.iterrows():
+        for column in df.columns:
+            data_list.append([column, row[0], row[1][column]])
+
+    return JsonResponse({'histogram_values': data_list[1:]})

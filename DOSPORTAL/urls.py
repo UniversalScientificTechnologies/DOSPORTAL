@@ -23,12 +23,12 @@ from django.views.generic.base import TemplateView
 
 import uuid
 
-from .users.views_users import user_profile
+from .users.views_users import user_profile, login_view
 from .users import urls as user_urls
 from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, MeasurementNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, MeasurementRecordNewView
 from .views_detectors import DetectorView, DetectorEditView,DetectorOverview, DetectorNewLogbookRecord
 from .views_flights import FlightView
-from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution
+from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution, GetHistogram
 
 #from organizations.backends import invitation_backend
 
@@ -36,6 +36,8 @@ from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectru
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+
+    path('login/', login_view, name='login'),
 
     #path(r'accounts/', include('organizations.urls')),
     #path(r'invitations/', include(invitation_backend().get_urls())),
@@ -58,12 +60,13 @@ urlpatterns = [
     path('measurement/<uuid:pk>/', MeasurementDetailView, name='measurement-detail'),
 
 
-    path('records/', RecordsListView.as_view(), name='records'),
+    path('records/', RecordsListView, name='records'),
 
     path('record/new/', RecordNewView, name='record-new'),
     path('record/<uuid:pk>/', RecordView, name='record-view'),
     path('record/<uuid:pk>/get_spectrum/', GetSpectrum, name='record-GetSpectrum'),
     path('record/<uuid:pk>/get_evolution/', GetEvolution, name='record-GetEvolution'),
+    path('record/<uuid:pk>/get_histogram/', GetHistogram, name='record-GetHistogram'),
 
 
     path('flight/<uuid:pk>/', FlightView, name='flight-detail'),

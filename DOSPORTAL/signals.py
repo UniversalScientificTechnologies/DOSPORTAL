@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from .models import Profile, Record, SpectrumData
 import json
 import pandas as pd
+import datetime
 
 
 @receiver(post_save, sender=User)
@@ -20,15 +21,8 @@ def save_profile(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Record)
 def save_record(sender, instance, created = None, **kwargs):
-    print("AFTER SAVE.... ")
-    print(sender, created)
-    print(instance)
-    print(kwargs)
-    print(".................")
-    print(instance.log_file.path, type(instance.log_file))
 
     if created:
-
         filepath = instance.log_file.path
         print(filepath)
 
@@ -36,10 +30,6 @@ def save_record(sender, instance, created = None, **kwargs):
 
         if type(metadata) is not dict:
             metadata = {}
-
-        print("MEDATADA")
-        print(type(metadata))
-        print(metadata)
 
         
         metadata['log_device_info'] = {}
@@ -95,24 +85,23 @@ def save_record(sender, instance, created = None, **kwargs):
                     }
         
         df = pd.read_csv(instance.log_file.path, sep = ',', header = None, names=range(max_size))
-        print(df)
+
         df = df [df[0] == '$HIST'] 
-        df = df.drop(columns=[0, 1, 3, 4, 5, 6, 7])
+        df = df.drop(columns=[0, 1, 3, 4, 5, 6, 7, 8])
 
         new_columns = ['time'] + list(range(df.shape[1] - 1))
         df.columns = new_columns
 
+        duration = df['time'].max()
+        instance.record_duration = datetime.timedelta(seconds=float(duration))
+
         new_name = instance.user_directory_path_data('pk')
-        print("BUDU TO UKLADAT DO ",'data/media/'+new_name)
         df.to_pickle('data/media/'+new_name)
 
         instance.data_file.name = new_name
 
         print(instance.data_file)
 
-
-        print("Po ")
-        print(df)
                     
         instance.metadata = json.dumps(metadata)
         instance.save()

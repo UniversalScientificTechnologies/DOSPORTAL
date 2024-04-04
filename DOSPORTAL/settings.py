@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'import_export',
     'django_select2',
     'martor',
-    #'django_tables2',
+    'django_tables2',
 
     'DOSPORTAL',
     'django_q',
@@ -176,7 +176,14 @@ REST_FRAMEWORK = {
 
 
 
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table table-hover',
+    'thead': {
+        'class': 'table-light',
+    },
+}
 
 MARTOR_THEME = 'bootstrap'
 MARTOR_ENABLE_CONFIGS = {
