@@ -171,7 +171,6 @@ class Flight(UUIDMixin):
         blank=True
     )
 
-
     def get_absolute_url(self):
         return reverse('flight-detail', args=[str(self.id)])
     
@@ -202,7 +201,7 @@ class DetectorManufacturer(UUIDMixin):
     url = models.URLField(max_length=200)
 
     def __str__(self) -> str:
-        return "Detector manufacturer: {}".format(self.name)
+        return "Detector manufacturer: <a href='{}'>{}</a>".format(self.url, self.name)
 
 class DetectorType(UUIDMixin):
 
@@ -215,9 +214,41 @@ class DetectorType(UUIDMixin):
         on_delete=models.CASCADE
     )
 
+    image = models.ImageField(
+        name=_("Detector image"),
+        help_text=_("Detector image"),
+        upload_to='detector_images',
+        null=True,
+        blank=True
+    )
+
+    url = models.URLField(
+        max_length=200,
+        null=True,
+        blank=True    
+    )
+
+    description = MarkdownxField(
+        verbose_name=_("Detector description"),
+        help_text=_("Detector description"),
+        blank=True
+    )
+
+    def get_absolute_url(self):
+        return reverse('detector-type-view', args=[str(self.id)])
+
+    def get_admin_url(self):
+        return reverse("admin:%s_%s_change" % (self._meta.app_label, self._meta.model_name), args=(self.id,))
 
     def __str__(self) -> str:
         return "Detector type {} ({})".format(self.name, self.manufacturer.name)
+
+
+    @property
+    def description_formatted(self):
+        return markdownify(self.description)
+
+
 
 
 class DetectorCalib(UUIDMixin):
@@ -311,9 +342,16 @@ class Detector(UUIDMixin):
 
     )
 
+    def get_absolute_url(self):
+        return reverse('detector-view', args=[str(self.id)])
+
     def __str__(self) -> str:
         return "Detector {} ({}), SN:{}".format(self.name, self.type.manufacturer.name, self.sn)
     
+    @property
+    def formatted_label(self):
+        return f"""<a class='btn btn-sm btn-info' href='{self.type.get_absolute_url()}'> <i class='bi bi-cpu-fill'></i> {self.type.name}</a>
+                <a class='btn btn-sm btn-info' href='{self.get_absolute_url()}'>{self.name} <span class='text-small text-muted'>({self.sn})</span></a>"""
 
 
 class DetectorLogbook(UUIDMixin):

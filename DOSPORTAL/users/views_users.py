@@ -39,7 +39,7 @@ def login_view(request):
                 login(request, user)
                 return redirect('home')
             else:
-                return render(request, 'login.html', {'form': form, 'error': 'Invalid username or password'})
+                return render(request, 'user/login.html', {'form': form, 'error': 'Invalid username or password'})
     else:
         form = LoginForm()
     return render(request, 'user/login.html', {'form': form})

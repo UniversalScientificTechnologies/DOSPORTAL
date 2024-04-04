@@ -21,6 +21,7 @@ def DetectorView(request, pk):
     #return HttpResponse(a)
     return render(request, 'detectors/detectors_detail.html', context={'detector': detector, 'DetectorLogblogForm': DetectorLogblogForm})
 
+
 def DetectorEditView(request, pk=None):
     detectorEditForm = DetectorEditForm( instance=Detector.objects.get(pk=pk) if pk else None)
 
@@ -74,3 +75,8 @@ def DetectorNewLogbookRecord(request, pk):
         return redirect('detector-view', pk=pk)
     #return HttpResponse(a)
 
+
+
+def DetectorTypeView(request, pk):
+    detectorType = DetectorType.objects.get(pk=pk)
+    return render(request, 'detectors/detector_type_detail.html', context={'detector': detectorType})

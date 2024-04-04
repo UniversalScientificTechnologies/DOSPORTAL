@@ -25,24 +25,45 @@
     </div>
     <div class="card-body">
 
+        <table class="table table-borderless">
+            <tbody>
+              <tr>
+                <td class="w-auto">Detector:</td>
+                <td class="">{{ record.detector.formatted_label | safe }}</td>
+              </tr>
+              <tr>
+                <td class="w-auto">Record start time:</td>
+                <td class="">{{ record.time_start }}</td>
+              </tr>
+              <tr>
+                <td class="w-auto">Record duration:</td>
+                <td class="">{{ record.record_duration }}</td>
+              </tr>
+              <tr>
+                <td class="w-auto">Type:</td>
+                <td class="">{{ record.get_record_type_display }}</td>
+              </tr>
+              <tr>
+                <td class="w-auto">Author:</td>
+                <td class="">{{record.author}} on behalf of {{ record.belongs }}, Log is {{record.get_data_policy_display}}, {{record.author}}</td>
+              </tr>
+              <tr>
+                <td class="w-auto">Log file:</td>
+                <td class="">{{record.log_original_filename}} ({{ record.log_file | filesize_mb }})</td>
+              </tr>
+              {% if record.metadata|length > 4 %} <tr>
+                <td class="w-auto">Advanced metadata:</td>
+                <td class="callout"><code>{{record.metadata}})</code></td>
+              </tr> {% endif %}
+              {% if record.description|length > 1 %}<tr>
+                <td class="w-auto">Description:</td>
+                <td class="callout">{{record.formatted_markdown | safe }}</td>
+              </tr> {% endif %}
+            </tbody>
+          </table>
+          
 
-        <ul>
-            <li><strong>Detector:</strong> <a href="/detector/{{record.detector.id}}">{{ record.detector }}</a>
-            <li><strong>Record start time:</strong> {{ record.time_start }}
-            <li><strong>Record duration:</strong> {{ record.record_duration }}</li>
-            <li><strong>Type:</strong> {{ record.get_record_type_display }}
-            <li><strong>Author:</strong> {{record.author}} behalf of {{ record.belongs }}, Log is {{record.get_data_policy_display}}, {{record.author}}</li>
-            {% if record.metadata|length > 4 %}
-            <li><strong>Advanced metadata:</strong></li>
-                <div class="callout">{{ record.metadata }}</div>
-            {% endif %}
-            {% if record.description|length > 1 %}
-            <li><strong>Description:</strong>
-                <div class="callout"> {{record.formatted_markdown | safe }} </div>
-            {% endif %}
-            <li><strong>Log file: </strong> {{record.log_original_filename}} ({{ record.log_file | filesize_mb }})
 
-        </ul>
     </div>
 </div>
 </ul>

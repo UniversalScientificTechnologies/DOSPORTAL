@@ -26,7 +26,7 @@ import uuid
 from .users.views_users import user_profile, login_view
 from .users import urls as user_urls
 from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, MeasurementNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, MeasurementRecordNewView
-from .views_detectors import DetectorView, DetectorEditView,DetectorOverview, DetectorNewLogbookRecord
+from .views_detectors import DetectorView, DetectorEditView,DetectorOverview, DetectorNewLogbookRecord, DetectorTypeView
 from .views_flights import FlightView
 from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution, GetHistogram
 
@@ -77,6 +77,8 @@ urlpatterns = [
     path('detectors/', DetectorOverview.as_view(), name="detector-overview"),
     path('detector/<uuid:pk>/edit/', DetectorEditView, name="detector-edit"),
     path('detector/<uuid:pk>/', DetectorView, name="detector-view"),
+
+    path('detector_type/<uuid:pk>/', DetectorTypeView, name="detector-type-view"),
     
     path("select2/", include("django_select2.urls")),
     path('martor/', include('martor.urls')),
