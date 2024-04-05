@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*','localhost', '127.0.0.1', '0.0.0.0']
 
-CSRF_TRUSTED_ORIGINS = ['https://portal.dos.ust.cz', 'http://eurados-demo.dos.ust.cz']
+CSRF_TRUSTED_ORIGINS = ['https://portal.dos.ust.cz', 'https://eurados-demo.dos.ust.cz']
 
 # Application definition
 
