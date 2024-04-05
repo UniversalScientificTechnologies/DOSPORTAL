@@ -27,16 +27,19 @@
     </div>
     {%endif%}
 <ul>
-  <li><strong>Serial number:</strong> {{ detector.sn }}</a>
-  <li><strong>Type:</strong> <a href="/detector_type/{{ detector.type.id }}/">{{ detector.type }}</a>
-  <li><strong>Advanced metadata:</strong></li>
+  <li><strong>Serial number:</strong> <span class="btn btn-sm btn-outline-success">{{detector.sn}}</span></a>
+  <li><strong>Type:</strong> {{ detector.type.formatted_label|safe }}</a>
+  {% comment %}<li><strong>Advanced metadata:</strong></li> {% endcomment}
   <span class="ml-3">{{detector.data}}</span>
-  <li><strong>Measurements conducted with this detector:</strong>
-    <ul>
-    {%for record in detector.records.all %}
-      <li> <a href="/measurement/{{ record.measurement.id }}/">{{ record.measurement }}</a>
-    {%endfor%}
-    </ul>
+  
+  {% comment %}
+    <li><strong>Measurements conducted with this detector:</strong>
+      <ul>
+      {%for record in detector.records.all %}
+        <li> <a href="/measurement/{{ record.measurement.id }}/">{{ record.measurement }}</a>
+      {%endfor%}
+      </ul>
+  {% endcomment %}
   
     <li><strong>Records created with this detector:</strong>
       <ul>

@@ -56,12 +56,13 @@
                 <td class="">{{record.log_original_filename}} ({{ record.log_file | filesize_mb }})</td>
                 {% if record.description|length > 1 %}<tr>
                     <td class="w-auto">Description:</td>
-                    <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown | safe }}</div></td>
+                    <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown }}</div></td>
                 </tr> {% endif %}
                 </tr>
                 {% if record.metadata|length > 4 %} <tr>
                 <td class="w-auto">Advanced metadata:</td>
-                <td class=""><div class="callout m-0 p-2" style="max-height: 200pt;overflow-y: auto;"><code>{{record.metadata}})</code></div></td>
+                
+                <td class=""><div class="callout m-0 p-2" style="max-height: 200pt;overflow-y: auto;"><code>{{record.metadata|pretty_json|safe }})</code></div></td>
                 </tr> {% endif %}
             </tbody>
           </table>

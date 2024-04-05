@@ -19,8 +19,6 @@ Organizace <a href="{%url 'organization-detail' slug=organization.slug  %}"><b> 
 {% endfor %}
 </div>
 
-
-
 </div>
 
 <hr>
@@ -31,6 +29,8 @@ Organizace <a href="{%url 'organization-detail' slug=organization.slug  %}"><b> 
 
 <a href="{% url 'detector-view' pk=detector.pk %}"> {{detector}}</a> <br>
 {% endfor %}
+
+{% comment %}
 <hr>
 <h2>Maintainer of detectors:</h2>
 
@@ -39,6 +39,7 @@ TODO:
 <h2>Author of measurements</h2>
 
 TODO:
+{% endcomment %}
 
 
 

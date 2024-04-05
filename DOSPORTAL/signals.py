@@ -92,7 +92,8 @@ def save_record(sender, instance, created = None, **kwargs):
         new_columns = ['time'] + list(range(df_spectrum.shape[1] - 1))
         df_spectrum.columns = new_columns
 
-        duration = df_spectrum['time'].max()
+        df_spectrum['time'] = df_spectrum['time'].astype(float)
+        duration = df_spectrum['time'].max() - df_spectrum['time'].min()
         instance.record_duration = datetime.timedelta(seconds=float(duration))
 
         new_name = instance.user_directory_path_data('pk')

@@ -249,6 +249,9 @@ class DetectorType(UUIDMixin):
     def description_formatted(self):
         return markdownify(self.description)
 
+    @property
+    def formatted_label(self):
+        return f"""<a class='btn btn-sm btn-info' href='{self.get_absolute_url()}'> <i class='bi bi-cpu-fill'></i> {self.name}</a>"""
 
 
 
