@@ -56,9 +56,8 @@ class RecordTable(tables.Table):
         return format_html('<a href="{}">{}</a>', reverse('record-view', args=[record.pk]), next(self.row_number))
 
 
-
 def RecordsListView(request):
-    table = RecordTable(Record.objects.all(), 
+    table = RecordTable(Record.objects.all(), order_by = 'created',  
         template_name="django_tables2/bootstrap5-responsive.html")
 
     table.paginate(page=request.GET.get("page", 1), per_page=25)
@@ -221,22 +220,26 @@ def GetEvolution(request, pk):
 
     df['time'] = df['time'].astype(float)
 
-    start_time = record[0].time_start.timestamp()*1000
+    if record[0].time_tracked:
+        start_time = record[0].time_start.timestamp()*1000
+    else:
+        start_time = 0
+    
     print(start_time)
 
     if not (minTime != 'nan' and maxTime != 'nan'):
-        minTime = (float(minTime)-start_time)*1000
-        maxTime = (float(maxTime)-start_time)*1000
+        minTime = (float(minTime)/1000-start_time)
+        maxTime = (float(maxTime)/1000-start_time)
         df = df[(df['time'] >= minTime) & (df['time'] <= maxTime)]
 
-    time = df['time'].astype(float).add(start_time)*1000
+    time = df['time'].astype(float).mul(1000).add(start_time)
     sums = df.drop('time', axis=1).sum(axis=1)
 
     data = pd.DataFrame({'time': time, 'value': sums})
     data_list = data[['time', 'value']].apply(tuple, axis=1).tolist()
 
 
-    return JsonResponse({'evolution_values': data_list})
+    return JsonResponse({'evolution_values': data_list, 'time_tracked': record[0].time_tracked})
 
 def GetHistogram(request, pk):
 

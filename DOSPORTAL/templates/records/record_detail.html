@@ -33,7 +33,11 @@
               </tr>
               <tr>
                 <td class="w-auto">Record start time:</td>
-                <td class="">{{ record.time_start }}</td>
+                {% if record.time_tracked %}
+                    <td class="">{{ record.time_start }}</td>
+                {% else %}
+                    <td class="text-muted text-small">Time is not tracked for this record</td>
+                {% endif %}
               </tr>
               <tr>
                 <td class="w-auto">Record duration:</td>
@@ -44,21 +48,21 @@
                 <td class="">{{ record.get_record_type_display }}</td>
               </tr>
               <tr>
-                <td class="w-auto">Author:</td>
-                <td class="">{{record.author}} on behalf of {{ record.belongs }}, Log is {{record.get_data_policy_display}}, {{record.author}}</td>
+                <td class="w-auto">Author/Organization:</td>
+                <td class=""> <a class="btn btn-sm btn-outline-info" href="/user/{{record.author.username}}"> {{record.author}} </a>  <a class="btn btn-sm btn-outline-success" href="{{record.belongs.get_absolute_url}}">{{ record.belongs }} </a> </td>
               </tr>
               <tr>
                 <td class="w-auto">Log file:</td>
                 <td class="">{{record.log_original_filename}} ({{ record.log_file | filesize_mb }})</td>
-              </tr>
-              {% if record.metadata|length > 4 %} <tr>
+                {% if record.description|length > 1 %}<tr>
+                    <td class="w-auto">Description:</td>
+                    <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown | safe }}</div></td>
+                </tr> {% endif %}
+                </tr>
+                {% if record.metadata|length > 4 %} <tr>
                 <td class="w-auto">Advanced metadata:</td>
-                <td class="callout"><code>{{record.metadata}})</code></td>
-              </tr> {% endif %}
-              {% if record.description|length > 1 %}<tr>
-                <td class="w-auto">Description:</td>
-                <td class="callout">{{record.formatted_markdown | safe }}</td>
-              </tr> {% endif %}
+                <td class=""><div class="callout m-0 p-2" style="max-height: 200pt;overflow-y: auto;"><code>{{record.metadata}})</code></div></td>
+                </tr> {% endif %}
             </tbody>
           </table>
           
@@ -164,7 +168,8 @@
             }),
         ],
         xAxis: [{
-            type: 'time',
+            {% if record.time_tracked %} type: 'time', {% else %} type: 'value', {% endif %}
+            
             // min: 'dataMin',
             //max: 'dataMax'
         }, {

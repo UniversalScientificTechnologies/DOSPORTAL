@@ -27,7 +27,8 @@ gpxpy
 
 django-crispy-forms
 crispy-bootstrap5
-django-organizations
+#django-organizations
+django-guardian
 django-gravatar2
 django-prettyjson
 

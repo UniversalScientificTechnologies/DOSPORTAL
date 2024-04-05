@@ -71,18 +71,20 @@ class RecordForm(forms.ModelForm):
     #     #})
     # )
 
-    detector = forms.ModelChoiceField(
-        queryset=Detector.objects.all(),
-        widget=forms.Select(attrs={
-            'class': 'form-control',
-        }),
-        required=False,
-        label="Detector",
-        help_text="Select used detector. It is not mandatory in case of detectors with auto-detect feature."
-    )
+    # detector = forms.ModelChoiceField(
+    #     queryset=Detector.objects.all(),
+    #     widget=forms.Select(attrs={
+    #         'class': 'form-control',
+    #     }),
+    #     required=False,
+    #     label="Detector",
+    #     help_text="Select used detector. It is not mandatory in case of detectors with auto-detect feature."
+    # )
 
     description = MarkdownxFormField(
-
+        label="Description",
+        help_text="Detailed description of the record; markdown supported.",
+        required=False,
     )
 
     record_type = forms.ChoiceField(
@@ -98,7 +100,8 @@ class RecordForm(forms.ModelForm):
 
     class Meta:
         model = Record
-        exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "time_start", "record_duration", "author", 'data_file')
+        exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "record_duration", "author", 'data_file',
+                   "created", "detector")
 
 
 class DetectorEditForm(forms.ModelForm):

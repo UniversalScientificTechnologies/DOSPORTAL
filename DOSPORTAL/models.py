@@ -1,3 +1,4 @@
+import datetime
 from typing import Iterable
 from django.db import models
 import uuid
@@ -324,7 +325,9 @@ class Detector(UUIDMixin):
 
     data = models.JSONField(
         _("Detector metadata"),
-        help_text="Detector metadata, used for advanced data processing and maintaining"
+        help_text="Detector metadata, used for advanced data processing and maintaining",
+        default=[{}],
+        blank=True
     )
 
     owner = models.ForeignKey(
@@ -532,9 +535,17 @@ class Record(UUIDMixin):
         blank=True
     )
 
+    time_tracked = models.BooleanField(
+        verbose_name = _("Is time tracked?"),
+        default = False,
+        help_text=_("When time is tracked, 'time_start' must be filled out")
+    )
+
     time_start = models.DateTimeField(
         verbose_name = _("Measurement beginning time"),
         null=True,
+        blank=True,
+        default=datetime.datetime(2000, 1, 1, 0, 0, 0)
     )
 
     created = models.DateTimeField(
@@ -569,7 +580,8 @@ class Record(UUIDMixin):
     metadata = models.JSONField(
         _("record_metadata"),
         help_text=_("record metadata, used for advanced data processing and maintaining"),
-        default='[{}]'
+        default='[{}]',
+        blank=True
     )
 
 

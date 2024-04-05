@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save 
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from .models import Profile, Record, SpectrumData
+from .models import Profile, Record, SpectrumData, Detector
 import json
 import pandas as pd
 import datetime
@@ -61,7 +61,7 @@ def save_record(sender, instance, created = None, **kwargs):
                         "fw-version": parts[2],
                         "fw-build_info": parts[5],
                         "fw-commit": parts[4],
-                        'hw-sn': parts[5]
+                        'hw-sn': parts[6].strip()
                     }
                     
                 elif line.startswith("$DIG"):
@@ -71,7 +71,7 @@ def save_record(sender, instance, created = None, **kwargs):
                         "type": parts[0],
                         "hw-model": parts[1],
                         "hw-sn": parts[2],
-                        '-': parts[3]
+                        'eeprom': parts[3].strip()
                     }
                     
                 elif line.startswith("$ADC"):
@@ -81,24 +81,33 @@ def save_record(sender, instance, created = None, **kwargs):
                         "type": parts[0],
                         "hw-model": parts[1],
                         "hw-sn": parts[2],
-                        '-': parts[3]
+                        'eeprom': parts[3].strip()
                     }
         
-        df = pd.read_csv(instance.log_file.path, sep = ',', header = None, names=range(max_size))
+        df_spectrum = pd.read_csv(instance.log_file.path, sep = ',', header = None, names=range(max_size))
 
-        df = df [df[0] == '$HIST'] 
-        df = df.drop(columns=[0, 1, 3, 4, 5, 6, 7, 8])
+        df_spectrum = df_spectrum [df_spectrum[0] == '$HIST'] 
+        df_spectrum = df_spectrum.drop(columns=[0, 1, 3, 4, 5, 6, 7, 8])
 
-        new_columns = ['time'] + list(range(df.shape[1] - 1))
-        df.columns = new_columns
+        new_columns = ['time'] + list(range(df_spectrum.shape[1] - 1))
+        df_spectrum.columns = new_columns
 
-        duration = df['time'].max()
+        duration = df_spectrum['time'].max()
         instance.record_duration = datetime.timedelta(seconds=float(duration))
 
         new_name = instance.user_directory_path_data('pk')
-        df.to_pickle('data/media/'+new_name)
+        df_spectrum.to_pickle('data/media/'+new_name)
 
         instance.data_file.name = new_name
+
+        try:
+            sn = metadata['log_device_info']['DOS']['hw-sn']
+            print("Traying to find detector with SN", sn)
+            det = Detector.objects.get(sn=sn)
+            print(det)
+            instance.detector = det
+        except Exception as e:
+            print(e)
 
         print(instance.data_file)
 

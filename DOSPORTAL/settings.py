@@ -57,9 +57,9 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'django_gravatar',
     'markdownx',
-
+    'guardian',
     'prettyjson',
-    'organizations',
+  #  'organizations',
 ]
 
 MARKDOWNX_MARKDOWN_EXTENSIONS = [
@@ -121,6 +121,11 @@ DATABASES = {
     }
 }
 
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # this is default
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
