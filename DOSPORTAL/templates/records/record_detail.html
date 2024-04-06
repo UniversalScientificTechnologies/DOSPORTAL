@@ -56,7 +56,7 @@
                 <td class="">{{record.log_original_filename}} ({{ record.log_file | filesize_mb }})</td>
                 {% if record.description|length > 1 %}<tr>
                     <td class="w-auto">Description:</td>
-                    <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown }}</div></td>
+                    <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown | safe }}</div></td>
                 </tr> {% endif %}
                 </tr>
                 {% if record.metadata|length > 4 %} <tr>
@@ -180,16 +180,18 @@
             max: 'dataMax'
         }],
         yAxis: [{
-            //min: 0,
+            min: 'dataMin',
             //max: 'dataMax',
-            type: 'value',
+            type: 'log',
+            logBase: 1000,
             boundaryGap: [0, '100%']
         }, {
             gridIndex: 1,
-            //min: 'dataMin',
-            //max: 'dataMax',
-            type: 'value',
-            boundaryGap: [0, '100%']
+            min: 'dataMin',
+            max: 'dataMax',
+            type: 'log',
+            logBase: 5000,
+            //boundaryGap: [0, '100%']
         }],
         series: [
             {
