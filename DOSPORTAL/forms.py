@@ -101,7 +101,7 @@ class RecordForm(forms.ModelForm):
     class Meta:
         model = Record
         exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "record_duration", "author", 'data_file',
-                   "created", "detector")
+                   "metadata_file", "created", "detector")
 
 
 class DetectorEditForm(forms.ModelForm):

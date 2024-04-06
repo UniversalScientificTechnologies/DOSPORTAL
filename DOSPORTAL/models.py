@@ -507,9 +507,9 @@ class Record(UUIDMixin):
         print("USER FILENAME", filename)
         return "user_records/record_{0}".format(instance.pk)
     
-    def user_directory_path_data(instance, filename):
-        print("USER FILENAME", filename)
-        return "user_records/record_{0}.pk".format(instance.pk)
+    def user_directory_path_data(instance, extension='pk'):
+        print("USER FILENAME", extension)
+        return "user_records/record_{0}.{1}".format(instance.pk, extension)
 
     log_file = models.FileField(
         verbose_name=_("File log"),
@@ -533,6 +533,15 @@ class Record(UUIDMixin):
     data_file = models.FileField(
         verbose_name=_("Log file"),
         help_text=_("Processed spectral file"),
+        upload_to=user_directory_path_data,
+        null=True,
+        blank=True
+    )
+
+
+    metadata_file = models.FileField(
+        verbose_name=_("Metadata file"),
+        help_text=_("Processed metadata file"),
         upload_to=user_directory_path_data,
         null=True,
         blank=True

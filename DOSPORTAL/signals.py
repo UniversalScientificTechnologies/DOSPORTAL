@@ -84,9 +84,11 @@ def save_record(sender, instance, created = None, **kwargs):
                         'eeprom': parts[3].strip()
                     }
         
-        df_spectrum = pd.read_csv(instance.log_file.path, sep = ',', header = None, names=range(max_size))
+        df_log = pd.read_csv(instance.log_file.path, sep = ',', header = None, names=range(max_size))
 
-        df_spectrum = df_spectrum [df_spectrum[0] == '$HIST'] 
+        data_types = df_log[0].unique().tolist()
+
+        df_spectrum = df_log [df_log[0] == '$HIST'] 
         df_spectrum = df_spectrum.drop(columns=[0, 1, 3, 4, 5, 6, 7, 8])
 
         new_columns = ['time'] + list(range(df_spectrum.shape[1] - 1))
@@ -94,10 +96,21 @@ def save_record(sender, instance, created = None, **kwargs):
 
         df_spectrum['time'] = df_spectrum['time'].astype(float)
         duration = df_spectrum['time'].max() - df_spectrum['time'].min()
+
+        metadata['log_info'] = {}
+        metadata['log_info']['internat_time_min'] = df_spectrum['time'].min()
+        metadata['log_info']['internat_time_max'] = df_spectrum['time'].max()
+        metadata['log_info']['log_duration'] = float(duration)
+        metadata['log_info']['spectral_count'] = df_spectrum.shape[0]
+        metadata['log_info']['types'] = data_types
+
+        df_spectrum['time'] = df_spectrum['time'] - df_spectrum['time'].min()
         instance.record_duration = datetime.timedelta(seconds=float(duration))
 
         new_name = instance.user_directory_path_data('pk')
         df_spectrum.to_pickle('data/media/'+new_name)
+
+        del df_spectrum
 
         instance.data_file.name = new_name
 
@@ -109,6 +122,46 @@ def save_record(sender, instance, created = None, **kwargs):
             instance.detector = det
         except Exception as e:
             print(e)
+
+        df_metadata = pd.DataFrame()
+        
+        try:
+            for index, row in df_log.iterrows():
+                first_column_value = row[0]
+                row_as_list = row.tolist()[2:]
+                
+                match first_column_value:
+                    case '$BAT':
+                        keys = ['time', 'voltage', 'current', 'capacity_remaining', 'capacity_full', 'temperature']
+                        bat = { k:float(v) for (k,v) in zip(keys, row_as_list[0:len(keys)])}
+                        bat['current'] /= 1000.0
+                        bat['voltage'] /= 1000.0
+                        df_metadata = pd.concat([df_metadata, pd.DataFrame([bat])], ignore_index=True)
+                        del bat
+                    case '$ENV':
+                        keys = ['time', 'temperature_0', 'humidity_0', 'temperature_1', 'humidity_1', 'temperature_2', 'pressure_3']
+                        env = { k:float(v) for (k,v) in zip(keys, row_as_list[0:len(keys)])}
+                        df_metadata = pd.concat([df_metadata, pd.DataFrame([env])], ignore_index=True)
+                        del env
+                    case '$HIST':
+                        pass
+                    case _:
+                        print('Unknown row', first_column_value)
+            
+            print(df_metadata)
+            
+            df_metadata = df_metadata.sort_values(by=['time']).reset_index(drop=True)
+            df_metadata['time'] -= metadata['log_info']['internat_time_min']
+            new_name = instance.user_directory_path_data('metadata.pk')
+            instance.metadata_file.name = new_name
+            print("NAME", new_name)
+            print(instance.metadata_file)
+            df_metadata.to_pickle('data/media/'+new_name)
+
+
+        except Exception as e:
+            print(e)
+
 
         print(instance.data_file)
 
