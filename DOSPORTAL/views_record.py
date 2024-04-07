@@ -187,7 +187,6 @@ def GetSpectrum(request, pk):
     minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
     maxEnergy = request.GET.get('maxEnergy', 'nan')
 
-    #print("Get Spectrum", pk)
 
     record = Record.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].data_file.path)
@@ -197,16 +196,19 @@ def GetSpectrum(request, pk):
     #     maxEnergy = float(maxEnergy)
     #     df = df[(df['energy'] > minEnergy) & (df['energy'] < maxEnergy)]
     
-    total_time = df['time'].max()
+    total_time = df['time'].max()-df['time'].min()
     sums = df.drop('time', axis=1).sum().to_frame('counts')
 
     sums_list = sums
     sums_list['channel'] = sums_list.index
 
+    if record[0].calib:
+        sums_list = (sums_list * record[0].calib.coef1 + record[0].calib.coef0)/1000.0
+
     sums_list = sums_list[['channel', 'counts']].apply(tuple, axis=1).tolist()
     
 
-    return JsonResponse({'spectrum_values': sums_list, 'total_time': total_time})
+    return JsonResponse({'spectrum_values': sums_list, 'total_time': total_time, 'calib': bool(record[0].calib)})
 
 
 
@@ -227,19 +229,28 @@ def GetEvolution(request, pk):
     
     print(start_time)
 
+
     if not (minTime != 'nan' and maxTime != 'nan'):
         minTime = (float(minTime)/1000-start_time)
         maxTime = (float(maxTime)/1000-start_time)
         df = df[(df['time'] >= minTime) & (df['time'] <= maxTime)]
 
+    total_time = df['time'].max()-df['time'].min()
+
     time = df['time'].astype(float).mul(1000).add(start_time)
-    sums = df.drop('time', axis=1).sum(axis=1)
+    sums = df.drop('time', axis=1).sum(axis=1).div(total_time)
 
     data = pd.DataFrame({'time': time, 'value': sums})
     data_list = data[['time', 'value']].apply(tuple, axis=1).tolist()
 
 
-    return JsonResponse({'evolution_values': data_list, 'time_tracked': record[0].time_tracked})
+    time_of_interest = None
+    if record[0].time_of_interest_start and record[0].time_of_interest_end:
+        time_of_interest = []
+        time_of_interest.append(record[0].time_of_interest_start.seconds*1000 + start_time)
+        time_of_interest.append(record[0].time_of_interest_end.seconds*1000 + start_time)
+
+    return JsonResponse({'evolution_values': data_list, 'time_tracked': record[0].time_tracked, 'time_of_interest': time_of_interest})  
 
 def GetHistogram(request, pk):
 

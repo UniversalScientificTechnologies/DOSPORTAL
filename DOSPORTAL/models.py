@@ -14,6 +14,10 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.contrib.gis.db import models as geomodels
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import Distance
+from django import forms
+
 from markdownx.models import MarkdownxField
 import json
 from markdownx.utils import markdownify
@@ -261,6 +265,8 @@ class DetectorCalib(UUIDMixin):
         _("Calibration name")
     )
 
+    created = models.DateTimeField(auto_now_add=True)
+
     description = models.TextField(
         _("Description of calibration status")
     )
@@ -288,13 +294,10 @@ class DetectorCalib(UUIDMixin):
     #     on_delete=models.CASCADE,
     # )
 
+    def __str__(self) -> str:
+        return f"Calibration '{self.name}' ({self.coef0/1000:.2f}, {self.coef1/1000:.2f}, {self.coef2/1000:.2f} KeV), {self.date}, {self.description}"
 
-    cabib = models.JSONField(
-        _("Slozky kalibrace, json"),
-        null=True
-    )
-
-    
+ 
 
 class Detector(UUIDMixin):
 
@@ -312,12 +315,13 @@ class Detector(UUIDMixin):
         on_delete=models.CASCADE
     )
 
-    calib = models.ForeignKey(
+    calib = models.ManyToManyField(
         DetectorCalib,
-        on_delete=models.CASCADE,
-        null=True,
         blank=True,
-        related_name="detectors"
+        #name=_("Detector calibration"),
+        #related_name="detectors",
+        help_text=_("Detector calibration"),
+        #limit_choices_to=,
     )
 
     manufactured_date = models.DateField(
@@ -356,8 +360,8 @@ class Detector(UUIDMixin):
     
     @property
     def formatted_label(self):
-        return f"""<a class='btn btn-sm btn-info' href='{self.type.get_absolute_url()}'> <i class='bi bi-cpu-fill'></i> {self.type.name}</a>
-                <a class='btn btn-sm btn-info' href='{self.get_absolute_url()}'>{self.name} <span class='text-small text-muted'>({self.sn})</span></a>"""
+        return f"""<a class='btn btn-sm btn-info' title='{self.type}' href='{self.type.get_absolute_url()}'> <i class='bi bi-cpu-fill'></i> {self.type.name}</a>
+                <a class='btn btn-sm btn-info' title='{self}' href='{self.get_absolute_url()}'>{self.name} <span class='text-small text-muted'>({self.sn})</span></a>"""
 
 
 class DetectorLogbook(UUIDMixin):
@@ -560,6 +564,20 @@ class Record(UUIDMixin):
         default=datetime.datetime(2000, 1, 1, 0, 0, 0)
     )
 
+    time_of_interest_start = models.DurationField(
+        verbose_name = _("Time of interest start"),
+        null=True,
+        blank=True,
+        default=None
+    )
+
+    time_of_interest_end = models.DurationField(
+        verbose_name = _("Time of interest end"),
+        null=True,
+        blank=True,
+        default=None
+    )
+
     created = models.DateTimeField(
         verbose_name = _("Time of creation"),
         null=False,
@@ -597,6 +615,14 @@ class Record(UUIDMixin):
     )
 
 
+    calib = models.ForeignKey(
+        DetectorCalib,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='records'
+    )
+
     belongs = models.ForeignKey(
         Organization,
         on_delete=models.DO_NOTHING,
@@ -624,6 +650,22 @@ class Record(UUIDMixin):
     #     return "Record ({}, {})".format(get_enum_dsc(self.RECORD_TYPES, self.record_type), self.time_start.strftime("%Y-%m-%d_%H:%M"))
 
 
+    def calibration_select_form(self):
+        class selectCalibForm(forms.ModelForm):
+            class Meta:
+                model = Record
+                #fields = ['calib']
+                exclude = []
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                detector = self.instance.detector
+                if detector:
+                    self.fields['calib'].queryset = detector.calib.all()
+                else:
+                    self.fields['calib'].queryset = DetectorCalib.objects.none()
+        return selectCalibForm
+    
     @property
     def formatted_markdown(self):
         return markdownify(self.description)
@@ -702,15 +744,6 @@ class SpectrumData(UUIDMixin):
         blank=True,
     )
     
-
-    # metadata = HStoreField(
-    #     _("Metadata"),
-    #     help_text=_("Additional metadata for the spectrum data"),
-    #     null=True,
-    #     blank=True,
-    #     default=dict()
-    # )
-    
     location = models.ForeignKey(
         TrajectoryPoint,
         on_delete=models.CASCADE,
@@ -723,7 +756,6 @@ class SpectrumData(UUIDMixin):
         help_text=_("Time difference from the start of the measurement"),
         null=True
     )
-    # Add any other fields that you think might be useful
 
     def __str__(self) -> str:
         return f"Spectrum data {self.record.id}"

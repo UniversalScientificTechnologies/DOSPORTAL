@@ -6,6 +6,9 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
 
+from django_q import models as q_models
+from django_q import admin as q_admin
+
 class AirportsResource(resources.ModelResource):
    class Meta:
       model = Airports
@@ -43,8 +46,24 @@ admin.site.register(DetectorManufacturer)
 admin.site.register(measurement)
 admin.site.register(Organization, OrganizationAdmin)
 #admin.site.register(OrganizationUser)
-admin.site.register(Record)
-admin.site.register(Detector)
+
+
+class RecordAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            form = obj.calibration_select_form()
+        else:
+            form = super().get_form(request, obj, **kwargs)
+        return form
+    
+admin.site.register(Record, RecordAdmin)
+
+
+class DetectorAdmin(admin.ModelAdmin):
+    filter_horizontal = ('calib',)
+    pass
+
+admin.site.register(Detector, DetectorAdmin)
 admin.site.register(DetectorLogbook)
 admin.site.register(DetectorType)
 admin.site.register(DetectorCalib)
@@ -59,8 +78,6 @@ admin.site.register(TrajectoryPoint)
 
 admin.site.register(SpectrumData)
 
-from django_q import models as q_models
-from django_q import admin as q_admin
 
 admin.site.unregister([q_models.Failure])
 @admin.register(q_models.Failure)

@@ -107,5 +107,5 @@ class RecordForm(forms.ModelForm):
 class DetectorEditForm(forms.ModelForm):
     class Meta:
         model = Detector
-        fields = ["name", "type", 'sn', "calib", "manufactured_date", "data", "owner", "access"]
+        fields = ["name", "type", 'sn', "manufactured_date", "data", "owner", "access"]
         

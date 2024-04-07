@@ -29,6 +29,12 @@
 <ul>
   <li><strong>Serial number:</strong> <span class="btn btn-sm btn-outline-success">{{detector.sn}}</span></a>
   <li><strong>Type:</strong> {{ detector.type.formatted_label|safe }}</a>
+  <li><strong>Calibrations</strong>
+    <ol>
+      {% for calibration in detector.calib.all %}
+        <li><a href="/calibration/{{ calibration.id }}/">{{ calibration | truncatechars:"100"}}</a></li>
+      {% endfor %}
+    </ol>
   {% comment %}<li><strong>Advanced metadata:</strong></li> {% endcomment}
   <span class="ml-3">{{detector.data}}</span>
   
@@ -42,11 +48,11 @@
   {% endcomment %}
   
     <li><strong>Records created with this detector:</strong>
-      <ul>
+      <ol>
       {%for record in detector.records.all %}
         <li> <a href="/record/{{ record.id }}/">{{ record.id }}</a>
       {%endfor%}
-      </ul>
+      </ol>
   </ul>
     </div>
   </div>

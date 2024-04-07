@@ -29,7 +29,9 @@
             <tbody>
               <tr>
                 <td class="w-auto">Detector:</td>
-                <td class="">{{ record.detector.formatted_label | safe }}</td>
+                <td class="">{{ record.detector.formatted_label | safe }}
+                    {% if record.calib %}<a class="btn btn-sm btn-success" title="{{record.calib}}">{{ record.calib.name }} </a>{% endif %}
+                </td>
               </tr>
               <tr>
                 <td class="w-auto">Record start time:</td>
@@ -49,7 +51,7 @@
               </tr>
               <tr>
                 <td class="w-auto">Author/Organization:</td>
-                <td class=""> <a class="btn btn-sm btn-outline-info" href="/user/{{record.author.username}}"> {{record.author}} </a>  <a class="btn btn-sm btn-outline-success" href="{{record.belongs.get_absolute_url}}">{{ record.belongs }} </a> </td>
+                <td class=""> <a class="btn btn-sm btn-outline-info" href="/user/{{record.author.username}}" title="{{record.author.get_full_name}} ({{record.author.username}})"> {{record.author.get_full_name}} </a>  <a class="btn btn-sm btn-outline-success" href="{{record.belongs.get_absolute_url}}">{{ record.belongs }} </a> </td>
               </tr>
               <tr>
                 <td class="w-auto">Log file:</td>
@@ -119,6 +121,7 @@
     });
 
     myChart.setOption({
+        useUTC: true,
         title: [{
             left: 'center',
             text: 'Counts evolution',
@@ -136,7 +139,11 @@
             feature: {
 
                 restore: {},
-                saveAsImage: {}
+                saveAsImage: {},
+                dataZoom: {
+                    //yAxisIndex: 'none'
+                },
+                restore: {}
             }
         },
         legend: {
@@ -157,10 +164,21 @@
             }
         ],
         dataZoom: [
+            {
+                type: 'inside',
+                xAxisIndex: 0
+            },
+            {
+                type: 'inside',
+                xAxisIndex: 1
+            },
             makeDataZoom({
                 height: '5%',
                 bottom: '50%',
-                xAxisIndex: 0
+                xAxisIndex: 0,
+                realtime: true,
+                start: 5,
+                end: 24,
             }),
             makeDataZoom({
                 height: '5%',
@@ -171,8 +189,8 @@
         xAxis: [{
             {% if record.time_tracked %} type: 'time', {% else %} type: 'value', {% endif %}
             
-            // min: 'dataMin',
-            //max: 'dataMax'
+            min: 'dataMin',
+            max: 'dataMax'
         }, {
             gridIndex: 1,
             //type: 'time',
@@ -180,26 +198,20 @@
             max: 'dataMax'
         }],
         yAxis: [{
-            min: 'dataMin',
+            //min: 'dataMin',
             //max: 'dataMax',
-            type: 'log',
-            logBase: 1000,
-            boundaryGap: [0, '100%']
+            //type: 'log',
+            //logBase: 0.00001,
+            //boundaryGap: [0, '100%']
         }, {
             gridIndex: 1,
             min: 'dataMin',
             max: 'dataMax',
-            type: 'log',
-            logBase: 5000,
+            //type: 'log',
+            //logBase: 5000,
             //boundaryGap: [0, '100%']
         }],
         series: [
-            {
-                datasetId: 'evolution',
-            },
-            {
-                datasetId: 'spectrum',
-            }
         ]
 
     });
@@ -208,54 +220,6 @@
     });
     myChart.showLoading()
 
-
-
-/*
-var chartDom = document.getElementById('graph2');
-var myChart2 = echarts.init(chartDom);
-
-
-
-option = {
-  tooltip: {
-    position: 'top'
-  },
- // grid: {
- //   height: '50%',
- //   top: '10%'
- // },
-  xAxis: {
-    type: 'category',
-    //data: hours,
-    splitArea: {
-      show: true
-    }
-  },
-  yAxis: {
-    type: 'category',
-    //data: days,
-    splitArea: {
-      show: true
-    }
-  },
-  visualMap: {
-    min: 0,
-    max: 10,
-    calculable: true,
-    orient: 'horizontal',
-    left: 'center',
-    bottom: '15%'
-  },
-  series: [
-
-  ]
-};
-
-option && myChart2.setOption(option);
-myChart2.showLoading();
-
-*/
-    
 
     function update_chart() {
 
@@ -283,6 +247,41 @@ myChart2.showLoading();
                     symbolSize: 5,
                 }],
             });
+
+            if(data.time_of_interest){
+                console.log("Setting time of interest", data.time_of_interest);
+                start = data.time_of_interest[0];
+                stop = data.time_of_interest[1];
+
+                myChart.setOption({
+                    series: [{
+                        id: 'time_of_interest',
+                        data: [[start, 0], [stop, 0]],
+                        type: 'line',
+                        markLine: {
+                            silent: true,
+                            data: [{
+                                xAxis: start,
+                                label: {
+                                    formatter: 'Start'
+                                }
+                            }, {
+                                xAxis: stop,
+                                label: {
+                                    formatter: 'Stop'
+                                }
+                            }]
+                        },
+                        xAxisIndex: 0,
+                        yAxisIndex: 0,
+                    }],
+                });
+
+
+            }
+
+
+
         });
 
         $.get("./get_evolution/", { minTime: dataZoomRanges[1].startValue, maxTime: dataZoomRanges[1].endValue }).done(function (data) {
