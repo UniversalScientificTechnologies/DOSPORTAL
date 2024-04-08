@@ -82,10 +82,33 @@
     <div class="card-header">
         <h3>Graphs:</h3>
     </div>
+    <div class="card-body p-1 d-flex justify-content-left">
+        <div class="form-check form-check-inline form-switch p-1 m-1">
+            <input class="form-check-input m-1" type="checkbox" id="logarithm" value="0" disabled>
+            <label class="form-check-label m-1 " for="logarithm">Logarithm scale</label>
+            <button class="btn btn-outline-secondary btn-sm m-1" onclick="update_chart()" style="padding: 0.25rem 0.5rem;">Refresh Graph</button>
+        </div>
+    </div>
+    <hr class="m-0">
     <div class="card-body p-1">
         <div id="graph1" style="width:100%;height:1000px;"></div>
     </div>
 </div>
+
+
+
+<div>
+    <div class="card my-4">
+        <div class="card-header">
+            <h3>Telemetry data:</h3>
+        </div>
+        <div class="card-body p-1">
+            <div id="graphTelemetry" style="width:100%;height:500px;"></div>
+        </div>
+    </div>
+
+</div>
+
 
 <!-- 
 <div class="card my-4">
@@ -115,6 +138,9 @@
         );
     }
 
+    var telemChart = echarts.init(document.getElementById('graphTelemetry'), {
+        width: 'auto',
+    });
 
     var myChart = echarts.init(document.getElementById('graph1'), {
         width: 'auto',
@@ -147,7 +173,7 @@
             }
         },
         legend: {
-            data: ['CTS']
+            data: ['CaaaTS', 'Energy'],
         },
         grid: [
             {
@@ -187,32 +213,56 @@
             }),
         ],
         xAxis: [{
-            {% if record.time_tracked %} type: 'time', {% else %} type: 'value', {% endif %}
+            {% if record.time_tracked %}
+                type: 'time',
+            {% else %}
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value} s'
+                },
+            {% endif %}
             
             min: 'dataMin',
             max: 'dataMax'
         }, {
             gridIndex: 1,
-            //type: 'time',
+            type: 'value',
+            {% if record.calib %}
+            name: 'Energy [keV]',
+            axisLabel: {
+                formatter: '{value} keV'
+            },
+            {% else %}
+            name: 'Channel [#]',
+            axisLabel: {
+                formatter: '{value} ch'
+            },
+            {% endif %}
+
             min: 'dataMin',
             max: 'dataMax'
         }],
+
         yAxis: [{
-            //min: 'dataMin',
-            //max: 'dataMax',
+            min: 'dataMin',
+            max: 'dataMax',
+            name: 'Counts per second',
+            align: 'center',
+
             //type: 'log',
-            //logBase: 0.00001,
-            //boundaryGap: [0, '100%']
+            //logBase: 10,
         }, {
             gridIndex: 1,
             min: 'dataMin',
             max: 'dataMax',
+            name: 'Counts per second',
+            align: 'center',
+
             //type: 'log',
-            //logBase: 5000,
-            //boundaryGap: [0, '100%']
+            //logBase: 100000,
         }],
-        series: [
-        ]
+
+        series: [],
 
     });
     myChart.on('datazoom', function (event) {
@@ -223,15 +273,50 @@
 
     function update_chart() {
 
+        /* if($("#logarithm").is(":checked")) {
+
+            myChart.setOption({
+                yAxis: [{
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    type: 'log',
+                    logBase: 10,
+                }, {
+                    gridIndex: 1,
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    type: 'log',
+                    logBase: 10,
+                }]}
+            );
+        } else {
+            myChart.setOption({
+                yAxis: [{
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    //type: 'log',
+                    //logBase: 10,
+                }, {
+                    gridIndex: 1,
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    //type: 'log',
+                    //logBase: 100000,
+                }]
+            });
+        }  */
+
+
         var dataZoomRanges = myChart.getOption().dataZoom;
 
         console.log("A...");
         console.log(dataZoomRanges[0].startValue, dataZoomRanges[0].endValue);
         console.log(dataZoomRanges[1].startValue, dataZoomRanges[1].endValue);
+        console.log("LOGARITHM", $("#logarithm").is(":checked"));
 
         myChart.showLoading();
 
-        $.get("./get_spectrum/", { minEnergy: dataZoomRanges[0].startValue, maxEnergy: dataZoomRanges[0].endValue }).done(function (data) {
+        $.get("./get_spectrum/", { minEnergy: dataZoomRanges[0].startValue, maxEnergy: dataZoomRanges[0].endValue, logarithm: $("#logarithm").is(":checked")}).done(function (data) {
             console.log(data);
             myChart.hideLoading();
 
@@ -284,7 +369,7 @@
 
         });
 
-        $.get("./get_evolution/", { minTime: dataZoomRanges[1].startValue, maxTime: dataZoomRanges[1].endValue }).done(function (data) {
+        $.get("./get_evolution/", { minTime: dataZoomRanges[1].startValue, maxTime: dataZoomRanges[1].endValue, logarithm: $('#logarithm').is(':checked') }).done(function (data) {
 
             console.log(data);
             myChart.hideLoading();
@@ -294,7 +379,7 @@
                     id: 'evolution',
                     data: data.evolution_values,
                     type: 'scatter',
-                    name: 'cts',
+                    name: 'Counts per second',
                     type: 'scatter',
                     xAxisIndex: 0,
                     yAxisIndex: 0,
@@ -302,6 +387,94 @@
                     symbolSize: 5,
                 }],
             });
+
+        });
+
+        $.get("./get_telemetry/", ).done(function (data) {
+
+            console.log(data);
+            console.log(data.telemetry_values.temperature_0);
+
+            const ListTemp0 = Object.keys(data.telemetry_values.temperature_0).map(key => [Number(key), data.telemetry_values.temperature_0[key]]);
+            const ListTemp1 = Object.keys(data.telemetry_values.temperature_1).map(key => [Number(key), data.telemetry_values.temperature_1[key]]);
+            const ListTemp2 = Object.keys(data.telemetry_values.temperature_2).map(key => [Number(key), data.telemetry_values.temperature_2[key]]);
+
+            const ListHum0 = Object.keys(data.telemetry_values.humidity_0).map(key => [Number(key), data.telemetry_values.humidity_0[key]]);
+            const ListHum1 = Object.keys(data.telemetry_values.humidity_1).map(key => [Number(key), data.telemetry_values.humidity_1[key]]);
+            const ListPres0 = Object.keys(data.telemetry_values.pressure_3).map(key => [Number(key), data.telemetry_values.pressure_3[key]/10]);
+
+            console.log(ListTemp0);
+            telemChart.hideLoading();
+
+
+            options = {
+              xAxis: {
+                type: 'value',
+                min: 'dataMin',
+                max: 'dataMax',
+              },
+              yAxis: {
+                type: 'value',
+                min: 'dataMin',
+                max: 'dataMax',
+              },
+              tooltip: {
+                  trigger: 'axis',
+                  axisPointer: { type: 'cross' }
+              },
+              series: [
+              {
+                  id: 'temp0',
+                  data: ListTemp0,
+                  type: 'line',
+                  name: 'Temperature 0',
+                  encode: { x: 'time', y: 'Temperature' },
+                  symbolSize: 5,
+              },
+              {
+                  id: 'temp1',
+                  data: ListTemp1,
+                  type: 'line',
+                  name: 'Temperature 1',
+                  encode: { x: 'time', y: 'Temperature' },
+                  symbolSize: 5,
+              },
+              {
+                  id: 'temp2',
+                  data: ListTemp2,
+                  type: 'line',
+                  name: 'Temperature 2',
+                  encode: { x: 'time', y: 'Temperature' },
+                  symbolSize: 5,
+              },
+              {
+                  id: 'hum0',
+                  data: ListHum0,
+                  type: 'line',
+                  name: 'Humidity 0',
+                  encode: { x: 'time', y: 'Humidity' },
+                  symbolSize: 5,
+              },
+              {
+                  id: 'hum1',
+                  data: ListHum1,
+                  type: 'line',
+                  name: 'Humidity 1',
+                  encode: { x: 'time', y: 'Humidity' },
+                  symbolSize: 5,
+              },
+              {
+                  id: 'pres0',
+                  data: ListPres0,
+                  type: 'line',
+                  name: 'Pressure 0 (*0.1)',
+                  encode: { x: 'time', y: 'Pressure' },
+                  symbolSize: 5,
+              }
+            ],
+            }
+                
+            telemChart.setOption(options);
 
         });
 

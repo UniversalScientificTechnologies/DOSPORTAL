@@ -118,8 +118,12 @@ def save_record(sender, instance, created = None, **kwargs):
             sn = metadata['log_device_info']['DOS']['hw-sn']
             print("Traying to find detector with SN", sn)
             det = Detector.objects.get(sn=sn)
-            print(det)
+            print("Found detector", det)
             instance.detector = det
+
+            instance.calib = det.calib.last()
+
+
         except Exception as e:
             print(e)
 

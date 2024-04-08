@@ -267,12 +267,19 @@ class DetectorCalib(UUIDMixin):
 
     created = models.DateTimeField(auto_now_add=True)
 
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING,
+        related_name="calibrations",
+        null=True,
+        default=None
+    )
+
     description = models.TextField(
         _("Description of calibration status")
     )
 
-    date = models.DateTimeField(
-    )
+    created = models.DateTimeField(auto_now_add=True)
 
     coef0 = models.FloatField(
         _("Coefficient 0 (offset)"),
@@ -295,7 +302,7 @@ class DetectorCalib(UUIDMixin):
     # )
 
     def __str__(self) -> str:
-        return f"Calibration '{self.name}' ({self.coef0/1000:.2f}, {self.coef1/1000:.2f}, {self.coef2/1000:.2f} KeV), {self.date}, {self.description}"
+        return f"Calibration '{self.name}' ({self.coef0/1000:.2f}+x*{self.coef1/1000:.2f} KeV), {self.created}, {self.description}"
 
  
 
@@ -319,7 +326,7 @@ class Detector(UUIDMixin):
         DetectorCalib,
         blank=True,
         #name=_("Detector calibration"),
-        #related_name="detectors",
+        related_name="detectors",
         help_text=_("Detector calibration"),
         #limit_choices_to=,
     )
@@ -517,6 +524,7 @@ class Record(UUIDMixin):
 
     log_file = models.FileField(
         verbose_name=_("File log"),
+        help_text=_("Upload recorded data file form your detector"),
         upload_to=user_directory_path,
         blank=True
     )
@@ -554,11 +562,12 @@ class Record(UUIDMixin):
     time_tracked = models.BooleanField(
         verbose_name = _("Is time tracked?"),
         default = False,
-        help_text=_("When time is tracked, 'time_start' must be filled out")
+        help_text=_("Tick this box if the record is dependent on absolute time. When you need align record to real time.")
     )
 
     time_start = models.DateTimeField(
         verbose_name = _("Measurement beginning time"),
+        help_text=("When 'time is tracked', you can set start time of the record beginning. "),
         null=True,
         blank=True,
         default=datetime.datetime(2000, 1, 1, 0, 0, 0)
@@ -628,10 +637,15 @@ class Record(UUIDMixin):
         on_delete=models.DO_NOTHING,
         null=True,
         related_name="records_owning",
-        help_text=_("Organization, which owns this record")
+        help_text=_("Organization, which owns this record. If you are the only owner, please leave this field empty.")
     )
 
-    data_policy = models.CharField(max_length=2, choices= Organization.DATA_POLICY_CHOICES, default='PU')
+    data_policy = models.CharField(
+        max_length=2,
+        choices= Organization.DATA_POLICY_CHOICES,
+        default='PU',
+        help_text=_("Data policy of this record. Field can be overridden depending by setting of the organisation, that owns this record."),
+        )
 
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,

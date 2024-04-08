@@ -1,9 +1,9 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from .models import (DetectorManufacturer, measurement, 
+from .models import (DetectorManufacturer, measurement, DetectorCalib,
                      Record, Detector, DetectorType, DetectorLogbook)
-from .forms import DetectorLogblogForm, DetectorEditForm
+from .forms import DetectorLogblogForm, DetectorEditForm, DetectorCalibForm, DetectorCalibFormSet
 
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -18,8 +18,11 @@ FIRST_CHANNEL = 10
 
 def DetectorView(request, pk):
     detector = Detector.objects.get(pk=pk)
+    form = DetectorCalibForm(instance=detector)
+    formset = DetectorCalibFormSet(instance=detector)
+    
     #return HttpResponse(a)
-    return render(request, 'detectors/detectors_detail.html', context={'detector': detector, 'DetectorLogblogForm': DetectorLogblogForm})
+    return render(request, 'detectors/detectors_detail.html', context={'detector': detector, 'DetectorLogblogForm': DetectorLogblogForm, 'calibForm': form, 'calibFormset': formset})
 
 
 def DetectorEditView(request, pk=None):
@@ -41,12 +44,6 @@ class  DetectorOverview(generic.ListView):
     sequence = ("id", "sn", "name", )
     queryset = Detector.objects.all()
     template_name = 'detectors/detectors_overview.html'
-
-    # def get_context_data(self, **kwargs):
-    #     context = super(DetectorOverview, self).get_context_data(**kwargs)
-    #     context['some_data'] = 'This is just some data'
-    #     return context
-
 
     def POST(self, request, *args, **kwargs):
         # Tato část se zavolá při POST požadavku
@@ -80,3 +77,12 @@ def DetectorNewLogbookRecord(request, pk):
 def DetectorTypeView(request, pk):
     detectorType = DetectorType.objects.get(pk=pk)
     return render(request, 'detectors/detector_type_detail.html', context={'detector': detectorType})
+
+
+class DetectorCalibDetailView(generic.DetailView):
+    model = DetectorCalib
+    template_name = 'detectors/detectorCalib_detail.html'
+
+
+    def POST(self, request, pk, *args, **kwargs):
+        return render(request, self.template_name, {'calib': get_object_or_404(self.model, pk=pk)})

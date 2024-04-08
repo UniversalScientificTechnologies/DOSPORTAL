@@ -1,6 +1,8 @@
+import math
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
+import numpy as np
 from .models import (DetectorManufacturer, measurement, Record, 
                      Detector, DetectorType, DetectorLogbook)
 from .forms import DetectorLogblogForm
@@ -186,6 +188,7 @@ def GetSpectrum(request, pk):
 
     minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
     maxEnergy = request.GET.get('maxEnergy', 'nan')
+    logarithm = request.GET.get('logarithm', 'false') == 'true'
 
 
     record = Record.objects.filter(pk=pk)
@@ -197,13 +200,18 @@ def GetSpectrum(request, pk):
     #     df = df[(df['energy'] > minEnergy) & (df['energy'] < maxEnergy)]
     
     total_time = df['time'].max()-df['time'].min()
-    sums = df.drop('time', axis=1).sum().to_frame('counts')
+    sums_list = df.drop('time', axis=1).sum().to_frame('counts').div(total_time)
+    
+    if logarithm:
+        sums_list['counts'] = np.log10(sums_list['counts']+10)-0.9
+        pass
 
-    sums_list = sums
+
     sums_list['channel'] = sums_list.index
 
     if record[0].calib:
-        sums_list = (sums_list * record[0].calib.coef1 + record[0].calib.coef0)/1000.0
+        sums_list['channel'] = (record[0].calib.coef0 +  sums_list['channel'] * record[0].calib.coef1)/1000
+    
 
     sums_list = sums_list[['channel', 'counts']].apply(tuple, axis=1).tolist()
     
@@ -216,6 +224,9 @@ def GetEvolution(request, pk):
 
     minTime = request.GET.get('minTime', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
     maxTime = request.GET.get('maxTime', 'nan')
+    logarithm = request.GET.get('logarithm', 'false') == 'true'
+
+    print(">>>> LOGARITHM", logarithm)
 
     record = Record.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].data_file.path)
@@ -240,7 +251,12 @@ def GetEvolution(request, pk):
     time = df['time'].astype(float).mul(1000).add(start_time)
     sums = df.drop('time', axis=1).sum(axis=1).div(total_time)
 
+    if logarithm:
+        sums = np.log(sums+10)-0.9
+
     data = pd.DataFrame({'time': time, 'value': sums})
+
+        
     data_list = data[['time', 'value']].apply(tuple, axis=1).tolist()
 
 
@@ -265,3 +281,13 @@ def GetHistogram(request, pk):
             data_list.append([column, row[0], row[1][column]])
 
     return JsonResponse({'histogram_values': data_list[1:]})
+
+
+def GetTelemetry(request, pk):
+
+    record = Record.objects.filter(pk=pk)
+    df = pd.read_pickle(record[0].metadata_file.path).drop('time', axis=1)
+    df = df.astype(float)
+
+
+    return JsonResponse({'telemetry_values': df.to_dict() })

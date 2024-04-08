@@ -26,9 +26,9 @@ import uuid
 from .users.views_users import user_profile, login_view
 from .users import urls as user_urls
 from .views import MeasurementsListView, MeasurementDetailView, MeasurementNewView, MeasurementNewView, MeasurementDataView, measuredDataGet, measuredSpectraGet, MeasurementRecordNewView
-from .views_detectors import DetectorView, DetectorEditView,DetectorOverview, DetectorNewLogbookRecord, DetectorTypeView
+from .views_detectors import DetectorView, DetectorEditView,DetectorOverview, DetectorNewLogbookRecord, DetectorTypeView, DetectorCalibDetailView
 from .views_flights import FlightView
-from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution, GetHistogram
+from .views_record import RecordsListView, RecordView, RecordNewView, GetSpectrum, GetEvolution, GetHistogram, GetTelemetry
 
 #from organizations.backends import invitation_backend
 
@@ -60,6 +60,7 @@ urlpatterns = [
     path('measurement/<uuid:pk>/measured_spectra/', measuredSpectraGet, name="measurement-spectra-get"),
     path('measurement/<uuid:pk>/', MeasurementDetailView, name='measurement-detail'),
 
+    path('calibration/<uuid:pk>/', DetectorCalibDetailView.as_view(), name='calibration-detail'),
 
     path('records/', RecordsListView, name='records'),
 
@@ -68,6 +69,7 @@ urlpatterns = [
     path('record/<uuid:pk>/get_spectrum/', GetSpectrum, name='record-GetSpectrum'),
     path('record/<uuid:pk>/get_evolution/', GetEvolution, name='record-GetEvolution'),
     path('record/<uuid:pk>/get_histogram/', GetHistogram, name='record-GetHistogram'),
+    path('record/<uuid:pk>/get_telemetry/', GetTelemetry, name='record-GetTelemetry'),
 
 
     path('flight/<uuid:pk>/', FlightView, name='flight-detail'),

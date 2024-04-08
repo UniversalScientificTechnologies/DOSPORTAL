@@ -3,6 +3,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% load martortags %}
+{% load crispy_forms_tags %}
 
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
@@ -86,6 +88,8 @@
 {%endif%}
 
 
+
+
 <div class="card mb-5">
 <div class="card-header">
   <a class="small" type="button" data-bs-toggle="collapse" data-bs-target="#add_record_collapse" aria-expanded="false" aria-controls="collapseExample">
@@ -96,8 +100,8 @@
 <div class="card-body collapse py-2" id="add_record_collapse">
   <form method="post" action="new_logbook_record">
     {% csrf_token %}
-    {{ DetectorLogblogForm.as_p }}
-    <button type="submit">Submit</button>
+    {{ DetectorLogblogForm | crispy }}
+    <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
 </div>

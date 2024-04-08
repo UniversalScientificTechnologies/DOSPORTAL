@@ -1,5 +1,5 @@
 from django import forms
-from .models import Detector, Record, Profile, Organization
+from .models import Detector, Record, Profile, Organization, DetectorCalib
 
 from django import forms
 from django.contrib.auth.models import User
@@ -83,13 +83,13 @@ class RecordForm(forms.ModelForm):
 
     description = MarkdownxFormField(
         label="Description",
-        help_text="Detailed description of the record; markdown supported.",
+        help_text="Detailed description of measurements. You can add additional information about measurement conditions, locations etc.. (Markdown supported)",
         required=False,
     )
 
-    record_type = forms.ChoiceField(
-        choices=Record.RECORD_TYPES
-    )
+    # record_type = forms.ChoiceField(
+    #     choices=Record.RECORD_TYPES
+    # )
 
     belongs = forms.ModelChoiceField(
         queryset=Organization.objects.exclude(user_organizations__user=user),
@@ -101,7 +101,7 @@ class RecordForm(forms.ModelForm):
     class Meta:
         model = Record
         exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "record_duration", "author", 'data_file',
-                   "metadata_file", "created", "detector")
+                   "metadata_file", "created", "detector", "time_of_interest_start", "time_of_interest_end", 'calib', 'record_type')
 
 
 class DetectorEditForm(forms.ModelForm):
@@ -109,3 +109,20 @@ class DetectorEditForm(forms.ModelForm):
         model = Detector
         fields = ["name", "type", 'sn', "manufactured_date", "data", "owner", "access"]
         
+
+class DetectorCalibForm(forms.ModelForm):
+    class Meta:
+        model = DetectorCalib
+        #fields = ['name', 'description', 'coef0', 'coef1', 'coef2']
+        exclude = ['created', 'author']
+
+
+DetectorCalibFormSet = forms.inlineformset_factory(
+    Detector, 
+    Detector.calib.through,
+    #fields= (calib',),
+    form=DetectorCalibForm,
+    can_delete=True,
+    extra=1
+)
+
