@@ -97,7 +97,7 @@
 
 
 
-<div>
+<div id="telemetry-card">
     <div class="card my-4">
         <div class="card-header">
             <h3>Telemetry data:</h3>
@@ -123,8 +123,6 @@
 </div>
 
 <script>
-
-
 
 
     function makeDataZoom(opt) {
@@ -266,7 +264,7 @@
 
     });
     myChart.on('datazoom', function (event) {
-        update_chart();
+        // update_chart();
     });
     myChart.showLoading()
 
@@ -392,6 +390,7 @@
 
         $.get("./get_telemetry/", ).done(function (data) {
 
+            $("#telemetry-card").show();
             console.log(data);
             console.log(data.telemetry_values.temperature_0);
 
@@ -476,7 +475,7 @@
                 
             telemChart.setOption(options);
 
-        });
+        }).fail(function(data){ $("#telemetry-card").hide(); });
 
 
         
