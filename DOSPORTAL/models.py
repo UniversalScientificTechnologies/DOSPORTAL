@@ -506,6 +506,15 @@ class measurement(UUIDMixin):
 
 class Record(UUIDMixin):
 
+    name = models.CharField(
+        max_length = 80,
+        verbose_name=_("Record name"),
+        help_text=_("Name of this record. Short and simple description of record."),
+        null=True,
+        blank=False,
+        default="Record"
+    )
+
     detector = models.ForeignKey(
         Detector,
         on_delete=models.CASCADE,
@@ -573,14 +582,14 @@ class Record(UUIDMixin):
         default=datetime.datetime(2000, 1, 1, 0, 0, 0)
     )
 
-    time_of_interest_start = models.DurationField(
+    time_of_interest_start = models.FloatField(
         verbose_name = _("Time of interest start"),
         null=True,
         blank=True,
         default=None
     )
 
-    time_of_interest_end = models.DurationField(
+    time_of_interest_end = models.FloatField(
         verbose_name = _("Time of interest end"),
         null=True,
         blank=True,

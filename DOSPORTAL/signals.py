@@ -162,7 +162,6 @@ def save_record(sender, instance, created = None, **kwargs):
             print(instance.metadata_file)
             df_metadata.to_pickle('data/media/'+new_name)
 
-
         except Exception as e:
             print(e)
 

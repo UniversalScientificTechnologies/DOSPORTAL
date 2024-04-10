@@ -59,6 +59,27 @@ class RecordForm(forms.ModelForm):
         self.user = user
 
 
+    name = forms.CharField(
+        required=True, 
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+
+        }),
+        label="Name",
+        help_text="Enter a name for the measurement.",
+    )
+
+    time_start = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(attrs={
+            'class': 'form-control',
+            'type': 'datetime-local',
+            'step': '1',
+        }),
+        label="Start time",
+        help_text="Enter the start time of the measurement. When 'time is tracked', you should set start time of the record beginning. ",
+    )
+
     # log_file = forms.FileField(
     #     required=False,
     #     widget=forms.widgets.FileInput(attrs={

@@ -27,6 +27,9 @@
 
         <table class="table table-borderless">
             <tbody>
+                <tr>
+                    <td class="w-auto">Record name:</td>
+                    <td class=""><code>{{ record.name }}</code></td>
               <tr>
                 <td class="w-auto">Detector:</td>
                 <td class="">{{ record.detector.formatted_label | safe }}
@@ -270,40 +273,6 @@
 
 
     function update_chart() {
-
-        /* if($("#logarithm").is(":checked")) {
-
-            myChart.setOption({
-                yAxis: [{
-                    min: 'dataMin',
-                    max: 'dataMax',
-                    type: 'log',
-                    logBase: 10,
-                }, {
-                    gridIndex: 1,
-                    min: 'dataMin',
-                    max: 'dataMax',
-                    type: 'log',
-                    logBase: 10,
-                }]}
-            );
-        } else {
-            myChart.setOption({
-                yAxis: [{
-                    min: 'dataMin',
-                    max: 'dataMax',
-                    //type: 'log',
-                    //logBase: 10,
-                }, {
-                    gridIndex: 1,
-                    min: 'dataMin',
-                    max: 'dataMax',
-                    //type: 'log',
-                    //logBase: 100000,
-                }]
-            });
-        }  */
-
 
         var dataZoomRanges = myChart.getOption().dataZoom;
 

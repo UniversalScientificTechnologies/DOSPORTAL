@@ -20,6 +20,7 @@ from django_tables2.views import SingleTableMixin, SingleTableView
 import django_tables2 as tables
 from django_tables2.utils import Accessor
 from django_tables2 import RequestConfig
+from django_tables2.utils import A  # alias for Accessor
 from django.utils.html import format_html
 from django.urls import reverse
 
@@ -47,11 +48,18 @@ FIRST_CHANNEL = 10
 
 class RecordTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name='#')
-    link = tables.LinkColumn('record-view', args=[tables.A('pk')], verbose_name='Link', accessor='pk', attrs={'a': {'target': '_blank'}})
+
+    link = tables.LinkColumn(
+                    'record-view',
+                    args=[tables.A('pk')],
+                    verbose_name='Name',
+                    attrs={ 'aria-label': 'Link'},
+                    text = lambda record: record.name,
+                )
 
     class Meta:
         model = Record
-        fields = ("row_number", "belongs", "author", "data_policy", "log_original_filename")  # replace with your field names
+        fields = ("row_number", "link", "belongs", "author", "data_policy", "log_original_filename")  # replace with your field names
 
     def render_row_number(self, record):
         self.row_number = getattr(self, 'row_number', itertools.count(self.page.start_index()))
@@ -263,8 +271,8 @@ def GetEvolution(request, pk):
     time_of_interest = None
     if record[0].time_of_interest_start and record[0].time_of_interest_end:
         time_of_interest = []
-        time_of_interest.append(record[0].time_of_interest_start.seconds*1000 + start_time)
-        time_of_interest.append(record[0].time_of_interest_end.seconds*1000 + start_time)
+        time_of_interest.append(record[0].time_of_interest_start*1000 + start_time)
+        time_of_interest.append(record[0].time_of_interest_end*1000 + start_time)
 
     return JsonResponse({'evolution_values': data_list, 'time_tracked': record[0].time_tracked, 'time_of_interest': time_of_interest})  
 
@@ -291,3 +299,39 @@ def GetTelemetry(request, pk):
 
 
     return JsonResponse({'telemetry_values': df.to_dict() })
+
+
+
+def CalcDSI(request, pk):
+
+    record = Record.objects.filter(pk=pk)
+    df = pd.read_pickle(record[0].data_file.path).drop('time', axis=1).sum(axis=0)
+
+    calib = record[0].calib
+
+    df = df.reset_index()
+
+    df.columns = ['index', 'counts']
+    df = df.drop('index', axis=1)
+    df['channel_energy'] = calib.coef0 + df.index * calib.coef1
+    df['energy_sum'] = df['counts'] * df['channel_energy']
+
+    print(df)
+
+    e_corr = df['energy_sum'].mean() # eV 
+    si_mass = 0.1165e-3 # kg
+    integration = 10 # s
+
+    print("Energy correction", e_corr)
+
+    dsi = ( (e_corr * 1.602 * 1e-19) / si_mass )  # Gy
+    dsi *= 1e6 # uGy
+
+    print("DSI", dsi)
+
+    dsi *= (3600/10) # uGy / h
+
+    print("DSI", dsi)
+
+
+    return HttpResponse(f"Total energie: {e_corr} \n DSI: {dsi} \n" + df.to_csv(), content_type="text/csv")
