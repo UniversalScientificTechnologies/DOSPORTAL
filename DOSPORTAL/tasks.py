@@ -1,7 +1,8 @@
 
 from time import sleep
-from .models import *
+from .models import Record, Flight
 from .helpers_cari import *
+import uuid
 
 import os
 import sys
@@ -11,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import datetime
+import json
 
 
 import os
@@ -53,12 +55,45 @@ def process_flight_entry(Flight):
 
             
 
-def process_record_entry(Record):
-    print(Record)
-    print(".................")
-    print(".....")
+def process_record_entry(pk):
 
-    Record.record_duration = 10
-    Record.save()
+    print("DOSPORTAL PROCESS_RECORD_ENTRY", pk)
+    print(">.... django-Q ")
 
-    return "OK"
+    record = Record.objects.filter(pk=pk)[0]
+
+    print(record)
+    df = pd.read_pickle(record.data_file.path).drop('time', axis=1).astype(float).to_numpy()
+
+    calib = record.calib
+
+    s = np.linspace(0, df.shape[1]-1, df.shape[1])
+    s = calib.coef0 + s * calib.coef1
+
+    energies_per_exposition = np.matmul(df, s)
+
+    dose_rate_per_exposition = ((1e6 * (1.602e-19 * energies_per_exposition)/0.1165e-3)/10) * 3600 # in uGy/h
+    
+    dose_rate = dose_rate_per_exposition.mean()
+    
+    # TODO get detector chip parameters
+    # e_corr = df['energy_sum'].mean() # eV 
+    # si_mass = 0.1165e-3 # kg
+    # integration = 10 # s
+
+    metadata = json.loads(record.metadata)
+
+    if not 'outputs' in metadata:
+        metadata["outputs"] = {}
+
+    metadata["outputs"]["dose_rate_mean"] = dose_rate
+
+    record.metadata = json.dumps(metadata, indent=4)
+    record.save()
+
+    return dose_rate
+
+
+
+
+

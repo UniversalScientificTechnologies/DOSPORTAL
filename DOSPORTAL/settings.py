@@ -217,17 +217,18 @@ MARTOR_ENABLE_LABEL = False
 
 Q_CLUSTER = {
     'name': 'dosportal',
-    'workers': 8,
+    'workers': 4,
     'recycle': 500,
     'timeout': 60,
     'compress': True,
-    'save_limit': 250,
-    'queue_limit': 500,
-    'cpu_affinity': 1,
+    #'save_limit': 250,
+    #'queue_limit': 500,
+    #'cpu_affinity': 1,
     'label': 'Worker',
+    'orm': 'default',
     'redis': {
-        'host': 'redis',
-    #    'port': 6379,
-    #    'db': 0, }
+        'host': '10.5.0.7',
+        'port': 6379,
+        'db': 0, 
     }
 }

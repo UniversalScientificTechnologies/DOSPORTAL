@@ -46,10 +46,9 @@ class  DetectorOverview(generic.ListView):
     template_name = 'detectors/detectors_overview.html'
 
     def POST(self, request, *args, **kwargs):
-        # Tato část se zavolá při POST požadavku
         print("POST")
         print(request)
-        form = DetectorLogblogForm(request.POST)  # Nahraďte 'YourForm' za skutečný název vašeho formuláře
+        form = DetectorLogblogForm(request.POST) 
         if form.is_valid():
 
             text = form.cleaned_data['text']
@@ -63,7 +62,7 @@ class  DetectorOverview(generic.ListView):
 def DetectorNewLogbookRecord(request, pk):
     detector = Detector.objects.get(pk=pk)
 
-    form = DetectorLogblogForm(request.POST)  # Nahraďte 'YourForm' za skutečný název vašeho formuláře
+    form = DetectorLogblogForm(request.POST)
     if form.is_valid():
 
         text = form.cleaned_data['text']

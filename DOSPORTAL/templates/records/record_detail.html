@@ -48,10 +48,10 @@
                 <td class="w-auto">Record duration:</td>
                 <td class="">{{ record.record_duration }}</td>
               </tr>
-              <tr>
+              {% comment %}<tr>
                 <td class="w-auto">Type:</td>
                 <td class="">{{ record.get_record_type_display }}</td>
-              </tr>
+              </tr> {% endcomment %}
               <tr>
                 <td class="w-auto">Author/Organization:</td>
                 <td class=""> <a class="btn btn-sm btn-outline-info" href="/user/{{record.author.username}}" title="{{record.author.get_full_name}} ({{record.author.username}})"> {{record.author.get_full_name}} </a>  <a class="btn btn-sm btn-outline-success" href="{{record.belongs.get_absolute_url}}">{{ record.belongs }} </a> </td>
@@ -64,6 +64,7 @@
                     <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown | safe }}</div></td>
                 </tr> {% endif %}
                 </tr>
+
                 {% if record.metadata|length > 4 %} <tr>
                 <td class="w-auto">Advanced metadata:</td>
                 
@@ -76,14 +77,32 @@
 
     </div>
 </div>
-</ul>
-
-</div>
 
 
 <div class="card my-4">
     <div class="card-header">
-        <h3>Graphs:</h3>
+        Outputs:
+    </div>
+    <div class="card-body">
+        <div class="row m-0">
+            {% if "dose_rate_mean" in outputs %}
+            <div class="card p-2" style="width: initial; text-align: center;">
+                <div class="fw-light">Dose rate</div>
+                <div class="fw-bold text-muted">{{outputs.dose_rate_mean|floatformat:2 }}</div>
+                <div class="fw-light">uS/h</div>
+                <div class="small text-muted">mean dose rate</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="card my-4">
+    <div class="card-header">
+        Graphs:
     </div>
     <div class="card-body p-1 d-flex justify-content-left">
         <div class="form-check form-check-inline form-switch p-1 m-1">
@@ -341,7 +360,7 @@
             console.log(data);
             myChart.hideLoading();
 
-            myChart.setOption({
+            var options = {
                 series: [{
                     id: 'evolution',
                     data: data.evolution_values,
@@ -352,8 +371,30 @@
                     yAxisIndex: 0,
                     encode: { x: 'time', y: 'cts' },
                     symbolSize: 5,
+                    symbolStyle: {
+                        color: 'red'
+                    },
+                    lineStyle: {
+                        color: 'red',
+                        width: 5,
+                    }, 
+                    areaStyle: {
+                        color: 'green',
+                        opacity: 0.2,
+                    }
                 }],
-            });
+            }
+
+            if(data.time_of_interest != null){
+                options.series[0].markLine = {
+                    symbol: ['none', 'none'],
+                    label: { show: false},
+                    data: [{xAxis: data.time_of_interest[0]}, {xAxis: data.time_of_interest[1]}],
+                }
+            }
+
+            myChart.setOption(options);
+
 
         });
 

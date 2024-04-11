@@ -11,6 +11,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect, render
 
 from DOSPORTAL import models
+import json
 
 from django.views import generic
 from django.views.generic import ListView
@@ -24,6 +25,7 @@ from django_tables2.utils import A  # alias for Accessor
 from django.utils.html import format_html
 from django.urls import reverse
 
+from django_q.tasks import async_task
 
 import itertools
 
@@ -189,7 +191,9 @@ def RecordNewView(request):
 
 def RecordView(request, pk):
     rec = Record.objects.get(pk=pk)
-    return render(request, 'records/record_detail.html', context={'record': rec})
+
+    outputs = json.loads(rec.metadata).get('outputs', {})
+    return render(request, 'records/record_detail.html', context={'record': rec, 'outputs': outputs})
 
 
 def GetSpectrum(request, pk):
@@ -234,8 +238,6 @@ def GetEvolution(request, pk):
     maxTime = request.GET.get('maxTime', 'nan')
     logarithm = request.GET.get('logarithm', 'false') == 'true'
 
-    print(">>>> LOGARITHM", logarithm)
-
     record = Record.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].data_file.path)
 
@@ -264,7 +266,6 @@ def GetEvolution(request, pk):
 
     data = pd.DataFrame({'time': time, 'value': sums})
 
-        
     data_list = data[['time', 'value']].apply(tuple, axis=1).tolist()
 
 
@@ -304,34 +305,27 @@ def GetTelemetry(request, pk):
 
 def CalcDSI(request, pk):
 
-    record = Record.objects.filter(pk=pk)
-    df = pd.read_pickle(record[0].data_file.path).drop('time', axis=1).sum(axis=0)
+#    record = Record.objects.filter(pk=pk)
+#     df = pd.read_pickle(record[0].data_file.path).drop('time', axis=1).astype(float).to_numpy()
 
-    calib = record[0].calib
+#     calib = record[0].calib
 
-    df = df.reset_index()
+#     s = np.linspace(0, df.shape[1]-1, df.shape[1])
+#     s = calib.coef0 + s * calib.coef1
 
-    df.columns = ['index', 'counts']
-    df = df.drop('index', axis=1)
-    df['channel_energy'] = calib.coef0 + df.index * calib.coef1
-    df['energy_sum'] = df['counts'] * df['channel_energy']
+#     energies_per_exposition = np.matmul(df, s)
 
-    print(df)
+#     dose_rate_per_exposition = ((1e6 * (1.602e-19 * energies_per_exposition)/0.1165e-3)/10) * 3600 # in uGy/h
+#     dose_rate = dose_rate_per_exposition.mean()
 
-    e_corr = df['energy_sum'].mean() # eV 
-    si_mass = 0.1165e-3 # kg
-    integration = 10 # s
+#    # e_corr = df['energy_sum'].mean() # eV 
+#     si_mass = 0.1165e-3 # kg
+#     integration = 10 # s
 
-    print("Energy correction", e_corr)
-
-    dsi = ( (e_corr * 1.602 * 1e-19) / si_mass )  # Gy
-    dsi *= 1e6 # uGy
-
-    print("DSI", dsi)
-
-    dsi *= (3600/10) # uGy / h
-
-    print("DSI", dsi)
+#     return HttpResponse(f"Dose rate: {dose_rate} \n  \n" + str(df), content_type="text/csv")
 
 
-    return HttpResponse(f"Total energie: {e_corr} \n DSI: {dsi} \n" + df.to_csv(), content_type="text/csv")
+    t = async_task('DOSPORTAL.tasks.process_record_entry', pk)
+
+
+    return HttpResponse(f"Done {t}")

@@ -22,7 +22,7 @@ from markdownx.models import MarkdownxField
 import json
 from markdownx.utils import markdownify
 
-from .tasks import process_flight_entry, process_record_entry
+#from .tasks import process_flight_entry, process_record_entry
 
 
 def get_enum_dsc(enum, t):
@@ -184,7 +184,7 @@ class Flight(UUIDMixin):
 
     def save(self, *args, **kwargs):
         print("ASYNYC..", self)
-        async_task(process_flight_entry, self)
+        #async_task(process_flight_entry, self)
         super(Flight, self).save(*args, **kwargs)
 
     class Meta:
@@ -340,7 +340,7 @@ class Detector(UUIDMixin):
     data = models.JSONField(
         _("Detector metadata"),
         help_text="Detector metadata, used for advanced data processing and maintaining",
-        default=[{}],
+        default=dict,
         blank=True
     )
 
@@ -628,7 +628,7 @@ class Record(UUIDMixin):
     metadata = models.JSONField(
         _("record_metadata"),
         help_text=_("record metadata, used for advanced data processing and maintaining"),
-        default='[{}]',
+        default=dict,
         blank=True
     )
 

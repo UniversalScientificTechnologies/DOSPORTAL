@@ -6,6 +6,8 @@ import json
 import pandas as pd
 import datetime
 
+from django_q.tasks import async_task
+
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
@@ -89,7 +91,7 @@ def save_record(sender, instance, created = None, **kwargs):
         data_types = df_log[0].unique().tolist()
 
         df_spectrum = df_log [df_log[0] == '$HIST'] 
-        df_spectrum = df_spectrum.drop(columns=[0, 1, 3, 4, 5, 6, 7, 8])
+        df_spectrum = df_spectrum.drop(columns=[0, 1, 3, 4, 5, 6, 7])
 
         new_columns = ['time'] + list(range(df_spectrum.shape[1] - 1))
         df_spectrum.columns = new_columns
@@ -102,6 +104,7 @@ def save_record(sender, instance, created = None, **kwargs):
         metadata['log_info']['internat_time_max'] = df_spectrum['time'].max()
         metadata['log_info']['log_duration'] = float(duration)
         metadata['log_info']['spectral_count'] = df_spectrum.shape[0]
+        metadata['log_info']['channels'] = df_spectrum.shape[1] - 1 # remove time column
         metadata['log_info']['types'] = data_types
 
         df_spectrum['time'] = df_spectrum['time'] - df_spectrum['time'].min()
@@ -135,11 +138,11 @@ def save_record(sender, instance, created = None, **kwargs):
                 row_as_list = row.tolist()[2:]
                 
                 match first_column_value:
-                    case '$BAT':
+                    case '$BATT':
                         keys = ['time', 'voltage', 'current', 'capacity_remaining', 'capacity_full', 'temperature']
                         bat = { k:float(v) for (k,v) in zip(keys, row_as_list[0:len(keys)])}
-                        bat['current'] /= 1000.0
-                        bat['voltage'] /= 1000.0
+                        #bat['current'] /= 1000.0
+                        #bat['voltage'] /= 1000.0
                         df_metadata = pd.concat([df_metadata, pd.DataFrame([bat])], ignore_index=True)
                         del bat
                     case '$ENV':
@@ -167,7 +170,10 @@ def save_record(sender, instance, created = None, **kwargs):
 
 
         print(instance.data_file)
-
                     
         instance.metadata = json.dumps(metadata)
         instance.save()
+
+        async_task('DOSPORTAL.tasks.process_record_entry', instance.pk)
+
+        return 0
