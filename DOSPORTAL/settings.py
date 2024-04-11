@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'guardian',
     'prettyjson',
   #  'organizations',
+    'rest_framework'
 ]
 
 MARKDOWNX_MARKDOWN_EXTENSIONS = [
@@ -217,15 +218,16 @@ MARTOR_ENABLE_LABEL = False
 
 Q_CLUSTER = {
     'name': 'dosportal',
-    'workers': 4,
-    'recycle': 500,
-    'timeout': 60,
-    'compress': True,
+    'retry': 10,
+    #'workers': 4,
+    #'recycle': 500,
+    'timeout': 5,
+    #'compress': True,
     #'save_limit': 250,
     #'queue_limit': 500,
     #'cpu_affinity': 1,
-    'label': 'Worker',
-    'orm': 'default',
+    #'label': 'Worker',
+    #'orm': 'default',
     'redis': {
         'host': '10.5.0.7',
         'port': 6379,

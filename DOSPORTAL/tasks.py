@@ -81,14 +81,21 @@ def process_record_entry(pk):
     # si_mass = 0.1165e-3 # kg
     # integration = 10 # s
 
-    metadata = json.loads(record.metadata)
+    #metadata = json.loads(record.metadata)
+    metadata = record.metadata
+
+    print('METADATA FILE', metadata)
+    print(type(metadata))
+
+    metadata = json.loads(metadata)
 
     if not 'outputs' in metadata:
         metadata["outputs"] = {}
 
     metadata["outputs"]["dose_rate_mean"] = dose_rate
 
-    record.metadata = json.dumps(metadata, indent=4)
+    #record.metadata = json.dumps(metadata, indent=4)
+    record.metadata = metadata
     record.save()
 
     return dose_rate

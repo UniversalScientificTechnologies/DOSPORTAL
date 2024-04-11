@@ -192,7 +192,9 @@ def RecordNewView(request):
 def RecordView(request, pk):
     rec = Record.objects.get(pk=pk)
 
-    outputs = json.loads(rec.metadata).get('outputs', {})
+    #outputs = json.loads(rec.metadata).get('outputs', {})
+    print("metadata", type(rec.metadata))
+    outputs = rec.metadata.get('outputs', {})
     return render(request, 'records/record_detail.html', context={'record': rec, 'outputs': outputs})
 
 

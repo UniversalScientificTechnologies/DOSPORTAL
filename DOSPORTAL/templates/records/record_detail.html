@@ -48,6 +48,10 @@
                 <td class="w-auto">Record duration:</td>
                 <td class="">{{ record.record_duration }}</td>
               </tr>
+              <tr>
+                <td class="w-auto">Time of interest:</td>
+                <td class="">{{ record.time_of_interest_start }}s - {{ record.time_of_interest_end }}s</td>
+              </tr>
               {% comment %}<tr>
                 <td class="w-auto">Type:</td>
                 <td class="">{{ record.get_record_type_display }}</td>
@@ -59,9 +63,9 @@
               <tr>
                 <td class="w-auto">Log file:</td>
                 <td class="">{{record.log_original_filename}} ({{ record.log_file | filesize_mb }})</td>
-                {% if record.description|length > 1 %}<tr>
+                {% if record.metadata|length > 1 %}<tr>
                     <td class="w-auto">Description:</td>
-                    <td class=""><div class="callout m-0 p-2">{{record.formatted_markdown | safe }}</div></td>
+                    <td class=""><div class="callout m-0 p-2">{{record.metadata | safe }}</div></td>
                 </tr> {% endif %}
                 </tr>
 
@@ -86,11 +90,10 @@
     <div class="card-body">
         <div class="row m-0">
             {% if "dose_rate_mean" in outputs %}
-            <div class="card p-2" style="width: initial; text-align: center;">
+            <div class="card p-2" style="width: initial; text-align: center;" title="Mean dose rate from whole record">
                 <div class="fw-light">Dose rate</div>
                 <div class="fw-bold text-muted">{{outputs.dose_rate_mean|floatformat:2 }}</div>
                 <div class="fw-light">uS/h</div>
-                <div class="small text-muted">mean dose rate</div>
             </div>
             {% endif %}
         </div>

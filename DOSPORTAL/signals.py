@@ -99,6 +99,7 @@ def save_record(sender, instance, created = None, **kwargs):
         df_spectrum['time'] = df_spectrum['time'].astype(float)
         duration = df_spectrum['time'].max() - df_spectrum['time'].min()
 
+
         metadata['log_info'] = {}
         metadata['log_info']['internat_time_min'] = df_spectrum['time'].min()
         metadata['log_info']['internat_time_max'] = df_spectrum['time'].max()
@@ -109,6 +110,8 @@ def save_record(sender, instance, created = None, **kwargs):
 
         df_spectrum['time'] = df_spectrum['time'] - df_spectrum['time'].min()
         instance.record_duration = datetime.timedelta(seconds=float(duration))
+        instance.time_of_interest_start = 0
+        instance.time_of_interest_end = float(duration)
 
         new_name = instance.user_directory_path_data('pk')
         df_spectrum.to_pickle('data/media/'+new_name)

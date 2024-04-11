@@ -9,6 +9,10 @@ from import_export.admin import ImportExportModelAdmin
 from django_q import models as q_models
 from django_q import admin as q_admin
 
+admin.site.site_header = 'DOSPORTAL admin page'
+admin.site.site_title = 'DOSPORTAL admin page'
+admin.site.index_title = 'DOSPORTAL administration'
+
 class AirportsResource(resources.ModelResource):
    class Meta:
       model = Airports
