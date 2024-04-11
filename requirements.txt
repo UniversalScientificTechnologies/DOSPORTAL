@@ -34,3 +34,6 @@ django-prettyjson
 
 tables
 django-markdownx
+
+markdown
+djangorestframework
