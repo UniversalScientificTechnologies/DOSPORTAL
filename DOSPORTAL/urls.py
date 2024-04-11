@@ -23,7 +23,6 @@ urlpatterns = [
 
     path('login/', login_view, name='login'),
     path('markdownx/', include('markdownx.urls')),
-    path('api-auth/', include('rest_framework.urls')),
 
     #path(r'accounts/', include('organizations.urls')),
     #path(r'invitations/', include(invitation_backend().get_urls())),
