@@ -94,14 +94,14 @@
             <div class="card p-2 m-1" style="width: initial; text-align: center;" title="Mean dose rate from selected part of record">
                 <div class="fw-light">Dose rate</div>
                 <div class="fw-bold text-muted">{{outputs.dose_rate_mean|floatformat:2 }}</div>
-                <div class="fw-light"> &mu;S/h</div>
+                <div class="fw-light">&mu;Gy/h</div>
             </div>
             {% endif %}
             {% if "dose_obtained" in outputs %}
             <div class="card p-2 m-1" style="width: initial; text-align: center;" title="Dose absorbed in silicone during the selected part of record.">
                 <div class="fw-light">Dose absorbed</div>
                 <div class="fw-bold text-muted">{{outputs.dose_obtained|floatformat:2 }}</div>
-                <div class="fw-light">&mu;S</div>
+                <div class="fw-light">&mu;Gy</div>
             </div>
             {% endif %}
         </div>
