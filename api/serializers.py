@@ -13,8 +13,8 @@ class RecordSerializer(serializers.ModelSerializer):
     #detector = DetectorSerializer(read_only = True, many=True)
     class Meta:
         model = Record
+        #fields = ['id', 'name', 'description', ]
         fields = '__all__'
-
 
 class MeasurementsSerializer(serializers.ModelSerializer):
 

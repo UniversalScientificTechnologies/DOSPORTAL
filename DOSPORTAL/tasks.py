@@ -63,16 +63,23 @@ def process_record_entry(pk):
     record = Record.objects.filter(pk=pk)[0]
 
     print(record)
-    df = pd.read_pickle(record.data_file.path).drop('time', axis=1).astype(float).to_numpy()
+
+    start_time = record.time_of_interest_start
+    end_time = record.time_of_interest_end
+    duration_hours = (end_time - start_time) / 3600
+
+
+    df = pd.read_pickle(record.data_file.path)
+    print(df)
+    df = df[(df['time'] >= start_time) & (df['time'] <= end_time)]
+    df = df.drop('time', axis=1).astype(float).to_numpy()
 
     calib = record.calib
 
     s = np.linspace(0, df.shape[1]-1, df.shape[1])
     s = calib.coef0 + s * calib.coef1
 
-    energies_per_exposition = np.matmul(df, s)
-
-    dose_rate_per_exposition = ((1e6 * (1.602e-19 * energies_per_exposition)/0.1165e-3)/10) * 3600 # in uGy/h
+    dose_rate_per_exposition = (((1e6 * (1.602e-19 * np.matmul(df, s))/0.1165e-3)/10) * 3600) # in uGy/h
     
     dose_rate = dose_rate_per_exposition.mean()
     
@@ -81,18 +88,20 @@ def process_record_entry(pk):
     # si_mass = 0.1165e-3 # kg
     # integration = 10 # s
 
-    #metadata = json.loads(record.metadata)
     metadata = record.metadata
 
     print('METADATA FILE', metadata)
     print(type(metadata))
 
-    metadata = json.loads(metadata)
+    if type(metadata) == str:
+        metadata = json.loads(metadata)
 
     if not 'outputs' in metadata:
         metadata["outputs"] = {}
 
-    metadata["outputs"]["dose_rate_mean"] = dose_rate
+    metadata["outputs"]["dose_rate_mean"] = dose_rate_per_exposition.mean()
+    metadata["outputs"]["dose_rate_std"] = dose_rate_per_exposition.std()
+    metadata["outputs"]["dose_obtained"] = dose_rate_per_exposition.mean() * duration_hours
 
     #record.metadata = json.dumps(metadata, indent=4)
     record.metadata = metadata

@@ -3,5 +3,6 @@ from . import views
 
 urlpatterns = [
     path('measurement/', views.MeasurementsGet),
-    path('measurement/add/', views.MeasurementsPost)
+    path('measurement/add/', views.MeasurementsPost),
+    path('record/', views.RecordGet),
 ]

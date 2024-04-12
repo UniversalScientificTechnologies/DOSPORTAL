@@ -101,8 +101,8 @@ def save_record(sender, instance, created = None, **kwargs):
 
 
         metadata['log_info'] = {}
-        metadata['log_info']['internat_time_min'] = df_spectrum['time'].min()
-        metadata['log_info']['internat_time_max'] = df_spectrum['time'].max()
+        metadata['log_info']['internal_time_min'] = df_spectrum['time'].min()
+        metadata['log_info']['internal_time_max'] = df_spectrum['time'].max()
         metadata['log_info']['log_duration'] = float(duration)
         metadata['log_info']['spectral_count'] = df_spectrum.shape[0]
         metadata['log_info']['channels'] = df_spectrum.shape[1] - 1 # remove time column
@@ -110,6 +110,8 @@ def save_record(sender, instance, created = None, **kwargs):
 
         df_spectrum['time'] = df_spectrum['time'] - df_spectrum['time'].min()
         instance.record_duration = datetime.timedelta(seconds=float(duration))
+
+        instance.time_internat_start = df_spectrum['time'].min()
         instance.time_of_interest_start = 0
         instance.time_of_interest_end = float(duration)
 

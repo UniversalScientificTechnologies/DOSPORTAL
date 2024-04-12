@@ -559,7 +559,6 @@ class Record(UUIDMixin):
         blank=True
     )
 
-
     metadata_file = models.FileField(
         verbose_name=_("Metadata file"),
         help_text=_("Processed metadata file"),
@@ -572,6 +571,14 @@ class Record(UUIDMixin):
         verbose_name = _("Is time tracked?"),
         default = False,
         help_text=_("Tick this box if the record is dependent on absolute time. When you need align record to real time.")
+    )
+
+    time_internal_start = models.FloatField(
+        verbose_name = _("Internal time start"),
+        help_text=_("System time of record start"),
+        null=True,
+        blank=True,
+        default=0
     )
 
     time_start = models.DateTimeField(

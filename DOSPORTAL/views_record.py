@@ -151,27 +151,6 @@ def RecordNewView(request):
             new_file_name = data.pk
             new_file_path = os.path.join(settings.MEDIA_ROOT, 'user_records', str(data.pk) )
 
-            # Update the file name and path
-            #data.log_file.name = new_file_name
-            #data.log_file.path = new_file_path
-
-            # handle_uploaded_file(request.FILES['log_file'], new_file_path)
-            # try:
-            #     metadata = obtain_parameters_from_log(new_file_path)
-            # except:
-            #     metadata = None
-            
-            # #handle_uploaded_file(request.FILES['log_file'], data.log_file.path)
-            # #metadata = obtain_parameters_from_log(data.log_file.path)
-            # print("Medatada z logu")
-            # print(metadata)
-            # if metadata:
-            #     detector_pk = Detector.objects.get(sn=metadata['detector']['detector_sn'])
-            #     if detector_pk:
-            #         data.detector = detector_pk
-            #     data.metadata = metadata
-            #     data.record_duration = timedelta(seconds = metadata['record']['duration'])
-            # #data.measurement = measurement.objects.get(pk=pk)
             pk = data.pk
             data.author = request.user
 
@@ -194,7 +173,10 @@ def RecordView(request, pk):
 
     #outputs = json.loads(rec.metadata).get('outputs', {})
     print("metadata", type(rec.metadata))
-    outputs = rec.metadata.get('outputs', {})
+    if type(rec.metadata) == str:
+        outputs = eval(rec.metadata).get('outputs', {})
+    else:
+        outputs = rec.metadata.get('outputs', {})
     return render(request, 'records/record_detail.html', context={'record': rec, 'outputs': outputs})
 
 
@@ -254,13 +236,17 @@ def GetEvolution(request, pk):
 
 
     if not (minTime != 'nan' and maxTime != 'nan'):
-        minTime = (float(minTime)/1000-start_time)
-        maxTime = (float(maxTime)/1000-start_time)
+        minTime = (float(minTime)-start_time)
+        maxTime = (float(maxTime)-start_time)
         df = df[(df['time'] >= minTime) & (df['time'] <= maxTime)]
 
     total_time = df['time'].max()-df['time'].min()
 
-    time = df['time'].astype(float).mul(1000).add(start_time)
+    if record[0].time_tracked:
+        time = df['time'].astype(float).mul(1000).add(start_time)
+    else:
+        time = df['time'].astype(float)
+    
     sums = df.drop('time', axis=1).sum(axis=1).div(total_time)
 
     if logarithm:
@@ -274,8 +260,12 @@ def GetEvolution(request, pk):
     time_of_interest = None
     if record[0].time_of_interest_start and record[0].time_of_interest_end:
         time_of_interest = []
-        time_of_interest.append(record[0].time_of_interest_start*1000 + start_time)
-        time_of_interest.append(record[0].time_of_interest_end*1000 + start_time)
+        time_of_interest.append(record[0].time_of_interest_start)
+        time_of_interest.append(record[0].time_of_interest_end)
+
+        if record[0].time_tracked:
+            time_of_interest[0] += start_time
+            time_of_interest[1] += start_time
 
     return JsonResponse({'evolution_values': data_list, 'time_tracked': record[0].time_tracked, 'time_of_interest': time_of_interest})  
 

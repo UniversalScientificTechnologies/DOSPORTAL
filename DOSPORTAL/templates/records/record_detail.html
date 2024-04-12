@@ -2,6 +2,7 @@
 {% load filters %}
 {% block content %}
 
+
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script charset="utf-8" src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
@@ -63,9 +64,9 @@
               <tr>
                 <td class="w-auto">Log file:</td>
                 <td class="">{{record.log_original_filename}} ({{ record.log_file | filesize_mb }})</td>
-                {% if record.metadata|length > 1 %}<tr>
+                {% if record.description|length > 1 %}<tr>
                     <td class="w-auto">Description:</td>
-                    <td class=""><div class="callout m-0 p-2">{{record.metadata | safe }}</div></td>
+                    <td class=""><div class="callout m-0 p-2">{{record.description_formatted | safe }}</div></td>
                 </tr> {% endif %}
                 </tr>
 
@@ -87,13 +88,20 @@
     <div class="card-header">
         Outputs:
     </div>
-    <div class="card-body">
-        <div class="row m-0">
+    <div class="card-body p-2">
+        <div class="row m-0 p-0">
             {% if "dose_rate_mean" in outputs %}
-            <div class="card p-2" style="width: initial; text-align: center;" title="Mean dose rate from whole record">
+            <div class="card p-2 m-1" style="width: initial; text-align: center;" title="Mean dose rate from selected part of record">
                 <div class="fw-light">Dose rate</div>
                 <div class="fw-bold text-muted">{{outputs.dose_rate_mean|floatformat:2 }}</div>
-                <div class="fw-light">uS/h</div>
+                <div class="fw-light"> &mu;S/h</div>
+            </div>
+            {% endif %}
+            {% if "dose_obtained" in outputs %}
+            <div class="card p-2 m-1" style="width: initial; text-align: center;" title="Dose absorbed in silicone during the selected part of record.">
+                <div class="fw-light">Dose absorbed</div>
+                <div class="fw-bold text-muted">{{outputs.dose_obtained|floatformat:2 }}</div>
+                <div class="fw-light">&mu;S</div>
             </div>
             {% endif %}
         </div>
@@ -133,17 +141,6 @@
     </div>
 
 </div>
-
-
-<!-- 
-<div class="card my-4">
-    <div class="card-header">
-        <h3>Energetic spectrogram:</h3>
-    </div>
-    <div class="card-body p-1">
-        <div id="graph2" style="width:100%;height:1000px;"></div>
-    </div>
-</div> -->
 
 </div>
 
