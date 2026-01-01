@@ -25,12 +25,14 @@ services:
 
   db_dosportal:
     image: postgis/postgis
+    env_file:
+      - .env
     volumes:
       - ./data/dosportal/db_pg:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=dosportal
-      - POSTGRES_USER=dosportal_user
-      - POSTGRES_PASSWORD=dosportal_password
+      - POSTGRES_DB=${POSTGRES_DB:-dosportal}
+      - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dosportal_password}
     networks:
       inet:
         ipv4_address: 10.5.0.5
