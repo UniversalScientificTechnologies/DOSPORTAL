@@ -17,6 +17,8 @@ martor
 markdown
 django-filter
 django-q
+django-storages[s3]
+boto3
 
 redis
 
