@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update
-RUN apt-get install -y python3 python3-pip libpq-dev binutils libproj-dev gdal-bin
+RUN apt-get install -y python3 python3-pip python3-setuptools libpq-dev binutils libproj-dev gdal-bin
 #RUN apt-get install -y net-tools
 
 WORKDIR /DOSPORTAL

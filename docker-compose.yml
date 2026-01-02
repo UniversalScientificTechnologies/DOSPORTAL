@@ -2,9 +2,9 @@ networks:
   inet:
     driver: bridge
     ipam:
-     config:
-       - subnet: 10.5.0.0/16
-         gateway: 10.5.0.1
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
   default:
     driver: bridge
     ipam:
@@ -25,26 +25,27 @@ services:
 
   db_dosportal:
     image: postgis/postgis
+    env_file:
+      - .env
     volumes:
       - ./data/dosportal/db_pg:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=dosportal
-      - POSTGRES_USER=dosportal_user
-      - POSTGRES_PASSWORD=dosportal_password
+      - POSTGRES_DB=${POSTGRES_DB:-dosportal}
+      - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dosportal_password}
     networks:
       inet:
         ipv4_address: 10.5.0.5
 
-
-        
-
   web:
     build:
-     context: .
-     network: host
-#    platform: linux/amd64
-#    command: python manage.py runserver 0.0.0.0:8000
-#    entrypoint: python3 manage.py runserver 0.0.0.0:8000
+      context: .
+      network: host
+    #    platform: linux/amd64
+    #    command: python manage.py runserver 0.0.0.0:8000
+    #    entrypoint: python3 manage.py runserver 0.0.0.0:8000
+    env_file:
+      - .env
     volumes:
       - .:/DOSPORTAL
     ports:
@@ -52,11 +53,11 @@ services:
     depends_on:
       - db_dosportal
       - redis
+      - minio
     networks:
       inet:
         ipv4_address: 10.5.0.6
-#      default:
-
+  #      default:
 
   worker:
     build: .
@@ -74,9 +75,26 @@ services:
   redis:
     image: redis
     volumes:
-      - .:/DOSPORTAL  
+      - .:/DOSPORTAL
     depends_on:
       - db_dosportal
     networks:
       inet:
         ipv4_address: 10.5.0.7
+
+  minio:
+    image: minio/minio
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data/minio:/data
+    networks:
+      inet:
+        ipv4_address: 10.5.0.9

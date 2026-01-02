@@ -77,3 +77,48 @@ DOSPORTAL is designed to be platform-independent, ensuring accessibility from va
 
 For more information or to contribute to the project, please contact support@ust.cz
 
+## Instructions for Contributors
+
+**Prerequirements:** Docker and Docker Compose for local development.
+
+### Secrets Configuration
+
+Create environment file and setup credentials as needed.
+
+```bash
+cp .env.example .env
+```
+
+### Local Development (Docker Compose)
+
+1. Build images
+
+   ```bash
+   sudo docker compose build web worker
+   ```
+
+2. Start services
+
+   ```bash
+   sudo docker compose up -d
+   ```
+
+3. Create the media bucket in MinIO
+
+   ```bash
+   sudo docker run --rm --net=host \
+     -e MC_HOST_minio=http://minioadmin:minioadmin@localhost:9000 \
+     minio/mc mb --ignore-existing minio/dosportal-media
+   ```
+
+   Or use the console at http://localhost:9001 (minioadmin/minioadmin).
+
+4. Apply migrations
+
+   ```bash
+   sudo docker compose exec web python3 manage.py migrate
+   ```
+
+5. Access services
+   - DOSPORTAL: http://localhost:8100
+   - MinIO console: http://localhost:9001
