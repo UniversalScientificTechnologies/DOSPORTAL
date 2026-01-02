@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)&9q7=6szljptu&2a11rq1k-ofhz1s$nxk&t+f=3xk74(vq4jq'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-)&9q7=6szljptu&2a11rq1k-ofhz1s$nxk&t+f=3xk74(vq4jq')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -115,11 +115,11 @@ DATABASES = {
     "default": {
         #"ENGINE": "django.db.backends.postgresql",
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "dosportal",
-        "USER": "dosportal_user",
-        "PASSWORD": "dosportal_password",
-        "HOST": "10.5.0.5",
-        "PORT": "5432",
+        "NAME": os.getenv("POSTGRES_DB", "dosportal"),
+        "USER": os.getenv("POSTGRES_USER", "dosportal_user"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "dosportal_password"),
+        "HOST": os.getenv("POSTGRES_HOST", "10.5.0.5"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
 
