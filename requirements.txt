@@ -1,5 +1,4 @@
-django
-django-bootstrap-v5
+django>=6.0
 psycopg2
 matplotlib
 #basemap
@@ -34,7 +33,6 @@ django-guardian
 django-gravatar2
 django-prettyjson
 
-tables
 django-markdownx
 
 markdown

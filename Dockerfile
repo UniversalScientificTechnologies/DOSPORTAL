@@ -1,16 +1,24 @@
-FROM debian:latest
+FROM python:3.13-alpine
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update
-RUN apt-get install -y python3 python3-pip python3-setuptools libpq-dev binutils libproj-dev gdal-bin
-#RUN apt-get install -y net-tools
+RUN apk update 
+RUN apk add --no-cache \
+    postgresql-dev \
+    gcc \
+    g++ \
+    musl-dev \
+    linux-headers \
+    binutils \
+    proj-dev \
+    gdal-dev \
+    gdal
 
 WORKDIR /DOSPORTAL
 COPY requirements.txt /DOSPORTAL/
-RUN pip3 install -r requirements.txt --break-system-packages
+RUN pip install --no-cache-dir -r requirements.txt
 #COPY . /DOSPORTAL/
 #COPY cari7a /usr/local/bin/cari7a
 
-ENTRYPOINT python3 manage.py runserver 0.0.0.0:8000
+ENTRYPOINT ["python", "manage.py", "runserver", "0.0.0.0:8000"]
