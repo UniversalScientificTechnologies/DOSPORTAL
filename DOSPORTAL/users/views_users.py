@@ -3,55 +3,64 @@ from django.shortcuts import render, redirect
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from ..models import (DetectorManufacturer, measurement, 
-                     Record, Detector, DetectorType)
+from ..models import DetectorManufacturer, measurement, Record, Detector, DetectorType
 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 
 from ..forms import LoginForm
 
+
 @login_required
-def user_profile(request, username = None):
+def user_profile(request, username=None):
     if username is None:
-        return redirect('user_profile', username=request.user.username)
+        return redirect("user_profile", username=request.user.username)
 
-    user = get_object_or_404(User, username = username)
-    #user = request.user
-    context = {
-        'user': user
-    }
+    user = get_object_or_404(User, username=username)
+    # user = request.user
+    context = {"user": user}
 
-    return render(request, 'user/user_profile.html', context)
-
-
+    return render(request, "user/user_profile.html", context)
 
 
 def login_view(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
-            user = authenticate(request, username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+            user = authenticate(
+                request,
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+            )
             if user is not None:
                 login(request, user)
-                return redirect('home')
+                return redirect("home")
             else:
-                return render(request, 'user/login.html', {'form': form, 'error': 'Invalid username or password'})
+                return render(
+                    request,
+                    "user/login.html",
+                    {"form": form, "error": "Invalid username or password"},
+                )
     else:
         form = LoginForm()
-    return render(request, 'user/login.html', {'form': form})
+    return render(request, "user/login.html", {"form": form})
 
 
 def signup_view(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return redirect('home')
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            return redirect("home")
     else:
         form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, "registration/signup.html", {"form": form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("home")
