@@ -413,6 +413,7 @@ class DetectorLogbook(UUIDMixin):
         _("Logbook text"),
         help_text="Detailed description of activity made on the detector.",
     )
+
     public = models.BooleanField(
         _("Wish to be visible to everyone?"),
         help_text=_(
@@ -420,6 +421,41 @@ class DetectorLogbook(UUIDMixin):
         ),
         default=True,
     )
+
+    ENTRY_TYPE_CHOICES = [
+        ("reset", "Reset"),
+        ("sync", "Sync"),
+        ("maintenance", "Maintenance"),
+        ("note", "Note"),
+        ("location_update", "Location update"),
+        ("calibration", "Calibration"),
+        ("other", "Other"),
+    ]
+
+    SOURCE_CHOICES = [
+        ("web", "Web"),
+        ("api", "API"),
+        ("qr", "QR"),
+        ("auto", "Automatic"),
+        ("other", "Other"),
+    ]
+
+    entry_type = models.CharField(
+        max_length=30,
+        choices=ENTRY_TYPE_CHOICES,
+        default="note",
+        help_text=_("Category of the logbook entry."),
+    )
+
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default="web",
+        help_text=_("Origin of the logbook entry."),
+    )
+
+    class Meta:
+        ordering = ["-created"]
 
 
 class measurement_campaign(UUIDMixin):
@@ -669,12 +705,6 @@ class Record(UUIDMixin):
         on_delete=models.DO_NOTHING,
         null=True,
         related_name="records_owning",
-        help_text=_(
-            "Organization, which owns this record. If you are the only owner, please leave this field empty."
-        ),
-    )
-
-    data_policy = models.CharField(
         max_length=2,
         choices=Organization.DATA_POLICY_CHOICES,
         default="PU",

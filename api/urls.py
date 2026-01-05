@@ -1,8 +1,11 @@
 from django.urls import path
-from . import views 
+from . import views
 
 urlpatterns = [
-    path('measurement/', views.MeasurementsGet),
-    path('measurement/add/', views.MeasurementsPost),
-    path('record/', views.RecordGet),
+    path("measurement/", views.MeasurementsGet),
+    path("measurement/add/", views.MeasurementsPost),
+    path("record/", views.RecordGet),
+    path("detector/", views.DetectorGet),
+    path("logbook/", views.DetectorLogbookGet),
+    path("logbook/add/", views.DetectorLogbookPost),
 ]
