@@ -12,10 +12,11 @@ djangorestframework
 django-json-widget
 django-tables2
 django-filter
+django-bootstrap5
 martor
 markdown
 django-filter
-django-q
+django-q2
 django-storages[s3]
 boto3
 
@@ -37,3 +38,4 @@ django-markdownx
 
 markdown
 djangorestframework
+setuptools

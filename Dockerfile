@@ -13,7 +13,9 @@ RUN apk add --no-cache \
     binutils \
     proj-dev \
     gdal-dev \
-    gdal
+    gdal \
+    geos \
+    geos-dev
 
 WORKDIR /DOSPORTAL
 COPY requirements.txt /DOSPORTAL/
