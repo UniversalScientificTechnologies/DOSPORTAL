@@ -9,7 +9,7 @@ from ..models import (DetectorManufacturer, measurement,
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 
 from ..forms import LoginForm
@@ -43,3 +43,15 @@ def login_view(request):
     else:
         form = LoginForm()
     return render(request, 'user/login.html', {'form': form})
+
+
+def signup_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form})
