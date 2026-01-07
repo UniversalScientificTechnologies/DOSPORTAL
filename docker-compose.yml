@@ -37,9 +37,10 @@ services:
       inet:
         ipv4_address: 10.5.0.5
 
-  web:
+  backend:
     build:
       context: .
+      dockerfile: backend.Dockerfile
       network: host
     #    platform: linux/amd64
     #    command: python manage.py runserver 0.0.0.0:8000
@@ -60,12 +61,14 @@ services:
   #      default:
 
   worker:
-    build: .
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
     entrypoint: python3 manage.py qcluster
     volumes:
       - .:/DOSPORTAL
     depends_on:
-      - web
+      - backend
       - db_dosportal
       - redis
     networks:
@@ -98,3 +101,25 @@ services:
     networks:
       inet:
         ipv4_address: 10.5.0.9
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      inet:
+        ipv4_address: 10.5.0.10
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
