@@ -1,0 +1,90 @@
+networks:
+  inet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+
+services:
+  db_dosportal:
+    image: postgis/postgis
+    env_file:
+      - .env
+    volumes:
+      - ./data/dosportal/db_pg:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-dosportal}
+      - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dosportal_password}
+    networks:
+      inet:
+        ipv4_address: 10.5.0.5
+
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/universalscientifictechnologies/dosportal-backend:master}
+    env_file:
+      - .env
+    ports:
+      - "8100:8000"
+    depends_on:
+      - db_dosportal
+      - redis
+      - minio
+    networks:
+      inet:
+        ipv4_address: 10.5.0.6
+
+  worker:
+    image: ${BACKEND_IMAGE:-ghcr.io/universalscientifictechnologies/dosportal-backend:master}
+    entrypoint: ["python", "manage.py", "qcluster"]
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - db_dosportal
+      - redis
+    networks:
+      inet:
+        ipv4_address: 10.5.0.8
+
+  redis:
+    image: redis
+    depends_on:
+      - db_dosportal
+    networks:
+      inet:
+        ipv4_address: 10.5.0.7
+
+  minio:
+    image: minio/minio
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data/minio:/data
+    networks:
+      inet:
+        ipv4_address: 10.5.0.9
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/universalscientifictechnologies/dosportal-frontend:master}
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      inet:
+        ipv4_address: 10.5.0.10
