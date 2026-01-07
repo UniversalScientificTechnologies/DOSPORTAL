@@ -30,7 +30,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "0.0.0.0"]
 
-CSRF_TRUSTED_ORIGINS = ["https://portal.dos.ust.cz", "https://eurados-demo.dos.ust.cz"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://portal.dos.ust.cz",
+    "https://eurados-demo.dos.ust.cz",
+    # Local dev (Vite)
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://frontend:5173",
+]
 
 # Application definition
 
@@ -70,14 +77,13 @@ MARKDOWNX_MARKDOWN_EXTENSIONS = ["markdown.extensions.extra"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -164,7 +170,20 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# CORS_ORIGIN_ALLOW_ALL = True
+# CORS Configuration - React frontend
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://frontend:3000",
+    "http://0.0.0.0:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://frontend:5173",
+    "http://0.0.0.0:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 STATICFILES_DIRS = [
     Path(__file__).resolve().parent / "static",

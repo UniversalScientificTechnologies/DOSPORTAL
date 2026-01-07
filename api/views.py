@@ -1,6 +1,7 @@
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status
 
 from django.utils.dateparse import parse_datetime
 from DOSPORTAL.models import measurement, Record, DetectorLogbook, Detector
@@ -38,15 +39,15 @@ def RecordGet(request):
 
 
 @api_view(["GET"])
-@permission_classes((AllowAny,))
+@permission_classes((IsAuthenticated,))
 def DetectorGet(request):
-    items = Detector.objects.all()
+    items = Detector.objects.select_related("type__manufacturer", "owner").all()
     serializer = DetectorSerializer(items, many=True)
     return Response(serializer.data)
 
 
 @api_view(["GET"])
-@permission_classes((AllowAny,))
+@permission_classes((IsAuthenticated,))
 def DetectorLogbookGet(request):
     items = DetectorLogbook.objects.select_related("detector", "author").all()
 
@@ -76,10 +77,32 @@ def DetectorLogbookGet(request):
 
 
 @api_view(["POST"])
-@permission_classes((AllowAny,))
+@permission_classes((IsAuthenticated,))
 def DetectorLogbookPost(request):
-    serializer = DetectorLogbookSerializer(data=request.data)
+
+    data = dict(request.data)
+    data["author"] = request.user.id
+
+    detector_id = data.get("detector")
+    if detector_id:
+        try:
+            detector = Detector.objects.get(id=detector_id)
+            user_has_access = (
+                detector.owner and request.user in detector.owner.users.all()
+            ) or detector.access.filter(users=request.user).exists()
+
+            if not user_has_access:
+                return Response(
+                    {"detail": "Access to the detector denied."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+        except Detector.DoesNotExist:
+            return Response(
+                {"detail": "Detektor not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    serializer = DetectorLogbookSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=400)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
