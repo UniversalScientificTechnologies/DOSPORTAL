@@ -454,6 +454,27 @@ class DetectorLogbook(UUIDMixin):
         help_text=_("Origin of the logbook entry."),
     )
 
+    latitude = models.FloatField(
+        verbose_name=_("Latitude"),
+        help_text=_("GPS latitude of the location"),
+        null=True,
+        blank=True,
+    )
+
+    longitude = models.FloatField(
+        verbose_name=_("Longitude"),
+        help_text=_("GPS longitude of the location"),
+        null=True,
+        blank=True,
+    )
+
+    altitude = models.FloatField(
+        verbose_name=_("Altitude"),
+        help_text=_("Altitude of the location in meters"),
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         ordering = ["-created"]
 
