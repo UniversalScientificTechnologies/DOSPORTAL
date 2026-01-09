@@ -22,7 +22,11 @@ RUN apk add --no-cache \
 WORKDIR /DOSPORTAL
 COPY requirements.txt /DOSPORTAL/
 RUN pip install --no-cache-dir -r requirements.txt
-#COPY . /DOSPORTAL/
-#COPY cari7a /usr/local/bin/cari7a
+
+COPY . /DOSPORTAL/
+
+RUN python manage.py collectstatic --noinput --clear || true
+
+EXPOSE 8000
 
 ENTRYPOINT ["python", "manage.py", "runserver", "0.0.0.0:8000"]
