@@ -4,12 +4,21 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 
 from django.utils.dateparse import parse_datetime
-from DOSPORTAL.models import measurement, Record, DetectorLogbook, Detector
+from DOSPORTAL.models import (
+    measurement,
+    Record,
+    DetectorLogbook,
+    Detector,
+    OrganizationUser,
+    User,
+)
 from .serializers import (
     MeasurementsSerializer,
     RecordSerializer,
     DetectorLogbookSerializer,
     DetectorSerializer,
+    UserProfileSerializer,
+    OrganizationUserSerializer,
 )
 
 
@@ -143,3 +152,36 @@ def DetectorLogbookPut(request, entry_id):
         serializer.save(modified_by=request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "PUT"])
+@permission_classes((IsAuthenticated,))
+def UserProfile(request):
+    if request.method == "GET":
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+
+    elif request.method == "PUT":
+        serializer = UserProfileSerializer(
+            request.user, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            # Only allow updating specific fields
+            allowed_fields = ["email", "first_name", "last_name"]
+            for field in allowed_fields:
+                if field in request.data:
+                    setattr(request.user, field, request.data[field])
+            request.user.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def UserOrganizations(request):
+    """Get all organizations that the current user is a member of."""
+    org_users = OrganizationUser.objects.filter(user=request.user).select_related(
+        "organization"
+    )
+    serializer = OrganizationUserSerializer(org_users, many=True)
+    return Response(serializer.data)

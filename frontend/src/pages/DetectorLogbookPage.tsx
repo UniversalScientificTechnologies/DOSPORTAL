@@ -102,9 +102,6 @@ export const DetectorLogbookPage = ({
             {detector ? (
               <>
                 <h2 style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>{detector.name}</h2>
-                <p className="muted">
-                  {detector.type?.name}
-                </p>
               </>
             ) : (
               <h2>Detector Logbook</h2>
@@ -212,7 +209,7 @@ export const DetectorLogbookPage = ({
                         color: '#374151',
                       }}
                     >
-                      ✏️ Edit
+                      Edit
                     </button>
                   </div>
                   <p className="text">{item.text}</p>
