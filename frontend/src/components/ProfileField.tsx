@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { theme } from '../theme'
 
 interface ProfileFieldProps {
   label: string
@@ -40,9 +41,9 @@ export const ProfileField = ({
   }
 
   return (
-    <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-        {label} {!isEditing && isOptional && <span style={{ color: '#9ca3af' }}>(optional)</span>}
+    <div style={{ marginBottom: theme.spacing['2xl'], paddingBottom: theme.spacing.lg, borderBottom: `${theme.borders.width} solid ${theme.colors.border}` }}>
+      <label style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textSecondary }}>
+        {label} {!isEditing && isOptional && <span style={{ color: theme.colors.mutedLight }}>(optional)</span>}
       </label>
       {isEditing ? (
         <div>
@@ -52,24 +53,24 @@ export const ProfileField = ({
             onChange={(e) => setEditedValue(e.target.value)}
             style={{
               width: '100%',
-              padding: '0.75rem',
-              border: '1px solid #3b82f6',
-              borderRadius: '6px',
-              marginBottom: '0.75rem',
-              color: '#1f2937',
-              backgroundColor: '#ffffff',
+              padding: theme.spacing.md,
+              border: `${theme.borders.width} solid ${theme.colors.primaryLight}`,
+              borderRadius: theme.borders.radius.sm,
+              marginBottom: theme.spacing.md,
+              color: theme.colors.textDark,
+              backgroundColor: theme.colors.bg,
             }}
           />
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: theme.spacing.sm }}>
             <button
               onClick={handleCancel}
               style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
+                padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+                border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                borderRadius: theme.borders.radius.sm,
                 backgroundColor: '#f3f4f6',
                 cursor: 'pointer',
-                color: '#1f2937',
+                color: theme.colors.textDark,
               }}
             >
               Cancel
@@ -78,10 +79,10 @@ export const ProfileField = ({
               onClick={handleSave}
               disabled={isSaving}
               style={{
-                padding: '0.5rem 1rem',
+                padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
                 border: 'none',
-                borderRadius: '6px',
-                backgroundColor: '#0d6efd',
+                borderRadius: theme.borders.radius.sm,
+                backgroundColor: theme.colors.primary,
                 color: '#ffffff',
                 cursor: isSaving ? 'not-allowed' : 'pointer',
                 opacity: isSaving ? 0.6 : 1,
@@ -93,20 +94,20 @@ export const ProfileField = ({
         </div>
       ) : (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: value ? '#1f2937' : '#9ca3af' }}>
+          <span style={{ color: value ? theme.colors.textDark : theme.colors.muted }}>
             {value || '(not provided)'}
           </span>
           {!isReadOnly && (
             <button
               onClick={() => setIsEditing(true)}
               style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                backgroundColor: '#ffffff',
+                padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+                border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                borderRadius: theme.borders.radius.sm,
+                backgroundColor: theme.colors.bg,
                 cursor: 'pointer',
-                color: '#1f2937',
-                fontSize: '0.875rem',
+                color: theme.colors.textDark,
+                fontSize: theme.typography.fontSize.sm,
               }}
             >
               Edit

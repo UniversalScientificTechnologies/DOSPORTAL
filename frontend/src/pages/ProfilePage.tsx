@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import { DetectorCard } from '../components/DetectorCard'
 import { ProfileField } from '../components/ProfileField'
+import { Section } from '../components/Section'
+import { CardGrid } from '../components/CardGrid'
+import { EmptyState } from '../components/EmptyState'
+import { theme } from '../theme'
 import profileBg from '../assets/img/SPACEDOS01.jpg'
 
 interface UserProfile {
@@ -157,7 +161,7 @@ export const ProfilePage = ({
     return (
       <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
         <div className="panel">
-          <div style={{ color: '#dc3545', padding: '2rem' }}>
+          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
             Login required to view profile.
           </div>
         </div>
@@ -169,7 +173,7 @@ export const ProfilePage = ({
     return (
       <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
         <div className="panel">
-          <div style={{ padding: '2rem' }}>Loading profile...</div>
+          <div style={{ padding: theme.spacing['3xl'] }}>Loading profile...</div>
         </div>
       </PageLayout>
     )
@@ -190,10 +194,10 @@ export const ProfilePage = ({
             right: '20px',
             backgroundColor: '#d4edda',
             color: '#155724',
-            padding: '1rem 1.5rem',
-            borderRadius: '8px',
-            border: '1px solid #c3e6cb',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            padding: `${theme.spacing.lg} ${theme.spacing['2xl']}`,
+            borderRadius: theme.borders.radius.sm,
+            border: `${theme.borders.width} solid #c3e6cb`,
+            boxShadow: theme.shadows.sm,
             zIndex: 1000,
             animation: 'slideIn 0.3s ease-out',
           }}
@@ -202,14 +206,10 @@ export const ProfilePage = ({
         </div>
       )}
 
-      <section className="panel">
-        <header className="panel-header">
-          <h2>👤 User Profile</h2>
-        </header>
+      <Section title="👤 User Profile">
+        {error && <div className="error" style={{ marginBottom: theme.spacing.lg }}>{error}</div>}
 
-        {error && <div className="error" style={{ marginBottom: '1rem' }}>{error}</div>}
-
-        <div className="panel-body" style={{ maxWidth: '600px' }}>
+        <div style={{ maxWidth: '600px' }}>
           <ProfileField
             label="Username"
             value={profile.username}
@@ -241,55 +241,50 @@ export const ProfilePage = ({
             isSaving={isSaving}
           />
         </div>
-      </section>
+      </Section>
 
-      {/* Organizations Section */}
-      <section className="panel" style={{ marginTop: '1.25rem' }}>
-        <header className="panel-header">
-          <h3>Organizations</h3>
-        </header>
-        <div className="panel-body">
-          {organizations.length === 0 ? (
-            <p className="muted">You are not a member of any organizations.</p>
-          ) : (
+      <Section title="Organizations" style={{ marginTop: theme.spacing.xl }}>
+        {organizations.length === 0 ? (
+          <EmptyState message="You are not a member of any organizations." />
+        ) : (
             <div>
               {ownedOrgs.length > 0 && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h4 style={{ color: '#1f2937', marginBottom: '0.75rem' }}>Owner</h4>
+                <div style={{ marginBottom: theme.spacing['2xl'] }}>
+                  <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Owner</h4>
                   {ownedOrgs.map((org) => (
                     <div
                       key={org.id}
                       style={{
-                        padding: '1rem',
+                        padding: theme.spacing.lg,
                         backgroundColor: '#f0f9ff',
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '6px',
-                        marginBottom: '0.5rem',
-                        color: '#1f2937',
+                        border: `${theme.borders.width} solid #bfdbfe`,
+                        borderRadius: theme.borders.radius.sm,
+                        marginBottom: theme.spacing.sm,
+                        color: theme.colors.textDark,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>({org.data_policy})</span>
+                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>({org.data_policy})</span>
                     </div>
                   ))}
                 </div>
               )}
 
               {adminOrgs.length > 0 && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h4 style={{ color: '#1f2937', marginBottom: '0.75rem' }}>Admin</h4>
+                <div style={{ marginBottom: theme.spacing['2xl'] }}>
+                  <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Admin</h4>
                   {adminOrgs.map((org) => (
                     <div
                       key={org.id}
                       style={{
-                        padding: '1rem',
+                        padding: theme.spacing.lg,
                         backgroundColor: '#fefce8',
-                        border: '1px solid #fde047',
-                        borderRadius: '6px',
-                        marginBottom: '0.5rem',
-                        color: '#1f2937',
+                        border: `${theme.borders.width} solid #fde047`,
+                        borderRadius: theme.borders.radius.sm,
+                        marginBottom: theme.spacing.sm,
+                        color: theme.colors.textDark,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>(Policy: {org.data_policy})</span>
+                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
                     </div>
                   ))}
                 </div>
@@ -297,106 +292,90 @@ export const ProfilePage = ({
 
               {memberOrgs.length > 0 && (
                 <div>
-                  <h4 style={{ color: '#1f2937', marginBottom: '0.75rem' }}>Member</h4>
+                  <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Member</h4>
                   {memberOrgs.map((org) => (
                     <div
                       key={org.id}
                       style={{
-                        padding: '1rem',
+                        padding: theme.spacing.lg,
                         backgroundColor: '#f3f4f6',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        marginBottom: '0.5rem',
-                        color: '#1f2937',
+                        border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                        borderRadius: theme.borders.radius.sm,
+                        marginBottom: theme.spacing.sm,
+                        color: theme.colors.textDark,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>(Policy: {org.data_policy})</span>
+                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
           )}
-        </div>
-      </section>
+      </Section>
 
       {/* Detectors Section */}
-      <section className="panel" style={{ marginTop: '1.25rem' }}>
-        <header className="panel-header">
-          <h3>Detectors Maintained</h3>
-        </header>
-        <div className="panel-body">
-          {detectors.length === 0 ? (
-            <p className="muted">No detectors available.</p>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1.25rem',
-            }}>
-              {detectors.map((detector) => (
-                <DetectorCard key={detector.id} detector={detector} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <Section title="Detectors Maintained" style={{ marginTop: theme.spacing.xl }}>
+        {detectors.length === 0 ? (
+          <EmptyState message="No detectors available." />
+        ) : (
+          <CardGrid>
+            {detectors.map((detector) => (
+              <DetectorCard key={detector.id} detector={detector} />
+            ))}
+          </CardGrid>
+        )}
+      </Section>
 
-      {/* Statistics Section */}
-      <section className="panel" style={{ marginTop: '1.25rem' }}>
-        <header className="panel-header">
-          <h3>Statistics</h3>
-        </header>
-        <div className="panel-body">
+      <Section title="Statistics" style={{ marginTop: theme.spacing.xl }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '1rem',
+            gap: theme.spacing.lg,
           }}>
             <div style={{
-              padding: '1rem',
+              padding: theme.spacing.lg,
               backgroundColor: '#f0f9ff',
-              border: '1px solid #bfdbfe',
-              borderRadius: '6px',
+              border: `${theme.borders.width} solid #bfdbfe`,
+              borderRadius: theme.borders.radius.sm,
               textAlign: 'center',
-              color: '#1f2937',
+              color: theme.colors.textDark,
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0d6efd' }}>
+              <div style={{ fontSize: theme.typography.fontSize['2xl'], fontWeight: theme.typography.fontWeight.bold, color: theme.colors.primary }}>
                 {organizations.length}
               </div>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Organizations</div>
+              <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.muted }}>Organizations</div>
             </div>
 
             <div style={{
-              padding: '1rem',
+              padding: theme.spacing.lg,
               backgroundColor: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: '6px',
+              border: `${theme.borders.width} solid #bbf7d0`,
+              borderRadius: theme.borders.radius.sm,
               textAlign: 'center',
-              color: '#1f2937',
+              color: theme.colors.textDark,
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#16a34a' }}>
+              <div style={{ fontSize: theme.typography.fontSize['2xl'], fontWeight: theme.typography.fontWeight.bold, color: theme.colors.successLight }}>
                 {detectors.length}
               </div>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Detectors</div>
+              <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.muted }}>Detectors</div>
             </div>
 
             <div style={{
-              padding: '1rem',
+              padding: theme.spacing.lg,
               backgroundColor: '#fef3c7',
-              border: '1px solid #fde047',
-              borderRadius: '6px',
+              border: `${theme.borders.width} solid #fde047`,
+              borderRadius: theme.borders.radius.sm,
               textAlign: 'center',
-              color: '#1f2937',
+              color: theme.colors.textDark,
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>
+              <div style={{ fontSize: theme.typography.fontSize['2xl'], fontWeight: theme.typography.fontWeight.bold, color: theme.colors.warning }}>
                 {measurements}
               </div>
-              <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Measurements</div>
+              <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.muted }}>Measurements</div>
             </div>
           </div>
-        </div>
-      </section>
+      </Section>
     </PageLayout>
   )
 }

@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import { DetectorCard } from '../components/DetectorCard'
+import { Section } from '../components/Section'
+import { CardGrid } from '../components/CardGrid'
+import { EmptyState } from '../components/EmptyState'
+import { theme } from '../theme'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
 
 interface Detector {
@@ -47,7 +51,7 @@ export const LogbooksPage = ({
     return (
       <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
         <div className="panel">
-          <div style={{ color: '#dc3545', padding: '2rem' }}>
+          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
             Login required to view logbooks.
           </div>
         </div>
@@ -57,30 +61,19 @@ export const LogbooksPage = ({
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-      <section className="panel">
-        <header className="panel-header">
-          <h2>Detector Logbooks</h2>
-        </header>
+      <Section title="Detector Logbooks">
+        {error && <div className="error" style={{ marginBottom: theme.spacing.lg }}>{error}</div>}
 
-        {error && <div className="error" style={{ marginBottom: '1rem' }}>{error}</div>}
-
-        <div className="panel-body">
-          {detectors.length === 0 ? (
-            <p className="muted">No detectors available.</p>
-          ) : (
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-              gap: '1.25rem',
-              padding: '0.5rem 0'
-            }}>
-              {detectors.map((d) => (
-                <DetectorCard key={d.id} detector={d} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+        {detectors.length === 0 ? (
+          <EmptyState message="No detectors available." />
+        ) : (
+          <CardGrid>
+            {detectors.map((d) => (
+              <DetectorCard key={d.id} detector={d} />
+            ))}
+          </CardGrid>
+        )}
+      </Section>
     </PageLayout>
   )
 }
