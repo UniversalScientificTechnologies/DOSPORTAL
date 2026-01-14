@@ -31,13 +31,6 @@ interface Detector {
   }
 }
 
-interface LogbookEntry {
-  id: string
-  detector: {
-    name: string
-  }
-}
-
 export const ProfilePage = ({
   apiBase,
   originBase,
