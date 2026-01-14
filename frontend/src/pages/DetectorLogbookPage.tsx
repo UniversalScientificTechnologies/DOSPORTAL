@@ -84,7 +84,7 @@ export const DetectorLogbookPage = ({
     return (
       <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
         <div className="panel">
-          <div style={{ color: '#dc3545', padding: '2rem' }}>
+          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
             Login required to view logbook.
           </div>
         </div>
@@ -97,7 +97,7 @@ export const DetectorLogbookPage = ({
       <section className="panel">
         <header className="panel-header">
           <div>
-            <Link to="/logbooks" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.9rem' }}>
+            <Link to="/logbooks" style={{ color: theme.colors.muted, textDecoration: 'none', fontSize: theme.typography.fontSize.sm }}>
               ← Back to Detectors
             </Link>
             {detector ? (
@@ -111,7 +111,7 @@ export const DetectorLogbookPage = ({
           <button 
             className="pill" 
             onClick={() => navigate(`/logbook/${id}/create`)}
-            style={{ background: '#198754', border: '1px solid #198754' }}
+            style={{ background: theme.colors.success, border: `${theme.borders.width} solid ${theme.colors.success}` }}
           >
             + Create Entry
           </button>
@@ -123,10 +123,10 @@ export const DetectorLogbookPage = ({
         {detector && (
           <div style={{ 
             background: '#f9fafb', 
-            border: '1px solid #e5e7eb', 
-            borderRadius: '8px',
-            padding: '1.5rem',
-            margin: '0 0 1.25rem 0'
+            border: `${theme.borders.width} solid ${theme.colors.border}`, 
+            borderRadius: theme.borders.radius.sm,
+            padding: theme.spacing['2xl'],
+            margin: `0 0 ${theme.spacing.lg} 0`
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.lg }}>
               <h3 style={{ margin: 0, fontSize: theme.typography.fontSize.base, color: theme.colors.textSecondary }}>
@@ -162,22 +162,22 @@ export const DetectorLogbookPage = ({
               gap: '1rem'
             }}>
               <div>
-                <strong style={{ color: '#6b7280', fontSize: '0.875rem' }}>Serial Number:</strong>
-                <div style={{ marginTop: '0.25rem' }}>{detector.sn}</div>
+                <strong style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>Serial Number:</strong>
+                <div style={{ marginTop: theme.spacing.xs }}>{detector.sn}</div>
               </div>
               <div>
-                <strong style={{ color: '#6b7280', fontSize: '0.875rem' }}>Type:</strong>
-                <div style={{ marginTop: '0.25rem' }}>{detector.type?.name}</div>
+                <strong style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>Type:</strong>
+                <div style={{ marginTop: theme.spacing.xs }}>{detector.type?.name}</div>
               </div>
               <div>
-                <strong style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manufacturer:</strong>
-                <div style={{ marginTop: '0.25rem' }}>
+                <strong style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>Manufacturer:</strong>
+                <div style={{ marginTop: theme.spacing.xs }}>
                   {detector.type?.manufacturer?.url ? (
                     <a 
                       href={detector.type.manufacturer.url} 
                       target="_blank" 
                       rel="noreferrer"
-                      style={{ color: '#0d6efd', textDecoration: 'none' }}
+                      style={{ color: theme.colors.primary, textDecoration: 'none' }}
                     >
                       {detector.type.manufacturer.name}
                     </a>
@@ -188,14 +188,14 @@ export const DetectorLogbookPage = ({
               </div>
               {detector.owner && (
                 <div>
-                  <strong style={{ color: '#6b7280', fontSize: '0.875rem' }}>Owner:</strong>
-                  <div style={{ marginTop: '0.25rem' }}>{detector.owner.name}</div>
+                  <strong style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>Owner:</strong>
+                  <div style={{ marginTop: theme.spacing.xs }}>{detector.owner.name}</div>
                 </div>
               )}
               {detector.manufactured_date && (
                 <div>
-                  <strong style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manufactured:</strong>
-                  <div style={{ marginTop: '0.25rem' }}>
+                  <strong style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>Manufactured:</strong>
+                  <div style={{ marginTop: theme.spacing.xs }}>
                     {new Date(detector.manufactured_date).toLocaleDateString()}
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export const DetectorLogbookPage = ({
         )}
 
         <div className="panel-body">
-          <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', color: '#374151' }}>
+          <h3 style={{ marginTop: 0, marginBottom: theme.spacing.lg, fontSize: theme.typography.fontSize.base, color: theme.colors.textSecondary }}>
             Logbook Entries
           </h3>
           {logbook.length === 0 && !loading ? (
@@ -217,8 +217,13 @@ export const DetectorLogbookPage = ({
                   <div className="meta">
                     <span className="badge">{item.entry_type}</span>
                     <time>{new Date(item.created).toLocaleString()}</time>
+                    {item.location_text && (
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>
+                        📍 {item.location_text}
+                      </span>
+                    )}
                     {item.author?.username && (
-                      <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>
                         by @{item.author.username}
                       </span>
                     )}
@@ -226,13 +231,14 @@ export const DetectorLogbookPage = ({
                       onClick={() => navigate(`/logbook/${id}/edit/${item.id}`)}
                       style={{
                         marginLeft: 'auto',
-                        padding: '0.25rem 0.5rem',
+                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
                         background: '#f3f4f6',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem',
+                        border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                        borderRadius: theme.borders.radius.sm,
+                        fontSize: theme.typography.fontSize.xs,
                         cursor: 'pointer',
-                        color: '#374151',
+                        color: theme.colors.textSecondary,
+                        transition: theme.transitions.fast,
                       }}
                     >
                       Edit

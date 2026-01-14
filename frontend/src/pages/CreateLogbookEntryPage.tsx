@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
+import { theme } from '../theme'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
 
 interface Detector {
@@ -35,6 +36,7 @@ export const CreateLogbookEntryPage = ({
   const [latitude, setLatitude] = useState('')
   const [longitude, setLongitude] = useState('')
   const [altitude, setAltitude] = useState('')
+  const [locationText, setLocationText] = useState('')
 
   const entryTypeChoices = [
     { value: 'reset', label: 'Reset' },
@@ -84,6 +86,7 @@ export const CreateLogbookEntryPage = ({
             setLatitude(entry.latitude?.toString() || '')
             setLongitude(entry.longitude?.toString() || '')
             setAltitude(entry.altitude?.toString() || '')
+            setLocationText(entry.location_text || '')
           } else {
             throw new Error('Logbook entry not found')
           }
@@ -125,6 +128,7 @@ export const CreateLogbookEntryPage = ({
       if (latitude) payload.latitude = parseFloat(latitude)
       if (longitude) payload.longitude = parseFloat(longitude)
       if (altitude) payload.altitude = parseFloat(altitude)
+      if (locationText) payload.location_text = locationText
 
       const csrftoken = getCookie('csrftoken')
 
@@ -181,7 +185,7 @@ export const CreateLogbookEntryPage = ({
     return (
       <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
         <div className="panel">
-          <div style={{ color: '#dc3545', padding: '2rem' }}>
+          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
             Login required to create logbook entry.
           </div>
         </div>
@@ -196,11 +200,11 @@ export const CreateLogbookEntryPage = ({
           <div>
             <Link 
               to={`/logbook/${id}`} 
-              style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.9rem' }}
+              style={{ color: theme.colors.muted, textDecoration: 'none', fontSize: theme.typography.fontSize.sm }}
             >
               ← Back to Logbook
             </Link>
-            <h2 style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+            <h2 style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.xs }}>
               {isEditMode ? 'Edit Logbook Entry' : 'Create Logbook Entry'}
             </h2>
             {detector && (
@@ -211,16 +215,16 @@ export const CreateLogbookEntryPage = ({
           </div>
         </header>
 
-        {error && <div className="error" style={{ marginBottom: '1rem' }}>{error}</div>}
+        {error && <div className="error" style={{ marginBottom: theme.spacing.lg }}>{error}</div>}
         {loading && <p className="muted">Loading detector...</p>}
 
         {!loading && detector && (
           <form onSubmit={handleSubmit} className="panel-body">
             <div style={{ maxWidth: '600px' }}>
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: theme.spacing['2xl'] }}>
                 <label 
                   htmlFor="entry_type" 
-                  style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#1f2937' }}
+                  style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textDark }}
                 >
                   Entry Type *
                 </label>
@@ -231,12 +235,12 @@ export const CreateLogbookEntryPage = ({
                   required
                   style={{
                     width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '1rem',
-                    background: 'white',
-                    color: '#1f2937',
+                    padding: theme.spacing.sm,
+                    border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                    borderRadius: theme.borders.radius.sm,
+                    fontSize: theme.typography.fontSize.base,
+                    background: theme.colors.bg,
+                    color: theme.colors.textDark,
                   }}
                 >
                   {entryTypeChoices.map((choice) => (
@@ -247,10 +251,10 @@ export const CreateLogbookEntryPage = ({
                 </select>
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: theme.spacing['2xl'] }}>
                 <label 
                   htmlFor="text" 
-                  style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#1f2937' }}
+                  style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textDark }}
                 >
                   Description *
                 </label>
@@ -263,68 +267,68 @@ export const CreateLogbookEntryPage = ({
                   placeholder="Detailed description of activity made on the detector..."
                   style={{
                     width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '1rem',
+                    padding: theme.spacing.sm,
+                    border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                    borderRadius: theme.borders.radius.sm,
+                    fontSize: theme.typography.fontSize.base,
                     fontFamily: 'inherit',
                     resize: 'vertical',
-                    background: 'white',
-                    color: '#1f2937',
+                    background: theme.colors.bg,
+                    color: theme.colors.textDark,
                   }}
                 />
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: theme.spacing['2xl'] }}>
                 <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
                     checked={isPublic}
                     onChange={(e) => setIsPublic(e.target.checked)}
-                    style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
+                    style={{ marginRight: theme.spacing.sm, width: '18px', height: '18px', cursor: 'pointer' }}
                   />
                   <span>Make this entry visible to everyone</span>
                 </label>
-                <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#6b7280', marginLeft: '26px' }}>
+                <p style={{ marginTop: theme.spacing.xs, fontSize: theme.typography.fontSize.sm, color: theme.colors.muted, marginLeft: '26px' }}>
                   Private logbook will be visible for maintainers of detector and for dosportal admins.
                 </p>
               </div>
 
               <div style={{ 
-                background: 'white', 
-                border: '1px solid #d1d5db', 
-                borderRadius: '8px',
-                padding: '1.5rem',
-                marginBottom: '1.5rem'
+                background: theme.colors.bg, 
+                border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`, 
+                borderRadius: theme.borders.radius.sm,
+                padding: theme.spacing['2xl'],
+                marginBottom: theme.spacing['2xl']
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1rem', color: '#1f2937', fontWeight: '600' }}>
-                    Location (Optional)
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.lg }}>
+                  <h3 style={{ margin: 0, fontSize: theme.typography.fontSize.base, color: theme.colors.textDark, fontWeight: theme.typography.fontWeight.semibold }}>
+                    Location
                   </h3>
                   <button
                     type="button"
                     onClick={handleGetLocation}
                     style={{
-                      padding: '0.375rem 0.75rem',
-                      background: '#6b7280',
+                      padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+                      background: theme.colors.muted,
                       color: 'white',
                       border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '0.875rem',
+                      borderRadius: theme.borders.radius.sm,
+                      fontSize: theme.typography.fontSize.sm,
                       cursor: 'pointer',
+                      transition: theme.transitions.fast,
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#4b5563'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = '#6b7280'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.textSecondary}
+                    onMouseLeave={(e) => e.currentTarget.style.background = theme.colors.muted}
                   >
                     📍 Get Current Location
                   </button>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+theme.spacing.lg }}>
                   <div>
                     <label 
                       htmlFor="latitude" 
-                      style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}
+                      style={{ display: 'block', marginBottom: theme.spacing.xs, fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary, fontWeight: theme.typography.fontWeight.medium }}
                     >
                       Latitude
                     </label>
@@ -337,12 +341,12 @@ export const CreateLogbookEntryPage = ({
                       placeholder="e.g., 49.8175"
                       style={{
                         width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '4px',
-                        fontSize: '1rem',
-                        background: 'white',
-                        color: '#1f2937',
+                        padding: theme.spacing.sm,
+                        border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                        borderRadius: theme.borders.radius.sm,
+                        fontSize: theme.typography.fontSize.base,
+                        background: theme.colors.bg,
+                        color: theme.colors.textDark,
                       }}
                     />
                   </div>
@@ -350,7 +354,7 @@ export const CreateLogbookEntryPage = ({
                   <div>
                     <label 
                       htmlFor="longitude" 
-                      style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}
+                      style={{ display: 'block', marginBottom: theme.spacing.xs, fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary, fontWeight: theme.typography.fontWeight.medium }}
                     >
                       Longitude
                     </label>
@@ -363,12 +367,12 @@ export const CreateLogbookEntryPage = ({
                       placeholder="e.g., 15.4730"
                       style={{
                         width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '4px',
-                        fontSize: '1rem',
-                        background: 'white',
-                        color: '#1f2937',
+                        padding: theme.spacing.sm,
+                        border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                        borderRadius: theme.borders.radius.sm,
+                        fontSize: theme.typography.fontSize.base,
+                        background: theme.colors.bg,
+                        color: theme.colors.textDark,
                       }}
                     />
                   </div>
@@ -376,7 +380,7 @@ export const CreateLogbookEntryPage = ({
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label 
                       htmlFor="altitude" 
-                      style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}
+                      style={{ display: 'block', marginBottom: theme.spacing.xs, fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary, fontWeight: theme.typography.fontWeight.medium }}
                     >
                       Altitude (meters)
                     </label>
@@ -386,34 +390,59 @@ export const CreateLogbookEntryPage = ({
                       value={altitude}
                       onChange={(e) => setAltitude(e.target.value)}
                       step="any"
-                      placeholder="e.g., 200 (optional with manual entry)"
+                      placeholder="e.g., 200! (optional with manual entry)"
                       style={{
                         width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '4px',
-                        fontSize: '1rem',
-                        background: 'white',
-                        color: '#1f2937',
+                        padding: theme.spacing.sm,
+                        border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                        borderRadius: theme.borders.radius.sm,
+                        fontSize: theme.typography.fontSize.base,
+                        background: theme.colors.bg,
+                        color: theme.colors.textDark,
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label 
+                      htmlFor="location_text" 
+                      style={{ display: 'block', marginBottom: theme.spacing.xs, fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary, fontWeight: theme.typography.fontWeight.medium }}
+                    >
+                      Location (text description)
+                    </label>
+                    <input
+                      type="text"
+                      id="location_text"
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value)}
+                      placeholder="e.g., Prague, Czech Republic"
+                      style={{
+                        width: '100%',
+                        padding: theme.spacing.sm,
+                        border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                        borderRadius: theme.borders.radius.sm,
+                        fontSize: theme.typography.fontSize.base,
+                        background: theme.colors.bg,
+                        color: theme.colors.textDark,
                       }}
                     />
                   </div>
                 </div>
               </div>
-
-              <div style={{ display: 'flex', gap: '1rem' }}>
+theme.spacing.lg }}>
                 <button
                   type="submit"
                   disabled={submitting}
                   style={{
-                    padding: '0.75rem 1.5rem',
-                    background: submitting ? '#6c757d' : '#198754',
+                    padding: `${theme.spacing.md} ${theme.spacing['2xl']}`,
+                    background: submitting ? theme.colors.muted : theme.colors.success,
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '1rem',
+                    borderRadius: theme.borders.radius.sm,
+                    fontSize: theme.typography.fontSize.base,
                     cursor: submitting ? 'not-allowed' : 'pointer',
-                    fontWeight: '500',
+                    fontWeight: theme.typography.fontWeight.medium,
+                    transition: theme.transitions.fast,
                   }}
                 >
                   {submitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Entry' : 'Create Entry')}
@@ -423,12 +452,14 @@ export const CreateLogbookEntryPage = ({
                   type="button"
                   onClick={() => navigate(`/logbook/${id}`)}
                   style={{
-                    padding: '0.75rem 1.5rem',
-                    background: 'white',
-                    color: '#374151',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '1rem',
+                    padding: `${theme.spacing.md} ${theme.spacing['2xl']}`,
+                    background: theme.colors.bg,
+                    color: theme.colors.textSecondary,
+                    border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                    borderRadius: theme.borders.radius.sm,
+                    fontSize: theme.typography.fontSize.base,
+                    cursor: 'pointer',
+                    transition: theme.transitions.fast
                     cursor: 'pointer',
                   }}
                 >

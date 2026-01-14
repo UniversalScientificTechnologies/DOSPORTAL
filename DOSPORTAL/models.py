@@ -489,6 +489,14 @@ class DetectorLogbook(UUIDMixin):
         blank=True,
     )
 
+    location_text = models.CharField(
+        verbose_name=_("Location (text)"),
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_("Location description in text format (e.g., address)"),
+    )
+
     class Meta:
         ordering = ["-created"]
 

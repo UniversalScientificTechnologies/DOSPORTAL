@@ -145,6 +145,7 @@ def DetectorLogbookPut(request, entry_id):
         "latitude",
         "longitude",
         "altitude",
+        "location_text",
         "public",
     ]
     update_data = {k: v for k, v in request.data.items() if k in allowed_fields}

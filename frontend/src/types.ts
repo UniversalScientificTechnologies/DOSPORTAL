@@ -20,4 +20,5 @@ export type LogbookItem = {
   }
   latitude?: number
   longitude?: number
+  location_text?: string
 }
