@@ -409,6 +409,20 @@ class DetectorLogbook(UUIDMixin):
 
     created = models.DateTimeField(auto_now_add=True)
 
+    modified = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        blank=True,
+    )
+
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="modified_logbook_entries",
+        null=True,
+        blank=True,
+    )
+
     text = models.TextField(
         _("Logbook text"),
         help_text="Detailed description of activity made on the detector.",

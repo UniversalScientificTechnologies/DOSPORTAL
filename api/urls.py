@@ -8,4 +8,5 @@ urlpatterns = [
     path("detector/", views.DetectorGet),
     path("logbook/", views.DetectorLogbookGet),
     path("logbook/add/", views.DetectorLogbookPost),
+    path("logbook/<uuid:entry_id>/", views.DetectorLogbookPut),
 ]

@@ -56,11 +56,12 @@ class RecordSerializer(serializers.ModelSerializer):
 
 class DetectorLogbookSerializer(serializers.ModelSerializer):
     author = UserSummarySerializer(read_only=True)
+    modified_by = UserSummarySerializer(read_only=True)
 
     class Meta:
         model = DetectorLogbook
         fields = "__all__"
-        read_only_fields = ["id", "author", "created"]
+        read_only_fields = ["id", "author", "created", "modified", "modified_by"]
 
 
 class MeasurementsSerializer(serializers.ModelSerializer):

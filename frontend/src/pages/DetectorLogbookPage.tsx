@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import type { LogbookItem } from '../types'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
@@ -34,6 +34,7 @@ export const DetectorLogbookPage = ({
   isAuthed: boolean
 }) => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [detector, setDetector] = useState<Detector | null>(null)
   const [logbook, setLogbook] = useState<LogbookItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -109,6 +110,13 @@ export const DetectorLogbookPage = ({
               <h2>Detector Logbook</h2>
             )}
           </div>
+          <button 
+            className="pill" 
+            onClick={() => navigate(`/logbook/${id}/create`)}
+            style={{ background: '#198754', border: '1px solid #198754' }}
+          >
+            + Create Entry
+          </button>
         </header>
 
         {error && <div className="error" style={{ marginBottom: '1rem' }}>{error}</div>}
@@ -191,8 +199,31 @@ export const DetectorLogbookPage = ({
                         by @{item.author.username}
                       </span>
                     )}
+                    <button
+                      onClick={() => navigate(`/logbook/${id}/edit/${item.id}`)}
+                      style={{
+                        marginLeft: 'auto',
+                        padding: '0.25rem 0.5rem',
+                        background: '#f3f4f6',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        color: '#374151',
+                      }}
+                    >
+                      ✏️ Edit
+                    </button>
                   </div>
                   <p className="text">{item.text}</p>
+                  {item.modified && (
+                    <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.5rem' }}>
+                      Last modified: {new Date(item.modified).toLocaleString()}
+                      {item.modified_by?.username && (
+                        <span> by @{item.modified_by.username}</span>
+                      )}
+                    </div>
+                  )}
                   {item.latitude && item.longitude ? (
                     <a
                       className="maplink"

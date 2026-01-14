@@ -80,10 +80,7 @@ def DetectorLogbookGet(request):
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookPost(request):
 
-    data = dict(request.data)
-    data["author"] = request.user.id
-
-    detector_id = data.get("detector")
+    detector_id = request.data.get("detector")
     if detector_id:
         try:
             detector = Detector.objects.get(id=detector_id)
@@ -101,8 +98,48 @@ def DetectorLogbookPost(request):
                 {"detail": "Detektor not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
-    serializer = DetectorLogbookSerializer(data=data)
+    serializer = DetectorLogbookSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        serializer.save(author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@permission_classes((IsAuthenticated,))
+def DetectorLogbookPut(request, entry_id):
+    try:
+        entry = DetectorLogbook.objects.get(id=entry_id)
+    except DetectorLogbook.DoesNotExist:
+        return Response(
+            {"detail": "Logbook entry not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Check if user has access to modify this entry
+    detector = entry.detector
+    user_has_access = (
+        detector.owner and request.user in detector.owner.users.all()
+    ) or detector.access.filter(users=request.user).exists()
+
+    if not user_has_access:
+        return Response(
+            {"detail": "Access to the detector denied."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Only allow updating specific fields
+    allowed_fields = [
+        "text",
+        "entry_type",
+        "latitude",
+        "longitude",
+        "altitude",
+        "public",
+    ]
+    update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
+
+    serializer = DetectorLogbookSerializer(entry, data=update_data, partial=True)
+    if serializer.is_valid():
+        serializer.save(modified_by=request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

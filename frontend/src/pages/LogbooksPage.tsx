@@ -61,13 +61,6 @@ export const LogbooksPage = ({
       <section className="panel">
         <header className="panel-header">
           <h2>Detector Logbooks</h2>
-          <button 
-            className="pill" 
-            onClick={() => alert('QR code scanning for new logbook entry coming soon!')}
-            style={{ background: '#198754', border: '1px solid #198754' }}
-          >
-            + Add Entry (QR)
-          </button>
         </header>
 
         {error && <div className="error" style={{ marginBottom: '1rem' }}>{error}</div>}
