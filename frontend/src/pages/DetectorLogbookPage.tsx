@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
 import { PageLayout } from '../components/PageLayout'
 import { theme } from '../theme'
 import type { LogbookItem } from '../types'
@@ -244,7 +245,9 @@ export const DetectorLogbookPage = ({
                       Edit
                     </button>
                   </div>
-                  <p className="text">{item.text}</p>
+                  <div className="text" style={{ marginTop: theme.spacing.md }}>
+                    <ReactMarkdown>{item.text}</ReactMarkdown>
+                  </div>
                   {item.modified && (
                     <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.5rem' }}>
                       Last modified: {new Date(item.modified).toLocaleString()}
