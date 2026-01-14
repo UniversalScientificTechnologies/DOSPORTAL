@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
+import { theme } from '../theme'
 import type { LogbookItem } from '../types'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
 
@@ -127,9 +128,34 @@ export const DetectorLogbookPage = ({
             padding: '1.5rem',
             margin: '0 0 1.25rem 0'
           }}>
-            <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', color: '#374151' }}>
-              Detector Information
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.lg }}>
+              <h3 style={{ margin: 0, fontSize: theme.typography.fontSize.base, color: theme.colors.textSecondary }}>
+                Detector Information
+              </h3>
+              <button
+                onClick={() => {
+                  const link = document.createElement('a')
+                  link.href = `${apiBase}/detector/${detector.id}/qr/?label=true`
+                  link.download = `detector_${detector.sn}_qr.png`
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                }}
+                style={{
+                  padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+                  background: theme.colors.bg,
+                  color: theme.colors.primary,
+                  border: `${theme.borders.width} solid ${theme.colors.primary}`,
+                  borderRadius: theme.borders.radius.sm,
+                  fontSize: theme.typography.fontSize.sm,
+                  cursor: 'pointer',
+                  fontWeight: theme.typography.fontWeight.medium,
+                  transition: theme.transitions.fast,
+                }}
+              >
+                QR
+              </button>
+            </div>
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
