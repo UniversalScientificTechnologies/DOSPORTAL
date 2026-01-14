@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
+import { LocationSearchMap } from '../components/LocationSearchMap'
 import { theme } from '../theme'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
 
@@ -184,7 +185,7 @@ export const LogbookEntryPage = ({
   if (!isAuthed) {
     return (
       <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-        <div className="panel">
+        <div className="panel">theme.colors.danger, padding: theme.spacing['3xl']
           <div style={{ color: '#dc3545', padding: '2rem' }}>
             Login required to create logbook entry.
           </div>
@@ -321,9 +322,23 @@ export const LogbookEntryPage = ({
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.background = '#4b5563'}
                     onMouseLeave={(e) => e.currentTarget.style.background = theme.colors.muted}
+                    title="Use Browser to get your current location"
                   >
-                    📍 Get Current Location
+                    📍 Current Location
                   </button>
+                </div>
+
+                <div style={{ marginBottom: theme.spacing.lg }}>
+                  <LocationSearchMap
+                    onLocationSelect={(data) => {
+                      setLatitude(data.latitude.toString())
+                      setLongitude(data.longitude.toString())
+                      setLocationText(data.location_text)
+                    }}
+                    initialLat={latitude ? parseFloat(latitude) : undefined}
+                    initialLng={longitude ? parseFloat(longitude) : undefined}
+                    initialLocationText={locationText}
+                  />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
