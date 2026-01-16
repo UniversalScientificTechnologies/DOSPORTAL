@@ -5,7 +5,14 @@ export type LogbookItem = {
   entry_type: string
   source: string
   created: string
+  modified?: string
   author?: {
+    id: string
+    username: string
+    first_name: string
+    last_name: string
+  }
+  modified_by?: {
     id: string
     username: string
     first_name: string
@@ -13,4 +20,5 @@ export type LogbookItem = {
   }
   latitude?: number
   longitude?: number
+  location_text?: string
 }

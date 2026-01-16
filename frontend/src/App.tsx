@@ -6,9 +6,11 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { LogbooksPage } from './pages/LogbooksPage'
 import { DetectorLogbookPage } from './pages/DetectorLogbookPage'
+import { LogbookEntryPage } from './pages/LogbookEntryPage'
+import { ProfilePage } from './pages/ProfilePage'
 
 function App() {
-  const { API_BASE, ORIGIN_BASE, isAuthed, login, logout } = useAuth()
+  const { API_BASE, ORIGIN_BASE, isAuthed, isLoading, login, logout } = useAuth()
 
   return (
     <BrowserRouter>
@@ -21,6 +23,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/logbooks" element={<LogbooksPage apiBase={API_BASE} isAuthed={isAuthed} />} />
         <Route path="/logbook/:id" element={<DetectorLogbookPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+        <Route path="/logbook/:id/create" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+        <Route path="/logbook/:id/edit/:entryId" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+        <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

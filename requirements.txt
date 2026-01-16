@@ -27,6 +27,10 @@ numpy
 plotly
 gpxpy
 
+# QR Code generation
+qrcode[pil]
+Pillow
+
 django-crispy-forms
 crispy-bootstrap5
 #django-organizations

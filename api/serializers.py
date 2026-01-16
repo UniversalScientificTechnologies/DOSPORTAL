@@ -8,6 +8,7 @@ from DOSPORTAL.models import (
     DetectorManufacturer,
     Organization,
     User,
+    OrganizationUser,
 )
 
 
@@ -56,11 +57,12 @@ class RecordSerializer(serializers.ModelSerializer):
 
 class DetectorLogbookSerializer(serializers.ModelSerializer):
     author = UserSummarySerializer(read_only=True)
+    modified_by = UserSummarySerializer(read_only=True)
 
     class Meta:
         model = DetectorLogbook
         fields = "__all__"
-        read_only_fields = ["id", "author", "created"]
+        read_only_fields = ["id", "author", "created", "modified", "modified_by"]
 
 
 class MeasurementsSerializer(serializers.ModelSerializer):
@@ -72,3 +74,16 @@ class MeasurementsSerializer(serializers.ModelSerializer):
         fields = "__all__"
         # fields = ('id', 'name')
         # exclude = ()
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name")
+
+
+class OrganizationUserSerializer(serializers.Serializer):
+    id = serializers.CharField(source="organization.id")
+    name = serializers.CharField(source="organization.name")
+    user_type = serializers.CharField()
+    data_policy = serializers.CharField(source="organization.get_data_policy_display")

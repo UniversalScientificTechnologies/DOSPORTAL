@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 const getCookie = (name: string) => {
 	const value = `; ${document.cookie}`
@@ -21,6 +21,27 @@ export const useAuth = () => {
 	}, [])
 
 	const [isAuthed, setIsAuthed] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
+
+	// Check if user is already authenticated on mount
+	useEffect(() => {
+		const checkAuth = async () => {
+			try {
+				const res = await fetch(`${API_BASE}/detector/`, {
+					method: 'GET',
+					credentials: 'include',
+				})
+				// If we can access a protected endpoint, user is authenticated
+				setIsAuthed(res.ok)
+			} catch (e) {
+				setIsAuthed(false)
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		checkAuth()
+	}, [API_BASE])
 
 	const login = async (username: string, password: string) => {
 		await ensureCsrfCookie(ORIGIN_BASE)
@@ -67,6 +88,7 @@ export const useAuth = () => {
 		API_BASE,
 		ORIGIN_BASE,
 		isAuthed,
+		isLoading,
 		login,
 		logout,
 	}

@@ -2,15 +2,26 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
+from django.http import HttpResponse
 
 from django.utils.dateparse import parse_datetime
-from DOSPORTAL.models import measurement, Record, DetectorLogbook, Detector
+from DOSPORTAL.models import (
+    measurement,
+    Record,
+    DetectorLogbook,
+    Detector,
+    OrganizationUser,
+    User,
+)
 from .serializers import (
     MeasurementsSerializer,
     RecordSerializer,
     DetectorLogbookSerializer,
     DetectorSerializer,
+    UserProfileSerializer,
+    OrganizationUserSerializer,
 )
+from .qr_utils import generate_qr_code, generate_qr_detector_with_label
 
 
 @api_view(["GET"])
@@ -80,10 +91,7 @@ def DetectorLogbookGet(request):
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookPost(request):
 
-    data = dict(request.data)
-    data["author"] = request.user.id
-
-    detector_id = data.get("detector")
+    detector_id = request.data.get("detector")
     if detector_id:
         try:
             detector = Detector.objects.get(id=detector_id)
@@ -101,8 +109,127 @@ def DetectorLogbookPost(request):
                 {"detail": "Detektor not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
-    serializer = DetectorLogbookSerializer(data=data)
+    serializer = DetectorLogbookSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        serializer.save(author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT"])
+@permission_classes((IsAuthenticated,))
+def DetectorLogbookPut(request, entry_id):
+    try:
+        entry = DetectorLogbook.objects.get(id=entry_id)
+    except DetectorLogbook.DoesNotExist:
+        return Response(
+            {"detail": "Logbook entry not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Check if user has access to modify this entry
+    detector = entry.detector
+    user_has_access = (
+        detector.owner and request.user in detector.owner.users.all()
+    ) or detector.access.filter(users=request.user).exists()
+
+    if not user_has_access:
+        return Response(
+            {"detail": "Access to the detector denied."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Only allow updating specific fields
+    allowed_fields = [
+        "text",
+        "entry_type",
+        "latitude",
+        "longitude",
+        "altitude",
+        "location_text",
+        "public",
+    ]
+    update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
+
+    serializer = DetectorLogbookSerializer(entry, data=update_data, partial=True)
+    if serializer.is_valid():
+        serializer.save(modified_by=request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "PUT"])
+@permission_classes((IsAuthenticated,))
+def UserProfile(request):
+    if request.method == "GET":
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+
+    elif request.method == "PUT":
+        serializer = UserProfileSerializer(
+            request.user, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            # Only allow updating specific fields
+            allowed_fields = ["email", "first_name", "last_name"]
+            for field in allowed_fields:
+                if field in request.data:
+                    setattr(request.user, field, request.data[field])
+            request.user.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def UserOrganizations(request):
+    """Get all organizations that the current user is a member of."""
+    org_users = OrganizationUser.objects.filter(user=request.user).select_related(
+        "organization"
+    )
+    serializer = OrganizationUserSerializer(org_users, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def DetectorQRCode(request, detector_id):
+    """
+    Generate QR code for a specific detector.
+
+    Query params:
+    - label: 'true' to include detector name and serial number
+    """
+    try:
+        detector = Detector.objects.select_related("type").get(id=detector_id)
+    except Detector.DoesNotExist:
+        return Response(
+            {"detail": "Detector not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Build the logbook creation URL
+    base_url = request.build_absolute_uri("/").rstrip("/")
+    logbook_url = f"{base_url}/logbook/{detector.id}/create"
+
+    # Get query parameters
+    include_label = request.query_params.get("label", "false").lower() == "true"
+
+    # Generate QR code
+    try:
+        if include_label:
+            qr_buffer = generate_qr_detector_with_label(
+                url=logbook_url, detector_name=detector.name, serial_number=detector.sn
+            )
+        else:
+            qr_buffer = generate_qr_code(url=logbook_url)
+
+        response = HttpResponse(qr_buffer.read(), content_type="image/png")
+        filename = f"detector_{detector.sn}_qr.png"
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+
+        return response
+
+    except Exception as e:
+        return Response(
+            {"detail": f"Error generating QR code: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
