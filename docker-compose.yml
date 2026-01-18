@@ -1,28 +1,8 @@
 networks:
-  inet:
+  dosportal_internal:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 10.5.0.0/16
-          gateway: 10.5.0.1
-  default:
-    driver: bridge
-    ipam:
-      driver: default
 
 services:
-  # db_dosportal:
-  #   image: postgres
-  #   volumes:
-  #     - ./data/dosportal/db:/var/lib/postgresql/data
-  #   environment:
-  #     - POSTGRES_DB=dosportal
-  #     - POSTGRES_USER=dosportal_user
-  #     - POSTGRES_PASSWORD=dosportal_password
-  #   networks:
-  #     inet:
-  #       ipv4_address: 10.5.0.5
-
   db_dosportal:
     image: postgis/postgis
     env_file:
@@ -34,64 +14,42 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dosportal_password}
     networks:
-      inet:
-        ipv4_address: 10.5.0.5
+      - dosportal_internal
 
   backend:
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
-      network: host
-    #    platform: linux/amd64
-    #    command: python manage.py runserver 0.0.0.0:8000
-    #    entrypoint: python3 manage.py runserver 0.0.0.0:8000
+    image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
     env_file:
       - .env
-    volumes:
-      - .:/DOSPORTAL
-    ports:
-      - "8100:8000"
     depends_on:
       - db_dosportal
       - redis
       - minio
     networks:
-      inet:
-        ipv4_address: 10.5.0.6
-  #      default:
-
+      - dosportal_internal
+      
   worker:
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
+    image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
     entrypoint: python3 manage.py qcluster
-    volumes:
-      - .:/DOSPORTAL
+    env_file:
+      - .env
     depends_on:
       - backend
       - db_dosportal
       - redis
     networks:
-      inet:
-        ipv4_address: 10.5.0.8
+      - dosportal_internal
 
   redis:
     image: redis
-    volumes:
-      - .:/DOSPORTAL
     depends_on:
       - db_dosportal
     networks:
-      inet:
-        ipv4_address: 10.5.0.7
+      - dosportal_internal
 
   minio:
     image: minio/minio
     env_file:
       - .env
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -99,27 +57,23 @@ services:
     volumes:
       - ./data/minio:/data
     networks:
-      inet:
-        ipv4_address: 10.5.0.9
+      - dosportal_internal
 
   frontend:
-    build:
-      context: .
-      dockerfile: frontend.Dockerfile
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app/frontend
-      - /app/frontend/node_modules
-    environment:
-      - NODE_ENV=development
+    image: ghcr.io/universalscientifictechnologies/dosportal-frontend:dev
     depends_on:
       - backend
     networks:
-      inet:
-        ipv4_address: 10.5.0.10
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - dosportal_internal
+      
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx_config/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    networks:
+      - dosportal_internal
