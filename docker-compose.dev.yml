@@ -1,0 +1,107 @@
+networks:
+  inet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+  traefik:
+    external: true
+
+services:
+  db_dosportal:
+    image: postgis/postgis
+    env_file:
+      - .env
+    volumes:
+      - ./data/dosportal/db_pg:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-dosportal}
+      - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dosportal_password}
+    networks:
+      inet:
+        ipv4_address: 10.5.0.5
+
+  backend:
+    image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
+    env_file:
+      - .env
+    volumes:
+      - .:/DOSPORTAL
+    depends_on:
+      - db_dosportal
+      - redis
+      - minio
+    networks:
+      - inet
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dosportal-dev-backend.rule=Host(`dev.dosportal.ust.cz`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.dosportal-dev-backend.entrypoints=websecure"
+      - "traefik.http.routers.dosportal-dev-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.dosportal-dev-backend.loadbalancer.server.port=8000"
+
+  worker:
+    image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
+    entrypoint: python3 manage.py qcluster
+    env_file:
+      - .env
+    volumes:
+      - .:/DOSPORTAL
+    depends_on:
+      - backend
+      - db_dosportal
+      - redis
+    networks:
+      inet:
+        ipv4_address: 10.5.0.8
+
+  redis:
+    image: redis
+    volumes:
+      - .:/DOSPORTAL
+    depends_on:
+      - db_dosportal
+    networks:
+      inet:
+        ipv4_address: 10.5.0.7
+
+  minio:
+    image: minio/minio
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - inet
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dosportal-dev-minio.rule=Host(`dev.dosportal.ust.cz`) && PathPrefix(`/minio`)"
+      - "traefik.http.routers.dosportal-dev-minio.entrypoints=websecure"
+      - "traefik.http.routers.dosportal-dev-minio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.dosportal-dev-minio.loadbalancer.server.port=9000"
+
+  frontend:
+    image: ghcr.io/universalscientifictechnologies/dosportal-frontend:dev
+    depends_on:
+      - backend
+    networks:
+      - inet
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dosportal-dev-frontend.rule=Host(`dev.dosportal.ust.cz`)"
+      - "traefik.http.routers.dosportal-dev-frontend.entrypoints=websecure"
+      - "traefik.http.routers.dosportal-dev-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.dosportal-dev-frontend.loadbalancer.server.port=5173"
