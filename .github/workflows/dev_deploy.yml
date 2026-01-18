@@ -65,15 +65,31 @@ jobs:
       - name: Debug secrets
         run: |
           echo "DEPLOY_HOST exists: ${{ secrets.DEPLOY_HOST != '' }}"
+          echo "deploy_host exists (lowercase): ${{ secrets.deploy_host != '' }}"
           echo "DEPLOY_USER exists: ${{ secrets.DEPLOY_USER != '' }}"
+          echo "deploy_user exists (lowercase): ${{ secrets.deploy_user != '' }}"
           echo "DEPLOY_SSH_KEY exists: ${{ secrets.DEPLOY_SSH_KEY != '' }}"
-          echo "DEPLOY_SSH_KEY exists: ${DEPLOY_SSH_KEY:0:20}"
-          echo "DEPLOY_HOST prefix: ${DEPLOY_HOST}"
-          echo "DEPLOY_USER prefix: ${DEPLOY_USER:0:5}"
+          echo "deploy_ssh_key exists (lowercase): ${{ secrets.deploy_ssh_key != '' }}"
+          echo "DEPLOY_HOST last octets: ...${DEPLOY_HOST##*.}"
+          echo "DEPLOY_USER value: $DEPLOY_USER"
+          echo "SSH_KEY first line: $(echo "$SSH_KEY" | head -n 1)"
+          echo "SSH_KEY line count: $(echo "$SSH_KEY" | wc -l)"
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}${{ secrets.deploy_host }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}${{ secrets.deploy_user }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}${{ secrets.deploy_ssh_key }}
+      
+      - name: Test SSH connection
+        run: |
+          echo "$SSH_KEY" > /tmp/test_key
+          chmod 600 /tmp/test_key
+          echo "Testing SSH connection with verbose output..."
+          ssh -vvv -i /tmp/test_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "echo 'SSH connection successful'" || echo "SSH connection failed with exit code $?"
+          rm /tmp/test_key
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}${{ secrets.deploy_host }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}${{ secrets.deploy_user }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}${{ secrets.deploy_ssh_key }}
 
       - name: Deploy to dev server via SSH
         uses: appleboy/ssh-action@v1.0.3
