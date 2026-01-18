@@ -70,7 +70,6 @@ jobs:
           echo "DEPLOY_SSH_KEY exists: ${secrets.DEPLOY_SSH_KEY:0:20}"
           echo "DEPLOY_HOST prefix: ${DEPLOY_HOST}"
           echo "DEPLOY_USER prefix: ${DEPLOY_USER:0:5}"
-          echo "SSH_KEY prefix: ${DEPLOY_SSH_KEY:0:30}"
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
