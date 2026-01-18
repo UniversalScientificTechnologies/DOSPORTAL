@@ -244,14 +244,21 @@ jobs:
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG"
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG"
 
+            echo "==> Check for override file"
+            COMPOSE_ARGS="-f $COMPOSE_FILE"
+            if [ -f "docker-compose.override.yml" ]; then
+              echo "Found docker-compose.override.yml, applying it"
+              COMPOSE_ARGS="$COMPOSE_ARGS -f docker-compose.override.yml"
+            fi
+
             echo "==> Compose pull"
-            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" pull
 
             echo "==> Up (no downtime 'down' step)"
-            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" up -d --remove-orphans
 
             echo "==> Show status"
-            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" ps
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS ps
 
             echo "==> Cleanup old images (keep recent ones)"
             docker image prune -af --filter "until=168h"
