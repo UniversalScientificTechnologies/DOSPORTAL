@@ -1,0 +1,295 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    tags:
+      - 'v*'
+  release:
+    types: [published, created]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - test
+          - master
+          - release
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BASE: universalscientifictechnologies/dosportal
+jobs:
+  # Determine deployment environment
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      environment: ${{ steps.check.outputs.environment }}
+      image_tag: ${{ steps.check.outputs.image_tag }}
+      app_dir: ${{ steps.check.outputs.app_dir }}
+      project_name: ${{ steps.check.outputs.project_name }}
+    steps:
+      - name: Check deployment conditions
+        id: check
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          SHOULD_DEPLOY="false"
+          ENVIRONMENT=""
+          IMAGE_TAG=""
+          APP_DIR=""
+          PROJECT_NAME=""
+          
+          # Release (tag or published release)
+          if [[ "${{ github.event_name }}" == "release" || ( "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ) ]]; then
+            SHOULD_DEPLOY="true"
+            ENVIRONMENT="release"
+            if [[ "${{ github.event_name }}" == "release" ]]; then
+              IMAGE_TAG="${{ github.event.release.tag_name }}"
+            else
+              IMAGE_TAG="${GITHUB_REF#refs/tags/}"
+            fi
+            APP_DIR="/data/ust/dosportal/release"
+            PROJECT_NAME="dosportal-release"
+          
+          # Master branch (master or dev)
+          elif [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/dev" ) ]]; then
+            SHOULD_DEPLOY="true"
+            ENVIRONMENT="master"
+            IMAGE_TAG="master"
+            APP_DIR="/data/ust/dosportal/master"
+            PROJECT_NAME="dosportal-master"
+          
+          # PR comment with /test-me
+          elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            if [[ "$COMMENT_BODY" == *"/test-me"* ]] && [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
+              SHOULD_DEPLOY="true"
+              ENVIRONMENT="test"
+              IMAGE_TAG="pr-${{ github.event.issue.number }}"
+              APP_DIR="/data/ust/dosportal/test"
+              PROJECT_NAME="dosportal-test"
+            fi
+          
+          # Manual workflow dispatch
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            SHOULD_DEPLOY="true"
+            ENVIRONMENT="${{ inputs.environment }}"
+            if [[ "$ENVIRONMENT" == "release" ]]; then
+              IMAGE_TAG="latest"
+              APP_DIR="/data/ust/dosportal/release"
+              PROJECT_NAME="dosportal-release"
+            elif [[ "$ENVIRONMENT" == "master" ]]; then
+              IMAGE_TAG="master"
+              APP_DIR="/data/ust/dosportal/master"
+              PROJECT_NAME="dosportal-master"
+            elif [[ "$ENVIRONMENT" == "test" ]]; then
+              IMAGE_TAG="test"
+              APP_DIR="/data/ust/dosportal/test"
+              PROJECT_NAME="dosportal-test"
+            fi
+          fi
+          
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "app_dir=$APP_DIR" >> $GITHUB_OUTPUT
+          echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
+          
+          echo "Deployment decision:"
+          echo "  Should deploy: $SHOULD_DEPLOY"
+          echo "  Environment: $ENVIRONMENT"
+          echo "  Image tag: $IMAGE_TAG"
+
+  # Checkout PR code if comment trigger
+  checkout-pr:
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true' && github.event_name == 'issue_comment'
+    steps:
+      - name: Get PR branch
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('ref', pr.data.head.ref);
+            core.setOutput('sha', pr.data.head.sha);
+      
+      - name: Checkout PR
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.pr.outputs.ref }}
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            dockerfile: backend.Dockerfile
+          - component: frontend
+            dockerfile: frontend.Dockerfile
+      
+    steps:
+      - name: Get PR info if needed
+        if: github.event_name == 'issue_comment'
+        id: pr_info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('ref', pr.data.head.ref);
+      
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.ref || github.ref }}
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BASE }}-${{ matrix.component }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ needs.prepare.outputs.image_tag }}
+            
+      - name: Build and push Docker image (${{ matrix.component }})
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BASE }}-${{ matrix.component }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BASE }}-${{ matrix.component }}:buildcache,mode=max
+
+  deploy:
+    name: Deploy to ${{ needs.prepare.outputs.environment }}
+    needs: [prepare, build-and-push]
+    if: needs.prepare.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Read docker-compose file
+        id: compose_file
+        run: |
+          COMPOSE_CONTENT=$(cat docker-compose.yml | base64 -w 0)
+          echo "content=$COMPOSE_CONTENT" >> $GITHUB_OUTPUT
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          APP_DIR: ${{ needs.prepare.outputs.app_dir }}
+          ENV_FILE: ${{ needs.prepare.outputs.app_dir }}/env/${{ needs.prepare.outputs.environment }}.env
+          COMPOSE_FILE: docker-compose.yml
+          PROJECT_NAME: ${{ needs.prepare.outputs.project_name }}
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_NAME_BASE: ${{ env.IMAGE_NAME_BASE }}
+          IMAGE_TAG: ${{ needs.prepare.outputs.image_tag }}
+          COMPOSE_CONTENT: ${{ steps.compose_file.outputs.content }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: APP_DIR,ENV_FILE,COMPOSE_FILE,PROJECT_NAME,REGISTRY,IMAGE_NAME_BASE,IMAGE_TAG,COMPOSE_CONTENT
+          script: |
+            set -euo pipefail
+            
+            echo "==> Deploying to environment: $PROJECT_NAME"
+            echo "==> Using image tag: $IMAGE_TAG"
+            
+            echo "==> Preparing app dir"
+            mkdir -p "$APP_DIR/env"
+            cd "$APP_DIR"
+            
+            echo "==> Creating docker-compose file"
+            echo "$COMPOSE_CONTENT" | base64 -d > "$COMPOSE_FILE"
+
+            echo "==> Sanity checks"
+            test -f "$COMPOSE_FILE" || (echo "Missing compose file: $APP_DIR/$COMPOSE_FILE" && exit 1)
+            if [ ! -f "$ENV_FILE" ]; then
+              echo "Creating dummy env file at $ENV_FILE"
+              touch "$ENV_FILE"
+            fi
+            
+            docker version >/dev/null
+            docker compose version >/dev/null
+
+            echo "==> Pull images (explicit, public GHCR)"
+            docker pull "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG"
+            docker pull "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG"
+
+            echo "==> Check for override file"
+            COMPOSE_ARGS="-f $COMPOSE_FILE"
+            if [ -f "docker-compose.override.yml" ]; then
+              echo "Found docker-compose.override.yml, applying it"
+              COMPOSE_ARGS="$COMPOSE_ARGS -f docker-compose.override.yml"
+            fi
+
+            echo "==> Compose pull"
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" pull
+
+            echo "==> Up (no downtime 'down' step)"
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" up -d --remove-orphans
+
+            echo "==> Show status"
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS ps
+
+            echo "==> Cleanup old images (keep recent ones)"
+            docker image prune -af --filter "until=168h"
+
+            echo "==> Done"
+      
+      - name: Comment on PR (if test deployment)
+        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Test deployment completed! Available at: test.dosportal.ust.cz'
+            })
