@@ -57,56 +57,63 @@ jobs:
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BASE }}-${{ matrix.component }}:buildcache,mode=max
 
   deploy:
+    name: Deploy (dev)
     needs: build-and-push
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-      
-      - name: Read docker-compose file
-        id: compose_file
-        run: |
-          COMPOSE_CONTENT=$(cat docker-compose.dev.yml | base64 -w 0)
-          echo "content=$COMPOSE_CONTENT" >> $GITHUB_OUTPUT
-      
-      - name: Transfer docker-compose to server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            mkdir -p /data/ust/dosportal/master
-            echo "${{ steps.compose_file.outputs.content }}" | base64 -d > /data/ust/dosportal/master/docker-compose.dev.yml
-      
-      - name: Deploy to dev server
+      - name: Deploy to dev server via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          REGISTRY: ${{ env.REGISTRY }}
-          IMAGE_NAME_BASE: ${{ env.IMAGE_NAME_BASE }}
+          # GHCR login (doporučuji bot účet + fine-grained token s read:packages)
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+
+          # Deployment paths / identifiers
+          APP_DIR: /data/ust/dosportal/master
+          ENV_FILE: /data/ust/dosportal/master/env/dev.env
+          COMPOSE_FILE: docker-compose.dev.yml
+          PROJECT_NAME: dosportal-dev
+
+          # Image names (nastavuješ už v workflow env, nebo dej do secrets)
+          REGISTRY: ${{ env.REGISTRY }}                 # např. ghcr.io/ust-org
+          IMAGE_NAME_BASE: ${{ env.IMAGE_NAME_BASE }}   # např. dosportal
+          IMAGE_TAG: dev
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: GITHUB_TOKEN,GITHUB_ACTOR,REGISTRY,IMAGE_NAME_BASE
+          envs: GHCR_USER,GHCR_TOKEN,APP_DIR,ENV_FILE,COMPOSE_FILE,PROJECT_NAME,REGISTRY,IMAGE_NAME_BASE,IMAGE_TAG
           script: |
-            cd /data/ust/dosportal/master
-            
-            # Login to GitHub Container Registry
-            echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-            
-            # Pull latest images
-            docker pull $REGISTRY/$IMAGE_NAME_BASE-backend:dev
-            docker pull $REGISTRY/$IMAGE_NAME_BASE-frontend:dev
-            
-            # Stop and remove old containers
-            docker compose -f docker-compose.dev.yml down
-            
-            # Start new containers
-            docker compose -f docker-compose.dev.yml up -d
-            
-            # Clean up old images
-            docker image prune -f
+            set -euo pipefail
+
+            echo "==> Entering app dir"
+            cd "$APP_DIR"
+
+            echo "==> Sanity checks"
+            test -f "$COMPOSE_FILE" || (echo "Missing compose file: $APP_DIR/$COMPOSE_FILE" && exit 1)
+            test -f "$ENV_FILE" || (echo "Missing env file: $ENV_FILE" && exit 1)
+            docker version >/dev/null
+            docker compose version >/dev/null
+
+            echo "==> Login to GHCR"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            echo "==> Pull images (explicit)"
+            docker pull "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG"
+            docker pull "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG"
+
+            echo "==> Compose pull (recommended if compose references images)"
+            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
+
+            echo "==> Up (no downtime 'down' step)"
+            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans
+
+            echo "==> Show status"
+            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" ps
+
+            echo "==> Cleanup old images (keep recent ones)"
+            docker image prune -af --filter "until=168h"
+
+            echo "==> Done"
+
