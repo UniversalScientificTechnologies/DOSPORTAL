@@ -77,5 +77,3 @@ services:
       - "8080:80"
     networks:
       - dosportal_internal
-
-ls
