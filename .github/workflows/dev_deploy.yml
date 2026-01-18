@@ -81,14 +81,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
       
-      - name: Copy docker-compose to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "docker-compose.dev.yml"
-          target: "/data/ust/dosportal/master/"
+      - name: Transfer docker-compose via SSH
+        run: |
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          
+          # Create directory if it doesn't exist
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "mkdir -p /data/ust/dosportal/master"
+          
+          # Copy docker-compose file
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no docker-compose.dev.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/data/ust/dosportal/master/
+          
+          rm /tmp/deploy_key
       
       - name: Deploy to dev server
         uses: appleboy/ssh-action@v1.0.3
