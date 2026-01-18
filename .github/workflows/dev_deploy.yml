@@ -67,7 +67,7 @@ jobs:
           echo "DEPLOY_HOST exists: ${{ secrets.DEPLOY_HOST != '' }}"
           echo "DEPLOY_USER exists: ${{ secrets.DEPLOY_USER != '' }}"
           echo "DEPLOY_SSH_KEY exists: ${{ secrets.DEPLOY_SSH_KEY != '' }}"
-          echo "DEPLOY_SSH_KEY exists: ${secrets.DEPLOY_SSH_KEY:0:20}"
+          echo "DEPLOY_SSH_KEY exists: ${DEPLOY_SSH_KEY:0:20}"
           echo "DEPLOY_HOST prefix: ${DEPLOY_HOST}"
           echo "DEPLOY_USER prefix: ${DEPLOY_USER:0:5}"
         env:
