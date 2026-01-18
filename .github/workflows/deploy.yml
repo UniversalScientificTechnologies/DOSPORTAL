@@ -41,6 +41,8 @@ jobs:
     steps:
       - name: Check deployment conditions
         id: check
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           SHOULD_DEPLOY="false"
           ENVIRONMENT=""
@@ -70,7 +72,6 @@ jobs:
           
           # PR comment with /test-me
           elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
-            COMMENT_BODY="${{ github.event.comment.body }}"
             if [[ "$COMMENT_BODY" == *"/test-me"* ]] && [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
               SHOULD_DEPLOY="true"
               ENVIRONMENT="test"
