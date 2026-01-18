@@ -81,18 +81,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
       
-      - name: Transfer docker-compose via SSH
+      - name: Read docker-compose file
+        id: compose_file
         run: |
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
-          
-          # Create directory if it doesn't exist
-          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "mkdir -p /data/ust/dosportal/master"
-          
-          # Copy docker-compose file
-          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no docker-compose.dev.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/data/ust/dosportal/master/
-          
-          rm /tmp/deploy_key
+          COMPOSE_CONTENT=$(cat docker-compose.dev.yml | base64 -w 0)
+          echo "content=$COMPOSE_CONTENT" >> $GITHUB_OUTPUT
+      
+      - name: Transfer docker-compose to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            mkdir -p /data/ust/dosportal/master
+            echo "${{ steps.compose_file.outputs.content }}" | base64 -d > /data/ust/dosportal/master/docker-compose.dev.yml
       
       - name: Deploy to dev server
         uses: appleboy/ssh-action@v1.0.3
