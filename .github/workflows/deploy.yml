@@ -22,10 +22,12 @@ on:
           - master
           - release
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME_BASE: universalscientifictechnologies/dosportal
-
 jobs:
   # Determine deployment environment
   prepare:
