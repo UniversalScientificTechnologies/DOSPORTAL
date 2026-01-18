@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - dev
     tags:
       - 'v*'
   issue_comment:
@@ -51,8 +52,8 @@ jobs:
             APP_DIR="/data/ust/dosportal/release"
             PROJECT_NAME="dosportal-release"
           
-          # Master branch
-          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
+          # Master branch (master or dev)
+          elif [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/dev" ) ]]; then
             SHOULD_DEPLOY="true"
             ENVIRONMENT="master"
             IMAGE_TAG="master"
