@@ -2,7 +2,6 @@ import { useState } from 'react'
 import loginBg from '../assets/img/login_background.jpg'
 
 export const LoginPage = ({
-  originBase,
   onLogin,
 }: {
   originBase: string

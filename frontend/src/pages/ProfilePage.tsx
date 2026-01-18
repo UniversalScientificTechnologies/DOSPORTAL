@@ -37,7 +37,6 @@ interface Detector {
 
 export const ProfilePage = ({
   apiBase,
-  originBase,
   isAuthed,
 }: {
   apiBase: string

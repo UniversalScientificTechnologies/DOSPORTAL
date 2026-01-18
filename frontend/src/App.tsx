@@ -10,7 +10,7 @@ import { LogbookEntryPage } from './pages/LogbookEntryPage'
 import { ProfilePage } from './pages/ProfilePage'
 
 function App() {
-  const { API_BASE, ORIGIN_BASE, isAuthed, isLoading, login, logout } = useAuth()
+  const { API_BASE, ORIGIN_BASE, isAuthed, login, logout } = useAuth()
 
   return (
     <BrowserRouter>
