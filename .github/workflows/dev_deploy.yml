@@ -62,51 +62,55 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug secrets
+      - name: Debug and Clean Secrets
+        id: clean_secrets
         run: |
-          echo "DEPLOY_HOST exists: ${{ secrets.DEPLOY_HOST != '' }}"
-          echo "deploy_host exists (lowercase): ${{ secrets.deploy_host != '' }}"
-          echo "DEPLOY_USER exists: ${{ secrets.DEPLOY_USER != '' }}"
-          echo "deploy_user exists (lowercase): ${{ secrets.deploy_user != '' }}"
-          echo "DEPLOY_SSH_KEY exists: ${{ secrets.DEPLOY_SSH_KEY != '' }}"
-          echo "deploy_ssh_key exists (lowercase): ${{ secrets.deploy_ssh_key != '' }}"
-          echo "DEPLOY_HOST last octets: ...${DEPLOY_HOST##*.}"
-          echo "DEPLOY_USER value: $DEPLOY_USER"
-          echo "SSH_KEY first line: $(echo "$SSH_KEY" | head -n 1)"
-          echo "SSH_KEY line count: $(echo "$SSH_KEY" | wc -l)"
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}${{ secrets.deploy_host }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}${{ secrets.deploy_user }}
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}${{ secrets.deploy_ssh_key }}
-      
+          # Clean whitespace from secrets
+          CLEAN_HOST=$(echo "${{ secrets.DEPLOY_HOST }}" | xargs)
+          CLEAN_USER=$(echo "${{ secrets.DEPLOY_USER }}" | xargs)
+          
+          echo "Original HOST length: ${#CLEAN_HOST}"
+          echo "Original USER length: ${#CLEAN_USER}"
+          
+          # Check for common issues
+          if [[ "$CLEAN_HOST" == http* ]]; then
+            echo "::warning::DEPLOY_HOST starts with http/https - stripping it"
+            CLEAN_HOST=$(echo "$CLEAN_HOST" | sed 's|^https*://||g')
+          fi
+          
+          # Mask parts for debug
+          echo "HOST last char: ${CLEAN_HOST: -1}"
+          echo "HOST last octet: ...${CLEAN_HOST##*.}"
+          
+          # Save cleaned secrets to output
+          echo "host=$CLEAN_HOST" >> $GITHUB_OUTPUT
+          echo "user=$CLEAN_USER" >> $GITHUB_OUTPUT
+          
+          # Setup SSH Key
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+
       - name: Test SSH connection
         run: |
-          echo "$SSH_KEY" > /tmp/test_key
-          chmod 600 /tmp/test_key
-          echo "Testing SSH connection with verbose output..."
-          ssh -vvv -i /tmp/test_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "echo 'SSH connection successful'" || echo "SSH connection failed with exit code $?"
-          rm /tmp/test_key
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}${{ secrets.deploy_host }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}${{ secrets.deploy_user }}
-          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}${{ secrets.deploy_ssh_key }}
-
+          HOST="${{ steps.clean_secrets.outputs.host }}"
+          USER="${{ steps.clean_secrets.outputs.user }}"
+          
+          echo "Testing connection to $USER@$HOST"
+          ssh -vvv -i /tmp/ssh_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$USER@$HOST" "echo 'SSH connection successful'" || echo "SSH failed"
+          
       - name: Deploy to dev server via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
-          # Deployment paths / identifiers
           APP_DIR: /data/ust/dosportal/master
           ENV_FILE: /data/ust/dosportal/master/env/dev.env
           COMPOSE_FILE: docker-compose.dev.yml
           PROJECT_NAME: dosportal-dev
-
-          # Image names (nastavuješ už v workflow env, nebo dej do secrets)
-          REGISTRY: ${{ env.REGISTRY }}                 # např. ghcr.io/ust-org
-          IMAGE_NAME_BASE: ${{ env.IMAGE_NAME_BASE }}   # např. dosportal
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_NAME_BASE: ${{ env.IMAGE_NAME_BASE }}
           IMAGE_TAG: dev
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
+          host: ${{ steps.clean_secrets.outputs.host }}
+          username: ${{ steps.clean_secrets.outputs.user }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           envs: APP_DIR,ENV_FILE,COMPOSE_FILE,PROJECT_NAME,REGISTRY,IMAGE_NAME_BASE,IMAGE_TAG
           script: |
