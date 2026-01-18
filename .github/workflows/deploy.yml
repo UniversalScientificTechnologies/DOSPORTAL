@@ -7,6 +7,8 @@ on:
       - dev
     tags:
       - 'v*'
+  release:
+    types: [published, created]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -44,11 +46,15 @@ jobs:
           APP_DIR=""
           PROJECT_NAME=""
           
-          # Release tag
-          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ]]; then
+          # Release (tag or published release)
+          if [[ "${{ github.event_name }}" == "release" || ( "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ) ]]; then
             SHOULD_DEPLOY="true"
             ENVIRONMENT="release"
-            IMAGE_TAG="${GITHUB_REF#refs/tags/}"
+            if [[ "${{ github.event_name }}" == "release" ]]; then
+              IMAGE_TAG="${{ github.event.release.tag_name }}"
+            else
+              IMAGE_TAG="${GITHUB_REF#refs/tags/}"
+            fi
             APP_DIR="/data/ust/dosportal/release"
             PROJECT_NAME="dosportal-release"
           
@@ -60,10 +66,10 @@ jobs:
             APP_DIR="/data/ust/dosportal/master"
             PROJECT_NAME="dosportal-master"
           
-          # PR comment with \test-me
+          # PR comment with /test-me
           elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
             COMMENT_BODY="${{ github.event.comment.body }}"
-            if [[ "$COMMENT_BODY" == *"\\test-me"* ]] && [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
+            if [[ "$COMMENT_BODY" == *"/test-me"* ]] && [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
               SHOULD_DEPLOY="true"
               ENVIRONMENT="test"
               IMAGE_TAG="pr-${{ github.event.issue.number }}"
