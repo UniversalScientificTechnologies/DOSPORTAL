@@ -1,6 +1,6 @@
-# Django frontend
+# Django frontend - statický build
 
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 
 WORKDIR /app/frontend
 
@@ -10,9 +10,10 @@ RUN npm install
 
 COPY frontend/ ./
 
-COPY frontend/entrypoint.sh /usr/local/bin/frontend-entrypoint.sh
-RUN chmod +x /usr/local/bin/frontend-entrypoint.sh
+RUN npm run build
 
-EXPOSE 5173
+FROM nginx:alpine
 
-ENTRYPOINT ["/usr/local/bin/frontend-entrypoint.sh"]
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+
+EXPOSE 80
