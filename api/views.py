@@ -3,7 +3,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login, logout
 
 from django.utils.dateparse import parse_datetime
 from DOSPORTAL.models import (
@@ -23,45 +22,6 @@ from .serializers import (
     OrganizationUserSerializer,
 )
 from .qr_utils import generate_qr_code, generate_qr_detector_with_label
-
-
-@api_view(["POST"])
-@permission_classes((AllowAny,))
-def Login(request):
-    """API login endpoint that accepts username and password."""
-    username = request.data.get("username")
-    password = request.data.get("password")
-    
-    if not username or not password:
-        return Response(
-            {"detail": "Username and password are required."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    
-    user = authenticate(request, username=username, password=password)
-    
-    if user is not None:
-        login(request, user)
-        return Response(
-            {"detail": "Login successful.", "username": user.username},
-            status=status.HTTP_200_OK,
-        )
-    else:
-        return Response(
-            {"detail": "Invalid username or password."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-
-
-@api_view(["POST"])
-@permission_classes((IsAuthenticated,))
-def Logout(request):
-    """API logout endpoint."""
-    logout(request)
-    return Response(
-        {"detail": "Logout successful."},
-        status=status.HTTP_200_OK,
-    )
 
 
 @api_view(["GET"])

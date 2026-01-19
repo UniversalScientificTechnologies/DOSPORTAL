@@ -14,7 +14,7 @@ const ensureCsrfCookie = async (apiBase: string) => {
 
 export const useAuth = () => {
 	const { API_BASE, ORIGIN_BASE } = useMemo(() => {
-		const api = (import.meta as any).env.VITE_API_URL || 'http://web:8000/api'
+		const api = (import.meta as any).env.VITE_API_URL || '/api'
 		return {
 			API_BASE: api,
 			ORIGIN_BASE: api.replace(/\/?api\/?$/, ''),
