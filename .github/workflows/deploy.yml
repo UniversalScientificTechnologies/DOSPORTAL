@@ -290,5 +290,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ Test deployment completed! Available at: test.dosportal.ust.cz'
+              body: '✅ Test deployment completed! Available at: https://test.portal.dos.ust.cz'
             })
