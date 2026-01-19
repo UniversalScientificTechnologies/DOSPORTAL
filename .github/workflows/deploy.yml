@@ -187,7 +187,6 @@ jobs:
             type=ref,event=branch
             type=ref,event=tag
             type=semver,pattern={{version}}
-            type=sha,prefix={{branch}}-
             type=raw,value=${{ needs.prepare.outputs.image_tag }}
             
       - name: Build and push Docker image (${{ matrix.component }})
