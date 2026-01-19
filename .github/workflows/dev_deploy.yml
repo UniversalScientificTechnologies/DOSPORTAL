@@ -150,6 +150,9 @@ jobs:
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG"
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG"
 
+            echo "==> Export IMAGE_TAG for docker-compose"
+            export IMAGE_TAG="$IMAGE_TAG"
+            
             echo "==> Compose pull (recommended if compose references images)"
             docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 

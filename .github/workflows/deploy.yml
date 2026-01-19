@@ -267,6 +267,9 @@ jobs:
               COMPOSE_ARGS="$COMPOSE_ARGS -f docker-compose.override.yml"
             fi
 
+            echo "==> Export IMAGE_TAG for docker-compose"
+            export IMAGE_TAG="$IMAGE_TAG"
+            
             echo "==> Compose pull"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" pull
 

@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data/dosportal/db_pg:/var/lib/postgresql/data
+      - ./data/db_pg:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-dosportal}
       - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
@@ -17,9 +17,11 @@ services:
       - dosportal_internal
 
   backend:
-    image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
+    image: ghcr.io/universalscientifictechnologies/dosportal-backend:${IMAGE_TAG:-master}
     env_file:
       - .env
+    volumes:
+      - ./DOSPORTAL:/app/DOSPORTAL
     depends_on:
       - db_dosportal
       - redis
@@ -28,7 +30,7 @@ services:
       - dosportal_internal
       
   worker:
-    image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
+    image: ghcr.io/universalscientifictechnologies/dosportal-backend:${IMAGE_TAG:-master}
     entrypoint: python3 manage.py qcluster
     env_file:
       - .env
@@ -60,7 +62,7 @@ services:
       - dosportal_internal
 
   frontend:
-    image: ghcr.io/universalscientifictechnologies/dosportal-frontend:dev
+    image: ghcr.io/universalscientifictechnologies/dosportal-frontend:${IMAGE_TAG:-master}
     depends_on:
       - backend
     networks:
@@ -74,6 +76,6 @@ services:
       - frontend
       - backend
     ports:
-      - "8080:80"
+      - "8081:80"
     networks:
       - dosportal_internal

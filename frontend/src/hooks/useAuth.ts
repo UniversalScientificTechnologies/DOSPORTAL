@@ -7,8 +7,9 @@ const getCookie = (name: string) => {
 	return ''
 }
 
-const ensureCsrfCookie = async (originBase: string) => {
-	await fetch(`${originBase}/login/`, { method: 'GET', credentials: 'include' })
+const ensureCsrfCookie = async (apiBase: string) => {
+	// For API endpoints, we need to fetch from a safe endpoint to get CSRF token
+	await fetch(`${apiBase}/detector/`, { method: 'GET', credentials: 'include' }).catch(() => {})
 }
 
 export const useAuth = () => {
@@ -44,40 +45,35 @@ export const useAuth = () => {
 	}, [API_BASE])
 
 	const login = async (username: string, password: string) => {
-		await ensureCsrfCookie(ORIGIN_BASE)
+		await ensureCsrfCookie(API_BASE)
 		const csrftoken = getCookie('csrftoken')
 
-		const form = new URLSearchParams()
-		form.set('username', username)
-		form.set('password', password)
-
-		const res = await fetch(`${ORIGIN_BASE}/login/`, {
+		const res = await fetch(`${API_BASE}/login/`, {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
+				'Content-Type': 'application/json',
 				'X-CSRFToken': csrftoken || '',
 			},
-			body: form.toString(),
-			redirect: 'follow',
+			body: JSON.stringify({ username, password }),
 		})
 
-		if (res.ok || res.status === 302) {
+		if (res.ok) {
 			setIsAuthed(true)
 			return
 		}
 
-		const txt = await res.text()
-		throw new Error(`Login failed (HTTP ${res.status}): ${txt.slice(0, 200)}`)
+		const data = await res.json().catch(() => ({ detail: 'Login failed' }))
+		throw new Error(data.detail || `Login failed (HTTP ${res.status})`)
 	}
 
 	const logout = async () => {
-		await ensureCsrfCookie(ORIGIN_BASE)
 		const csrftoken = getCookie('csrftoken')
-		await fetch(`${ORIGIN_BASE}/logout/`, {
-			method: 'GET',
+		await fetch(`${API_BASE}/logout/`, {
+			method: 'POST',
 			credentials: 'include',
 			headers: {
+				'Content-Type': 'application/json',
 				'X-CSRFToken': csrftoken || '',
 			},
 		})
