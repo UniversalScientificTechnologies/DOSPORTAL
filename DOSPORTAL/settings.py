@@ -124,7 +124,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "dosportal"),
         "USER": os.getenv("POSTGRES_USER", "dosportal_user"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "dosportal_password"),
-        "HOST": os.getenv("POSTGRES_HOST", "10.5.0.5"),
+        "HOST": os.getenv("POSTGRES_HOST", "db_dosportal"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
@@ -271,7 +271,7 @@ Q_CLUSTER = {
     "label": "Async dosportal worker",
     #'orm': 'default',
     "redis": {
-        "host": "10.5.0.7",
+        "host": os.getenv("REDIS_HOST", "redis"),
         "port": 6379,
         "db": 0,
     },

@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    image: dosportal-backend:local
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    image: dosportal-frontend:local
