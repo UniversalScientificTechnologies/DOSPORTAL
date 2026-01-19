@@ -270,8 +270,8 @@ jobs:
             echo "==> Compose pull"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" pull
 
-            echo "==> Up (no downtime 'down' step)"
-            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" up -d --remove-orphans
+            echo "==> Up (force recreate to apply env changes)"
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" up -d --force-recreate --remove-orphans
 
             echo "==> Show status"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS ps

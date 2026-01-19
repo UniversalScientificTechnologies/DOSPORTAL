@@ -153,8 +153,8 @@ jobs:
             echo "==> Compose pull (recommended if compose references images)"
             docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 
-            echo "==> Up (no downtime 'down' step)"
-            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --remove-orphans
+            echo "==> Up (force recreate to apply env changes)"
+            docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --remove-orphans
 
             echo "==> Show status"
             docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" ps
