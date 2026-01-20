@@ -1,14 +1,8 @@
 networks:
   inet:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 10.5.0.0/16
-          gateway: 10.5.0.1
   default:
     driver: bridge
-    ipam:
-      driver: default
   traefik:
     external: true
 
@@ -24,8 +18,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-dosportal_user}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dosportal_password}
     networks:
-      inet:
-        ipv4_address: 10.5.0.5
+      - inet
 
   backend:
     image: ghcr.io/universalscientifictechnologies/dosportal-backend:dev
@@ -59,8 +52,7 @@ services:
       - db_dosportal
       - redis
     networks:
-      inet:
-        ipv4_address: 10.5.0.8
+      - inet
 
   redis:
     image: redis
@@ -69,8 +61,7 @@ services:
     depends_on:
       - db_dosportal
     networks:
-      inet:
-        ipv4_address: 10.5.0.7
+      - inet
 
   minio:
     image: minio/minio
