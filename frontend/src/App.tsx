@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { Navbar } from './components/Navbar'
-import { Footer } from './components/Footer'
+import { VersionInfo } from './components/VersionInfo'
 import { useAuth } from './hooks/useAuth'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
@@ -29,7 +29,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <Footer />
+      <VersionInfo />
     </BrowserRouter>
   )
 }
