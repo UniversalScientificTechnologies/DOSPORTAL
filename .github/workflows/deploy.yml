@@ -351,5 +351,11 @@ jobs:
                 body: updatedBody
               });
             } catch (error) {
-              console.log('Could not update comment (might be from a fork):', error.message);
+              console.log('Could not update comment, creating new one instead:', error.message);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '✅ **Test deployment completed!**\n🔗 Available at: https://test.portal.dos.ust.cz'
+              });
             }
