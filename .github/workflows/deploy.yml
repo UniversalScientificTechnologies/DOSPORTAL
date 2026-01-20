@@ -205,6 +205,31 @@ jobs:
       url: ${{ needs.prepare.outputs.environment == 'release' && 'https://portal.dos.ust.cz' || (needs.prepare.outputs.environment == 'master' && 'https://master.portal.dos.ust.cz' || '') }}
 
     steps:
+      - name: Create GitHub deployment
+        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment'
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/pull/${{ github.event.issue.number }}/head',
+              environment: 'test',
+              description: 'Test deployment for PR #${{ github.event.issue.number }}',
+              auto_merge: false,
+              required_contexts: []
+            });
+            core.setOutput('deployment_id', deployment.data.id);
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'in_progress',
+              description: 'Deployment in progress'
+            });
+      
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -281,6 +306,20 @@ jobs:
             docker image prune -af --filter "until=168h"
 
             echo "==> Done"
+      
+      - name: Mark deployment as successful
+        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment' && steps.deployment.outputs.deployment_id
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ steps.deployment.outputs.deployment_id }},
+              state: 'success',
+              environment_url: 'https://test.portal.dos.ust.cz',
+              description: 'Deployment completed successfully'
+            });
       
       - name: Update PR comment with deployment info
         if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment'
