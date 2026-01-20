@@ -19,6 +19,11 @@ export const Footer = () => {
 			.catch(() => {})
 	}, [apiBase])
 
+	const shortCommit = gitCommit.length > 7 ? gitCommit.substring(0, 7) : gitCommit
+	const shortBackendCommit = versionInfo?.git_commit && versionInfo.git_commit.length > 7 
+		? versionInfo.git_commit.substring(0, 7) 
+		: versionInfo?.git_commit
+
 	return (
 		<footer style={{
 			padding: '1rem',
@@ -29,9 +34,9 @@ export const Footer = () => {
 			textAlign: 'center'
 		}}>
 			<div>
-				<strong>Frontend:</strong> {gitBranch}@{gitCommit.substring(0, 7)}
+				<strong>Frontend:</strong> {gitBranch}@{shortCommit}
 				{versionInfo && (
-					<> | <strong>Backend:</strong> {versionInfo.git_branch}@{versionInfo.git_commit.substring(0, 7)}</>
+					<> | <strong>Backend:</strong> {versionInfo.git_branch}@{shortBackendCommit}</>
 				)}
 			</div>
 		</footer>
