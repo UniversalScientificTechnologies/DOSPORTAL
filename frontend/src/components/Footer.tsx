@@ -1,1 +1,1 @@
-export const Footer = () => <div>TEST</div>
+export const Footer = () => null
