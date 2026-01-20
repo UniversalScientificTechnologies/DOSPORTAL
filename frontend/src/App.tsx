@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { Navbar } from './components/Navbar'
+import { Footer } from './components/Footer'
 import { useAuth } from './hooks/useAuth'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
@@ -14,20 +15,25 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Navbar isAuthed={isAuthed} onLogout={logout} />
-      <Routes>
-        <Route
-          path="/login"
-          element={isAuthed ? <Navigate to="/" replace /> : <LoginPage originBase={ORIGIN_BASE} onLogin={login} />}
-        />
-        <Route path="/" element={<HomePage />} />
-        <Route path="/logbooks" element={<LogbooksPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-        <Route path="/logbook/:id" element={<DetectorLogbookPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-        <Route path="/logbook/:id/create" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-        <Route path="/logbook/:id/edit/:entryId" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-        <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Navbar isAuthed={isAuthed} onLogout={logout} />
+        <div style={{ flex: 1 }}>
+          <Routes>
+            <Route
+              path="/login"
+              element={isAuthed ? <Navigate to="/" replace /> : <LoginPage originBase={ORIGIN_BASE} onLogin={login} />}
+            />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/logbooks" element={<LogbooksPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+            <Route path="/logbook/:id" element={<DetectorLogbookPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+            <Route path="/logbook/:id/create" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+            <Route path="/logbook/:id/edit/:entryId" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
+            <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
     </BrowserRouter>
   )
 }
