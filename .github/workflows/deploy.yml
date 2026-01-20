@@ -31,6 +31,11 @@ jobs:
   # Determine deployment environment
   prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      deployments: write
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
       environment: ${{ steps.check.outputs.environment }}
@@ -38,6 +43,7 @@ jobs:
       app_dir: ${{ steps.check.outputs.app_dir }}
       project_name: ${{ steps.check.outputs.project_name }}
       comment_id: ${{ steps.react.outputs.comment_id }}
+      deployment_id: ${{ steps.create_deployment.outputs.deployment_id }}
     steps:
       - name: React to PR comment
         if: github.event_name == 'issue_comment'
@@ -122,6 +128,31 @@ jobs:
           echo "  Should deploy: $SHOULD_DEPLOY"
           echo "  Environment: $ENVIRONMENT"
           echo "  Image tag: $IMAGE_TAG"
+      
+      - name: Create GitHub deployment
+        if: steps.check.outputs.should_deploy == 'true' && steps.check.outputs.environment == 'test' && github.event_name == 'issue_comment'
+        id: create_deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/pull/${{ github.event.issue.number }}/head',
+              environment: 'test',
+              description: 'Test deployment for PR #${{ github.event.issue.number }}',
+              auto_merge: false,
+              required_contexts: []
+            });
+            core.setOutput('deployment_id', deployment.data.id);
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'in_progress',
+              description: 'Deployment in progress'
+            });
 
   build-and-push:
     runs-on: ubuntu-latest
@@ -208,31 +239,6 @@ jobs:
       url: ${{ needs.prepare.outputs.environment == 'release' && 'https://portal.dos.ust.cz' || (needs.prepare.outputs.environment == 'master' && 'https://master.portal.dos.ust.cz' || '') }}
 
     steps:
-      - name: Create GitHub deployment
-        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment'
-        id: deployment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const deployment = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/pull/${{ github.event.issue.number }}/head',
-              environment: 'test',
-              description: 'Test deployment for PR #${{ github.event.issue.number }}',
-              auto_merge: false,
-              required_contexts: []
-            });
-            core.setOutput('deployment_id', deployment.data.id);
-            
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: deployment.data.id,
-              state: 'in_progress',
-              description: 'Deployment in progress'
-            });
-      
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -311,14 +317,14 @@ jobs:
             echo "==> Done"
       
       - name: Mark deployment as successful
-        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment' && steps.deployment.outputs.deployment_id
+        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment' && needs.prepare.outputs.deployment_id
         uses: actions/github-script@v7
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              deployment_id: ${{ steps.deployment.outputs.deployment_id }},
+              deployment_id: ${{ needs.prepare.outputs.deployment_id }},
               state: 'success',
               environment_url: 'https://test.portal.dos.ust.cz',
               description: 'Deployment completed successfully'
