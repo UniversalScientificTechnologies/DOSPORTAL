@@ -1,6 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-import { Navbar } from './components/Navbar'
 import { Layout } from './components/Layout'
 import { useAuth } from './hooks/useAuth'
 import { HomePage } from './pages/HomePage'
@@ -15,8 +14,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Navbar isAuthed={isAuthed} onLogout={logout} />
+      <Layout isAuthed={isAuthed} onLogout={logout}>
         <Routes>
           <Route
             path="/login"
