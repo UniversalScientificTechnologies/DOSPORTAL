@@ -266,8 +266,8 @@ jobs:
               COMPOSE_ARGS="$COMPOSE_ARGS -f docker-compose.override.yml"
             fi
 
-            echo "==> Compose pull"
-            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" pull
+            echo "==> Compose pull (with force to ignore cache)"
+            docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" pull --force
 
             echo "==> Up (force recreate to apply env changes)"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" up -d --force-recreate --remove-orphans
