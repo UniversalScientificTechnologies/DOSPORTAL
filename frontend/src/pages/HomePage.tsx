@@ -55,6 +55,10 @@ export const HomePage = () => {
             <p>
               For more in-depth information about our detectors, please visit the <a href="https://www.ust.cz/UST-dosimeters/">official UST website</a> or refer to the <a href="https://docs.dos.ust.cz/">documentation</a> pages, where you will find detailed specifications and technical details about our semiconductor and scintillation detectors.
             </p>
+            
+            <div style={{ marginTop: '2rem', padding: '1rem', background: '#f3f4f6', borderRadius: '5px', fontSize: '0.875rem', color: '#6b7280' }}>
+              Version: {import.meta.env.VITE_GIT_BRANCH || 'unknown'}@{(import.meta.env.VITE_GIT_COMMIT || 'dev').slice(0, 7)}
+            </div>
           </div>
         </section>
       </PageLayout>
