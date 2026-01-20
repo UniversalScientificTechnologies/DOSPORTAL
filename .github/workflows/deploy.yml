@@ -152,10 +152,12 @@ jobs:
             });
             core.setOutput('ref', pr.data.head.ref);
             core.setOutput('sha', pr.data.head.sha);
+            core.setOutput('repo', pr.data.head.repo.full_name);
       
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          repository: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.repo || github.repository }}
           ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.ref || github.ref }}
         
       - name: Set up Docker Buildx
