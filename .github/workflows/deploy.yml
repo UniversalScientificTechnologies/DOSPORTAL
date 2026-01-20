@@ -200,6 +200,9 @@ jobs:
     needs: [prepare, build-and-push]
     if: needs.prepare.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     environment:
       name: ${{ needs.prepare.outputs.environment }}
       url: ${{ needs.prepare.outputs.environment == 'release' && 'https://portal.dos.ust.cz' || (needs.prepare.outputs.environment == 'master' && 'https://master.portal.dos.ust.cz' || '') }}
