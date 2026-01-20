@@ -1,17 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
 
-const getCookie = (name: string) => {
-	const value = `; ${document.cookie}`
-	const parts = value.split(`; ${name}=`)
-	if (parts.length === 2) return parts.pop()!.split(';').shift() || ''
-	return ''
-}
-
-const ensureCsrfCookie = async (apiBase: string) => {
-	// For API endpoints, we need to fetch from a safe endpoint to get CSRF token
-	await fetch(`${apiBase}/detector/`, { method: 'GET', credentials: 'include' }).catch(() => {})
-}
-
 export const useAuth = () => {
 	const { API_BASE, ORIGIN_BASE } = useMemo(() => {
 		const api = (import.meta as any).env.VITE_API_URL || '/api'
@@ -23,42 +11,32 @@ export const useAuth = () => {
 
 	const [isAuthed, setIsAuthed] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
+	const [token, setToken] = useState<string | null>(null)
 
-	// Check if user is already authenticated on mount
+	// Check if token exists in localStorage on mount
 	useEffect(() => {
-		const checkAuth = async () => {
-			try {
-				const res = await fetch(`${API_BASE}/detector/`, {
-					method: 'GET',
-					credentials: 'include',
-				})
-				// If we can access a protected endpoint, user is authenticated
-				setIsAuthed(res.ok)
-			} catch (e) {
-				setIsAuthed(false)
-			} finally {
-				setIsLoading(false)
-			}
+		const storedToken = localStorage.getItem('authToken')
+		if (storedToken) {
+			setToken(storedToken)
+			setIsAuthed(true)
 		}
-
-		checkAuth()
-	}, [API_BASE])
+		setIsLoading(false)
+	}, [])
 
 	const login = async (username: string, password: string) => {
-		await ensureCsrfCookie(API_BASE)
-		const csrftoken = getCookie('csrftoken')
-
 		const res = await fetch(`${API_BASE}/login/`, {
 			method: 'POST',
-			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': csrftoken || '',
 			},
 			body: JSON.stringify({ username, password }),
 		})
 
 		if (res.ok) {
+			const data = await res.json()
+			const newToken = data.token
+			localStorage.setItem('authToken', newToken)
+			setToken(newToken)
 			setIsAuthed(true)
 			return
 		}
@@ -68,16 +46,28 @@ export const useAuth = () => {
 	}
 
 	const logout = async () => {
-		const csrftoken = getCookie('csrftoken')
-		await fetch(`${API_BASE}/logout/`, {
-			method: 'POST',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrftoken || '',
-			},
-		})
-		setIsAuthed(false)
+		if (!token) return
+
+		try {
+			await fetch(`${API_BASE}/logout/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Token ${token}`,
+				},
+			})
+		} catch (e) {
+			console.error('Logout error:', e)
+		} finally {
+			localStorage.removeItem('authToken')
+			setToken(null)
+			setIsAuthed(false)
+		}
+	}
+
+	// Helper to get Authorization header for authenticated requests
+	const getAuthHeader = () => {
+		return token ? { 'Authorization': `Token ${token}` } : {}
 	}
 
 	return {
@@ -85,7 +75,10 @@ export const useAuth = () => {
 		ORIGIN_BASE,
 		isAuthed,
 		isLoading,
+		token,
 		login,
 		logout,
+		getAuthHeader,
 	}
+}
 }
