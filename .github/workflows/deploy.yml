@@ -335,17 +335,21 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const comment = await github.rest.issues.getComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: ${{ needs.prepare.outputs.comment_id }}
-            });
-            
-            const updatedBody = comment.data.body + '\n\n---\n✅ **Test deployment completed!**\n🔗 Available at: https://test.portal.dos.ust.cz';
-            
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: ${{ needs.prepare.outputs.comment_id }},
-              body: updatedBody
-            });
+            try {
+              const comment = await github.rest.issues.getComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: ${{ needs.prepare.outputs.comment_id }}
+              });
+              
+              const updatedBody = comment.data.body + '\n\n---\n✅ **Test deployment completed!**\n🔗 Available at: https://test.portal.dos.ust.cz';
+              
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: ${{ needs.prepare.outputs.comment_id }},
+                body: updatedBody
+              });
+            } catch (error) {
+              console.log('Could not update comment (might be from a fork):', error.message);
+            }
