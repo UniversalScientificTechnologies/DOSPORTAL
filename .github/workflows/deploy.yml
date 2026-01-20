@@ -251,6 +251,10 @@ jobs:
             docker version >/dev/null
             docker compose version >/dev/null
 
+            echo "==> Remove old images with same tag to force fresh pull"
+            docker rmi "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG" 2>/dev/null || true
+            docker rmi "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG" 2>/dev/null || true
+            
             echo "==> Pull images (explicit, public GHCR)"
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG"
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG"
