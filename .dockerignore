@@ -5,3 +5,5 @@ __pycache__/
 .git/
 .env
 *.log
+frontend/node_modules/
+node_modules/

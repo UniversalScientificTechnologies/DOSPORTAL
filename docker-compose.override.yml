@@ -8,5 +8,5 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: frontend.Dockerfile
+      dockerfile: frontend.dev.Dockerfile
     image: dosportal-frontend:local

@@ -245,7 +245,7 @@ jobs:
       - name: Read docker-compose file
         id: compose_file
         run: |
-          COMPOSE_CONTENT=$(cat docker-compose.yml | base64 -w 0)
+          COMPOSE_CONTENT=$(cat docker-compose.prod.yml | base64 -w 0)
           echo "content=$COMPOSE_CONTENT" >> $GITHUB_OUTPUT
 
       - name: Deploy via SSH

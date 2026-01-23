@@ -91,34 +91,37 @@ cp .env.example .env
 
 ### Local Development (Docker Compose)
 
-1. Build images
+0. Create `.env` file, adjust variables (`.env.example` is provided)
+
+1. Start services
 
    ```bash
-   sudo docker compose build web worker
+   sudo docker compose up -d [--build]
    ```
 
-2. Start services
+   > Use `--build` flag to reflect changes in the codebase.
+
+2. Create the media bucket in MinIO
 
    ```bash
-   sudo docker compose up -d
-   ```
-
-3. Create the media bucket in MinIO
-
-   ```bash
-   sudo docker run --rm --net=host \
+   docker run --rm --net=host \
      -e MC_HOST_minio=http://minioadmin:minioadmin@localhost:9000 \
      minio/mc mb --ignore-existing minio/dosportal-media
    ```
 
    Or use the console at http://localhost:9001 (minioadmin/minioadmin).
 
-4. Apply migrations
+3. Init database
 
    ```bash
-   sudo docker compose exec web python3 manage.py migrate
+   docker compose exec backend python3 manage.py makemigrations
    ```
 
-5. Access services
-   - DOSPORTAL: http://localhost:8100
+   ```bash
+   docker compose exec backend python3 manage.py migrate
+   ```
+
+4. Access services
+   - React frontend: http://localhost:5173
+   - Django Backend: http://localhost:8100
    - MinIO console: http://localhost:9001
