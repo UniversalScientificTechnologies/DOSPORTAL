@@ -1,6 +1,6 @@
 # Django frontend
 
-FROM node:20-alpine
+FROM node:current-alpine3.23
 
 WORKDIR /app/frontend
 
@@ -10,9 +10,11 @@ RUN npm install
 
 COPY frontend/ ./
 
-COPY frontend/entrypoint.sh /usr/local/bin/frontend-entrypoint.sh
-RUN chmod +x /usr/local/bin/frontend-entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 EXPOSE 5173
 
-ENTRYPOINT ["/usr/local/bin/frontend-entrypoint.sh"]
+RUN ls -la
+RUN echo "here"
+
+ENTRYPOINT ["/bin/sh", "./entrypoint.sh"]

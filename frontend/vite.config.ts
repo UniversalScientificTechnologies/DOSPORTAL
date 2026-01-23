@@ -5,6 +5,16 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ['.ust.cz'],
+    allowedHosts: ['.ust.cz', 'localhost'],
+    proxy: {
+      '/api': {
+        target: 'http://backend:8000',
+        changeOrigin: true,
+      },
+      '/minio': {
+        target: 'http://minio:9000',
+        changeOrigin: true,
+      },
+    },
   },
 })
