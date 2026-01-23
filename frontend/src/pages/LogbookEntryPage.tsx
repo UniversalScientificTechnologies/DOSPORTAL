@@ -17,9 +17,11 @@ interface Detector {
 export const LogbookEntryPage = ({
   apiBase,
   isAuthed,
+  getAuthHeader,
 }: {
   apiBase: string
   isAuthed: boolean
+  getAuthHeader: () => { Authorization?: string }
 }) => {
   const { id, entryId } = useParams<{ id: string; entryId?: string }>()
   const navigate = useNavigate()
@@ -59,7 +61,10 @@ export const LogbookEntryPage = ({
         // Fetch detector details
         const detectorRes = await fetch(`${apiBase}/detector/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!detectorRes.ok) throw new Error(`HTTP ${detectorRes.status}`)
         const detectors = await detectorRes.json()
@@ -74,7 +79,10 @@ export const LogbookEntryPage = ({
         if (isEditMode && entryId) {
           const logbookRes = await fetch(`${apiBase}/logbook/?detector=${id}`, {
             method: 'GET',
-            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              ...getAuthHeader(),
+            },
           })
           if (!logbookRes.ok) throw new Error(`HTTP ${logbookRes.status}`)
           const logbookData = await logbookRes.json()
@@ -131,7 +139,6 @@ export const LogbookEntryPage = ({
       if (altitude) payload.altitude = parseFloat(altitude)
       if (locationText) payload.location_text = locationText
 
-      const csrftoken = getCookie('csrftoken')
 
       const url = isEditMode 
         ? `${apiBase}/logbook/${entryId}/`
@@ -141,10 +148,9 @@ export const LogbookEntryPage = ({
 
       const res = await fetch(url, {
         method,
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken || '',
+          ...getAuthHeader()
         },
         body: JSON.stringify(payload),
       })

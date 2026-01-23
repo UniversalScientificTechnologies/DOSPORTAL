@@ -5,7 +5,9 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User as DjangoUser
 import os
+import logging
 
 from django.utils.dateparse import parse_datetime
 from DOSPORTAL.models import (
@@ -26,6 +28,8 @@ from .serializers import (
 )
 from .qr_utils import generate_qr_code, generate_qr_detector_with_label
 
+logger = logging.getLogger("api.auth")
+
 
 @api_view(["POST"])
 @permission_classes((AllowAny,))
@@ -43,7 +47,6 @@ def Login(request):
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
-        login(request, user)
         token, created = Token.objects.get_or_create(user=user)
         return Response(
             {
@@ -57,6 +60,59 @@ def Login(request):
         return Response(
             {"detail": "Invalid username or password."},
             status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def Signup(request):
+    """API signup endpoint that creates a new user account."""
+    username = request.data.get("username")
+    password = request.data.get("password")
+    password_confirm = request.data.get("password_confirm")
+    email = request.data.get("email", "")
+
+    if not username or not password or not password_confirm:
+        return Response(
+            {"detail": "Username, password, and password confirmation are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if password != password_confirm:
+        return Response(
+            {"detail": "Passwords do not match."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if len(password) < 8:
+        return Response(
+            {"detail": "Password must be at least 8 characters long."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if DjangoUser.objects.filter(username=username).exists():
+        return Response(
+            {"detail": "Username already exists."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        user = DjangoUser.objects.create_user(
+            username=username, password=password, email=email
+        )
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {
+                "detail": "Account created successfully.",
+                "username": user.username,
+                "token": token.key,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+    except Exception as e:
+        return Response(
+            {"detail": f"Error creating account: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
@@ -109,6 +165,12 @@ def RecordGet(request):
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorGet(request):
+    logger.info(
+        "DetectorGet user=%s auth=%s header=%s",
+        request.user,
+        request.auth,
+        "present" if request.headers.get("Authorization") else "missing",
+    )
     items = Detector.objects.select_related("type__manufacturer", "owner").all()
     serializer = DetectorSerializer(items, many=True)
     return Response(serializer.data)

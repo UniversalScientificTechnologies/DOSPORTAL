@@ -4,13 +4,14 @@ import { Layout } from './components/Layout'
 import { useAuth } from './hooks/useAuth'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { SignupPage } from './pages/SignupPage'
 import { LogbooksPage } from './pages/LogbooksPage'
 import { DetectorLogbookPage } from './pages/DetectorLogbookPage'
 import { LogbookEntryPage } from './pages/LogbookEntryPage'
 import { ProfilePage } from './pages/ProfilePage'
 
 function App() {
-  const { API_BASE, ORIGIN_BASE, isAuthed, login, logout } = useAuth()
+  const { API_BASE, ORIGIN_BASE, isAuthed, login, signup, logout, getAuthHeader } = useAuth()
 
   return (
     <BrowserRouter>
@@ -20,12 +21,16 @@ function App() {
             path="/login"
             element={isAuthed ? <Navigate to="/" replace /> : <LoginPage originBase={ORIGIN_BASE} onLogin={login} />}
           />
+          <Route
+            path="/signup"
+            element={isAuthed ? <Navigate to="/" replace /> : <SignupPage originBase={ORIGIN_BASE} onSignup={signup} />}
+          />
           <Route path="/" element={<HomePage />} />
-          <Route path="/logbooks" element={<LogbooksPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-          <Route path="/logbook/:id" element={<DetectorLogbookPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-          <Route path="/logbook/:id/create" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-          <Route path="/logbook/:id/edit/:entryId" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} />} />
-          <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} />} />
+          <Route path="/logbooks" element={<LogbooksPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/logbook/:id" element={<DetectorLogbookPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/logbook/:id/create" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/logbook/:id/edit/:entryId" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

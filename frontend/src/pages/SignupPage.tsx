@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import loginBg from '../assets/img/login_background.jpg'
+import { theme } from '../theme'
 
-export const LoginPage = ({
-  onLogin,
+export const SignupPage = ({
+  onSignup,
 }: {
   originBase: string
-  onLogin: (username: string, password: string) => Promise<void>
+  onSignup: (username: string, password: string, passwordConfirm: string, email: string) => Promise<void>
 }) => {
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle')
   const [error, setError] = useState<string | null>(null)
 
@@ -17,7 +20,7 @@ export const LoginPage = ({
     setStatus('loading')
     setError(null)
     try {
-      await onLogin(username, password)
+      await onSignup(username, password, passwordConfirm, email)
       setStatus('success')
     } catch (err: any) {
       setStatus('error')
@@ -46,11 +49,11 @@ export const LoginPage = ({
       <div className="auth-layout single" style={{ width: '100%' }}>
         <section className="login-card" style={{ maxWidth: 500, margin: '0 auto' }}>
           <h1 className="h3 mb-3 fw-normal text-center" style={{ marginTop: 0, marginBottom: '1rem' }}>
-            Please sign in
+            Create account
           </h1>
 
           {error && (
-            <div className="error" role="alert" style={{ marginBottom: '0.75rem' }}>
+            <div className="error" role="alert" style={{ marginBottom: theme.spacing.md }}>
               {error}
             </div>
           )}
@@ -71,12 +74,25 @@ export const LoginPage = ({
             </div>
 
             <div className="field">
+              <label htmlFor="email">Email (optional)</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
+              />
+            </div>
+
+            <div className="field">
               <label htmlFor="password">Password</label>
               <input
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -84,15 +100,29 @@ export const LoginPage = ({
               />
             </div>
 
+            <div className="field">
+              <label htmlFor="password_confirm">Confirm Password</label>
+              <input
+                id="password_confirm"
+                name="password_confirm"
+                type="password"
+                autoComplete="new-password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
             <button className="primary" type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Signing in…' : 'Sign in'}
+              {status === 'loading' ? 'Creating account…' : 'Sign up'}
             </button>
 
           </form>
 
           <div className="help" style={{ textAlign: 'center' }}>
             <small>
-                Not registered yet? <a href="/signup">Sign up here</a>
+                Already have an account? <a href="/login">Sign in here</a>
             </small>
           </div>
         </section>

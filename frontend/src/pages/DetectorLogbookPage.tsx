@@ -31,9 +31,11 @@ interface Detector {
 export const DetectorLogbookPage = ({
   apiBase,
   isAuthed,
+  getAuthHeader,
 }: {
   apiBase: string
   isAuthed: boolean
+  getAuthHeader: () => { Authorization?: string }
 }) => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -52,7 +54,10 @@ export const DetectorLogbookPage = ({
         // Fetch detector details
         const detectorRes = await fetch(`${apiBase}/detector/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!detectorRes.ok) throw new Error(`HTTP ${detectorRes.status}`)
         const detectors = await detectorRes.json()
@@ -66,7 +71,10 @@ export const DetectorLogbookPage = ({
         // Fetch logbook entries
         const logbookRes = await fetch(`${apiBase}/logbook/?detector=${id}`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!logbookRes.ok) throw new Error(`HTTP ${logbookRes.status}`)
         const logbookData = await logbookRes.json()

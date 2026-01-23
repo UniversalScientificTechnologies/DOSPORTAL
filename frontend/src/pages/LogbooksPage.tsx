@@ -22,9 +22,11 @@ interface Detector {
 export const LogbooksPage = ({
   apiBase,
   isAuthed,
+  getAuthHeader,
 }: {
   apiBase: string
   isAuthed: boolean
+  getAuthHeader: () => { Authorization?: string }
 }) => {
   const [detectors, setDetectors] = useState<Detector[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +37,10 @@ export const LogbooksPage = ({
       try {
         const res = await fetch(`${apiBase}/detector/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()

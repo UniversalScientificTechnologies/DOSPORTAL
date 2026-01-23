@@ -38,10 +38,12 @@ interface Detector {
 export const ProfilePage = ({
   apiBase,
   isAuthed,
+  getAuthHeader,
 }: {
   apiBase: string
   originBase: string
   isAuthed: boolean
+  getAuthHeader: () => { Authorization?: string }
 }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [organizations, setOrganizations] = useState<Organization[]>([])
@@ -60,7 +62,10 @@ export const ProfilePage = ({
         // Fetch user profile
         const profileRes = await fetch(`${apiBase}/user/profile/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!profileRes.ok) throw new Error(`Profile HTTP ${profileRes.status}`)
         const profileData = await profileRes.json()
@@ -69,7 +74,10 @@ export const ProfilePage = ({
         // Fetch organizations
         const orgsRes = await fetch(`${apiBase}/user/organizations/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (orgsRes.ok) {
           const orgsData = await orgsRes.json()
@@ -79,7 +87,10 @@ export const ProfilePage = ({
         // Fetch detectors
         const detectorsRes = await fetch(`${apiBase}/detector/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (detectorsRes.ok) {
           const detectorsData = await detectorsRes.json()
@@ -119,18 +130,12 @@ export const ProfilePage = ({
     }
 
     try {
-      // Get CSRF token
-      const csrftoken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('csrftoken='))
-        ?.split('=')[1] || ''
-
       const res = await fetch(`${apiBase}/user/profile/`, {
         method: 'PUT',
-        credentials: 'include',
+        
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken,
+          ...getAuthHeader()
         },
         body: JSON.stringify({
           [field]: value,
