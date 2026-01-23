@@ -17,6 +17,7 @@ from DOSPORTAL.models import (
     Detector,
     OrganizationUser,
     User,
+    Organization,
 )
 from .serializers import (
     MeasurementsSerializer,
@@ -25,6 +26,7 @@ from .serializers import (
     DetectorSerializer,
     UserProfileSerializer,
     OrganizationUserSerializer,
+    OrganizationDetailSerializer,
 )
 from .qr_utils import generate_qr_code, generate_qr_detector_with_label
 
@@ -307,6 +309,78 @@ def UserOrganizations(request):
     )
     serializer = OrganizationUserSerializer(org_users, many=True)
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes((IsAuthenticated,))
+def Organizations(request):
+    if request.method == "POST":
+        name = request.data.get("name")
+        data_policy = request.data.get("data_policy", "PU")
+        website = request.data.get("website", "")
+        contact_email = request.data.get("contact_email", "")
+        description = request.data.get("description", "")
+
+        if not name:
+            return Response(
+                {"detail": "Organization name is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            org = Organization.objects.create(
+                name=name,
+                data_policy=data_policy,
+                website=website,
+                contact_email=contact_email,
+                description=description,
+            )
+            # Add creator as owner
+            OrganizationUser.objects.create(
+                user=request.user, organization=org, user_type="OW"
+            )
+            serializer = OrganizationDetailSerializer(org)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"detail": f"Error creating organization: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+@api_view(["GET", "PUT"])
+@permission_classes((IsAuthenticated,))
+def OrganizationDetail(request, org_id):
+    try:
+        org = Organization.objects.get(id=org_id)
+    except Organization.DoesNotExist:
+        return Response(
+            {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == "GET":
+        serializer = OrganizationDetailSerializer(org)
+        return Response(serializer.data)
+
+    elif request.method == "PUT":
+        # Check if user is owner or admin
+        org_user = OrganizationUser.objects.filter(
+            user=request.user, organization=org
+        ).first()
+        if not org_user or org_user.user_type not in ["OW", "AD"]:
+            return Response(
+                {"detail": "You do not have permission to edit this organization."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        allowed_fields = ["name", "data_policy", "website", "contact_email", "description"]
+        update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
+
+        serializer = OrganizationDetailSerializer(org, data=update_data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])

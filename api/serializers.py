@@ -32,6 +32,13 @@ class OrganizationSummarySerializer(serializers.ModelSerializer):
         fields = ("id", "name", "slug")
 
 
+class OrganizationDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ("id", "name", "slug", "data_policy", "website", "contact_email", "description", "created_at")
+        read_only_fields = ("id", "slug", "created_at")
+
+
 class UserSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = User

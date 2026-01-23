@@ -196,11 +196,11 @@ export const ProfilePage = ({
             position: 'fixed',
             top: '80px',
             right: '20px',
-            backgroundColor: '#d4edda',
-            color: '#155724',
+            backgroundColor: theme.colors.successBg,
+            color: theme.colors.successText,
             padding: `${theme.spacing.lg} ${theme.spacing['2xl']}`,
             borderRadius: theme.borders.radius.sm,
-            border: `${theme.borders.width} solid #c3e6cb`,
+            border: `${theme.borders.width} solid ${theme.colors.successBorder}`,
             boxShadow: theme.shadows.sm,
             zIndex: 1000,
             animation: 'slideIn 0.3s ease-out',
@@ -247,10 +247,33 @@ export const ProfilePage = ({
         </div>
       </Section>
 
-      <Section title="Organizations" style={{ marginTop: theme.spacing.xl }}>
-        {organizations.length === 0 ? (
-          <EmptyState message="You are not a member of any organizations." />
-        ) : (
+      <section className="panel" style={{ marginTop: theme.spacing.xl }}>
+        <header className="panel-header">
+          <div>
+            <h2 style={{ marginTop: 0, marginBottom: 0 }}>Organizations</h2>
+          </div>
+          <a 
+            href="/organization/create"
+            style={{
+              display: 'inline-block',
+              padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+              background: theme.colors.success,
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: theme.borders.radius.sm,
+              fontSize: theme.typography.fontSize.base,
+              fontWeight: theme.typography.fontWeight.medium,
+              transition: theme.transitions.fast,
+            }}
+          >
+            + Create Organization
+          </a>
+        </header>
+
+        <div className="panel-body">
+          {organizations.length === 0 ? (
+            <EmptyState message="You are not a member of any organizations." />
+          ) : (
             <div>
               {ownedOrgs.length > 0 && (
                 <div style={{ marginBottom: theme.spacing['2xl'] }}>
@@ -260,8 +283,8 @@ export const ProfilePage = ({
                       key={org.id}
                       style={{
                         padding: theme.spacing.lg,
-                        backgroundColor: '#f0f9ff',
-                        border: `${theme.borders.width} solid #bfdbfe`,
+                        backgroundColor: theme.colors.infoBg,
+                        border: `${theme.borders.width} solid ${theme.colors.infoBorder}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
@@ -281,8 +304,8 @@ export const ProfilePage = ({
                       key={org.id}
                       style={{
                         padding: theme.spacing.lg,
-                        backgroundColor: '#fefce8',
-                        border: `${theme.borders.width} solid #fde047`,
+                        backgroundColor: theme.colors.warningBg,
+                        border: `${theme.borders.width} solid ${theme.colors.warningBorder}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
@@ -302,7 +325,7 @@ export const ProfilePage = ({
                       key={org.id}
                       style={{
                         padding: theme.spacing.lg,
-                        backgroundColor: '#f3f4f6',
+                        backgroundColor: theme.colors.mutedLighter,
                         border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
@@ -316,7 +339,8 @@ export const ProfilePage = ({
               )}
             </div>
           )}
-      </Section>
+        </div>
+      </section>
 
       {/* Detectors Section */}
       <Section title="Detectors Maintained" style={{ marginTop: theme.spacing.xl }}>
