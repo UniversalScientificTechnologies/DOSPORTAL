@@ -279,19 +279,30 @@ export const ProfilePage = ({
                 <div style={{ marginBottom: theme.spacing['2xl'] }}>
                   <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Owner</h4>
                   {ownedOrgs.map((org) => (
-                    <div
+                    <a
                       key={org.id}
+                      href={`/organization/${org.id}`}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         padding: theme.spacing.lg,
                         backgroundColor: theme.colors.infoBg,
                         border: `${theme.borders.width} solid ${theme.colors.infoBorder}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
+                        textDecoration: 'none',
+                        transition: theme.transitions.fast,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>({org.data_policy})</span>
-                    </div>
+                      <div>
+                        <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>({org.data_policy})</span>
+                      </div>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginLeft: theme.spacing.lg }}>
+                        [Owner]
+                      </span>
+                    </a>
                   ))}
                 </div>
               )}
@@ -300,19 +311,30 @@ export const ProfilePage = ({
                 <div style={{ marginBottom: theme.spacing['2xl'] }}>
                   <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Admin</h4>
                   {adminOrgs.map((org) => (
-                    <div
+                    <a
                       key={org.id}
+                      href={`/organization/${org.id}`}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         padding: theme.spacing.lg,
                         backgroundColor: theme.colors.warningBg,
                         border: `${theme.borders.width} solid ${theme.colors.warningBorder}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
+                        textDecoration: 'none',
+                        transition: theme.transitions.fast,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
-                    </div>
+                      <div>
+                        <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
+                      </div>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginLeft: theme.spacing.lg }}>
+                        [Admin]
+                      </span>
+                    </a>
                   ))}
                 </div>
               )}
@@ -321,19 +343,30 @@ export const ProfilePage = ({
                 <div>
                   <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Member</h4>
                   {memberOrgs.map((org) => (
-                    <div
+                    <a
                       key={org.id}
+                      href={`/organization/${org.id}`}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         padding: theme.spacing.lg,
                         backgroundColor: theme.colors.mutedLighter,
                         border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
+                        textDecoration: 'none',
+                        transition: theme.transitions.fast,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
-                    </div>
+                      <div>
+                        <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
+                      </div>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginLeft: theme.spacing.lg }}>
+                        [Member]
+                      </span>
+                    </a>
                   ))}
                 </div>
               )}
