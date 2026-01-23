@@ -7,7 +7,6 @@ from django.views.generic.base import TemplateView
 
 import uuid
 
-from .users.views_users import user_profile, login_view, signup_view, logout_view
 from .users import urls as user_urls
 from .views import (
     MeasurementsListView,
@@ -45,15 +44,11 @@ from .views_record import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
-    path("login/", login_view, name="login"),
-    path("signup/", signup_view, name="signup"),
-    path("logout/", logout_view, name="logout"),
     path("markdownx/", include("markdownx.urls")),
     # path(r'accounts/', include('organizations.urls')),
     # path(r'invitations/', include(invitation_backend().get_urls())),
     # path('user/', user_profile, name='profile'),
     # path('user/<str:username>', user_profile, name='user_profile'),
-    path("user/", include("DOSPORTAL.users.urls")),
     path("organization/", include("DOSPORTAL.PART_organizations.urls")),
     # path('account/', include('DOSPORTAL.users.urls')),
     path("measurements/", MeasurementsListView.as_view(), name="measurements"),
