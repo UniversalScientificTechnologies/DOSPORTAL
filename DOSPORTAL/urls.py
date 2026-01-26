@@ -7,7 +7,6 @@ from django.views.generic.base import TemplateView
 
 import uuid
 
-from .users import urls as user_urls
 from .views import (
     MeasurementsListView,
     MeasurementDetailView,
