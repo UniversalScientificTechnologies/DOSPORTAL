@@ -33,10 +33,25 @@ class OrganizationSummarySerializer(serializers.ModelSerializer):
 
 
 class OrganizationDetailSerializer(serializers.ModelSerializer):
+    members = serializers.SerializerMethodField()
+
     class Meta:
         model = Organization
-        fields = ("id", "name", "slug", "data_policy", "website", "contact_email", "description", "created_at")
+        fields = ("id", "name", "slug", "data_policy", "website", "contact_email", "description", "created_at", "members")
         read_only_fields = ("id", "slug", "created_at")
+
+    def get_members(self, obj):
+        org_users = obj.user_organizations.select_related("user").all()
+        return [
+            {
+                "id": org_user.user.id,
+                "username": org_user.user.username,
+                "first_name": org_user.user.first_name,
+                "last_name": org_user.user.last_name,
+                "user_type": org_user.user_type,
+            }
+            for org_user in org_users
+        ]
 
 
 class UserSummarySerializer(serializers.ModelSerializer):

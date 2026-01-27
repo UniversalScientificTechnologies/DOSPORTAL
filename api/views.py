@@ -313,6 +313,33 @@ def UserOrganizations(request):
 
 @api_view(["POST"])
 @permission_classes((IsAuthenticated,))
+def AddOrganizationMember(request, org_id):
+    """Add a user to an organization by username. Only owner/admin can add."""
+    username = request.data.get("username")
+    user_type = request.data.get("user_type", "ME")
+    if not username:
+        return Response({"detail": "Username required."}, status=400)
+    try:
+        org = Organization.objects.get(id=org_id)
+    except Organization.DoesNotExist:
+        return Response({"detail": "Organization not found."}, status=404)
+    
+    # Only allow owner/admin to add
+    org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
+    if not org_user or org_user.user_type not in ["OW", "AD"]:
+        return Response({"detail": "You do not have permission to add members."}, status=403)
+    try:
+        user = DjangoUser.objects.get(username=username)
+    except DjangoUser.DoesNotExist:
+        return Response({"detail": "User not found."}, status=404)
+    if OrganizationUser.objects.filter(user=user, organization=org).exists():
+        return Response({"detail": "User already a member."}, status=400)
+    OrganizationUser.objects.create(user=user, organization=org, user_type=user_type)
+    return Response({"detail": "User added."}, status=201)
+
+
+@api_view(["POST"])
+@permission_classes((IsAuthenticated,))
 def Organizations(request):
     if request.method == "POST":
         name = request.data.get("name")

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import { DetectorCard } from '../components/DetectorCard'
-import { ProfileField } from '../components/ProfileField'
+import { FormField } from '../components/FormField'
 import { Section } from '../components/Section'
 import { CardGrid } from '../components/CardGrid'
 import { EmptyState } from '../components/EmptyState'
@@ -214,13 +214,13 @@ export const ProfilePage = ({
         {error && <div className="error" style={{ marginBottom: theme.spacing.lg }}>{error}</div>}
 
         <div style={{ maxWidth: '600px' }}>
-          <ProfileField
+          <FormField
             label="Username"
             value={profile.username}
             isReadOnly={true}
           />
 
-          <ProfileField
+          <FormField
             label="Email"
             value={profile.email}
             type="email"
@@ -229,7 +229,7 @@ export const ProfilePage = ({
             isSaving={isSaving}
           />
 
-          <ProfileField
+          <FormField
             label="First Name"
             value={profile.first_name}
             isOptional={true}
@@ -237,7 +237,7 @@ export const ProfilePage = ({
             isSaving={isSaving}
           />
 
-          <ProfileField
+          <FormField
             label="Last Name"
             value={profile.last_name}
             isOptional={true}

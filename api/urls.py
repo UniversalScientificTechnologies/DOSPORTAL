@@ -18,4 +18,5 @@ urlpatterns = [
     path("user/organizations/", views.UserOrganizations),
     path("organizations/", views.Organizations),
     path("organizations/<uuid:org_id>/", views.OrganizationDetail),
+    path("organizations/<uuid:org_id>/add_member/", views.AddOrganizationMember),
 ]
