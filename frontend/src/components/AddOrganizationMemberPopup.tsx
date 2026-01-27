@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { theme } from '../theme';
 
 export const AddOrganizationMemberPopup = ({
@@ -23,6 +23,21 @@ export const AddOrganizationMemberPopup = ({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [orgName, setOrgName] = useState<string>('');
+
+  useEffect(() => {
+    if (!open) return;
+    setOrgName('');
+    fetch(`${apiBase}/organizations/${orgId}/`, {
+      headers: { ...getAuthHeader() },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to fetch organization');
+        return res.json();
+      })
+      .then((data) => setOrgName(data.name || ''))
+      .catch(() => setOrgName(''));
+  }, [open, orgId, apiBase, getAuthHeader]);
 
   const handleAdd = async () => {
     if (!username.trim()) return;
@@ -179,7 +194,9 @@ export const AddOrganizationMemberPopup = ({
                 }}
               />
               <div style={{ marginTop: theme.spacing.sm, color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>
-                Send this invite link to your member. The invite link is valid for 24 hours and can be used once.
+                <b>Organization:</b> {orgName || orgId}<br />
+                <b>Role:</b> {userType === 'ME' ? 'Member' : userType === 'AD' ? 'Admin' : userType}<br /><br />
+                This invite link is valid for 24 hours and can be used once. Send it to your new member.
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: theme.spacing.md }}>
