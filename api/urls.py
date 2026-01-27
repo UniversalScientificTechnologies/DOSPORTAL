@@ -19,4 +19,7 @@ urlpatterns = [
     path("organizations/", views.Organizations),
     path("organizations/<uuid:org_id>/", views.OrganizationDetail),
     path("organizations/<uuid:org_id>/add_member/", views.AddOrganizationMember),
+    path("organizations/<uuid:org_id>/invites/", views.CreateOrganizationInvite),
+    path("invites/<str:token>/accept/", views.AcceptOrganizationInvite),
+    path("invites/<str:token>/", views.GetOrganizationInviteDetails),
 ]

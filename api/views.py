@@ -1,10 +1,13 @@
+from django.utils import timezone
+from DOSPORTAL.models import OrganizationInvite
+from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User as DjangoUser
 import os
 import logging
@@ -453,3 +456,81 @@ def DetectorQRCode(request, detector_id):
             {"detail": f"Error generating QR code: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+@api_view(["POST"])
+@permission_classes((IsAuthenticated,))
+def CreateOrganizationInvite(request, org_id):
+    """Create a one-time invite link for an organization (owner/admin only)."""
+    user_type = request.data.get("user_type", "ME")
+    expires_hours = int(request.data.get("expires_hours", 24))
+    expires_hours = min(max(expires_hours, 1), 168)  # Clamp time to 1-168 hourse
+    try:
+        org = Organization.objects.get(id=org_id)
+    except Organization.DoesNotExist:
+        return Response({"detail": "Organization not found."}, status=404)
+    org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
+    if not org_user or org_user.user_type not in ["OW", "AD"]:
+        return Response({"detail": "You do not have permission to create invites."}, status=403)
+    if user_type not in ["ME", "AD"]:
+        return Response({"detail": "Invalid user_type."}, status=400)
+    
+    # Generate token and hash
+    token = OrganizationInvite.generate_token()
+    token_hash = OrganizationInvite.hash_token(token)
+    expires_at = timezone.now() + timezone.timedelta(hours=expires_hours)
+    invite = OrganizationInvite.objects.create(
+        organization=org,
+        token_hash=token_hash,
+        user_type=user_type,
+        created_by=request.user,
+        expires_at=expires_at,
+    )
+    invite_url = f"/invite/{token}/"
+    return Response({
+        "invite_url": invite_url,
+        "expires_at": invite.expires_at,
+        "user_type": invite.user_type,
+    }, status=201)
+
+
+@api_view(["POST"])
+@permission_classes((IsAuthenticated,))
+def AcceptOrganizationInvite(request, token):
+    """Accept an invite link (one-time)."""
+    token_hash = OrganizationInvite.hash_token(token)
+    try:
+        with transaction.atomic():
+            invite = OrganizationInvite.objects.select_for_update().get(token_hash=token_hash)
+            if not invite.is_active:
+                return Response({"detail": "Invite is not active (expired, used, or revoked)."}, status=400)
+            if OrganizationUser.objects.filter(user=request.user, organization=invite.organization).exists():
+                return Response({"detail": "You are already a member of this organization."}, status=400)
+            OrganizationUser.objects.create(user=request.user, organization=invite.organization, user_type=invite.user_type)
+            invite.used_at = timezone.now()
+            invite.used_by = request.user
+            invite.save()
+            return Response({
+                "detail": "Joined.",
+                "organization_id": str(invite.organization.id),
+                "user_type": invite.user_type,
+            }, status=200)
+    except OrganizationInvite.DoesNotExist:
+        return Response({"detail": "Invalid invite token."}, status=404)
+
+@api_view(["GET"])
+@permission_classes((AllowAny,))
+def GetOrganizationInviteDetails(request, token):
+    """Get details about an invite and its organization for preview before joining."""
+    token_hash = OrganizationInvite.hash_token(token)
+    try:
+        invite = OrganizationInvite.objects.select_related("organization").get(token_hash=token_hash)
+        org = invite.organization
+        org_data = OrganizationDetailSerializer(org).data
+        return Response({
+            "organization": org_data,
+            "user_type": invite.user_type,
+            "expires_at": invite.expires_at,
+            "is_active": invite.is_active,
+        }, status=200)
+    except OrganizationInvite.DoesNotExist:
+        return Response({"detail": "Invalid invite token."}, status=404)

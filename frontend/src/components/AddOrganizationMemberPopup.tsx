@@ -47,9 +47,24 @@ export const AddOrganizationMemberPopup = ({
     }
   };
 
-  const handleInvite = () => {
-    setInviteLink(`${window.location.origin}/organization/invite/NEWCODE_PLACEHOLDER`);
-    setMode('invite');
+  const handleInvite = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${apiBase}/organizations/${orgId}/invites/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ user_type: userType }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to generate invite link');
+      setInviteLink(window.location.origin + data.invite_url);
+      setMode('invite');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!open) return null;
@@ -141,7 +156,7 @@ export const AddOrganizationMemberPopup = ({
                 onClick={handleInvite}
                 disabled={loading}
               >
-                Generate Invite Link
+                {loading ? 'Generating...' : 'Generate Invite Link'}
               </button>
             </div>
           </>

@@ -9,6 +9,7 @@ from DOSPORTAL.models import (
     Organization,
     User,
     OrganizationUser,
+    OrganizationInvite
 )
 
 
@@ -109,3 +110,20 @@ class OrganizationUserSerializer(serializers.Serializer):
     name = serializers.CharField(source="organization.name")
     user_type = serializers.CharField()
     data_policy = serializers.CharField(source="organization.get_data_policy_display")
+
+class OrganizationInviteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationInvite
+        fields = [
+            "id",
+            "organization",
+            "user_type",
+            "created_by",
+            "created_at",
+            "expires_at",
+            "used_at",
+            "used_by",
+            "revoked_at",
+            "is_active",
+        ]
+        read_only_fields = ["id", "created_by", "created_at", "used_at", "used_by", "revoked_at", "is_active"]
