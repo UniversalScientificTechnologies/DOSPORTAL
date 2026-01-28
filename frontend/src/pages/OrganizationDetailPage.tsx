@@ -364,10 +364,7 @@ export const OrganizationDetailPage = ({
                                       onClick={() => setMemberManage({ editingId: null, newRole: '', deletingId: null })}
                                       aria-label="Close"
                                     >×</button>
-                                    <h4 style={{ marginTop: 0 }}>Manage Member</h4>
-                                    <div style={{ marginBottom: theme.spacing.md }}>
-                                      <b>@{member.username}</b> {member.first_name || member.last_name ? `(${member.first_name} ${member.last_name})` : ''}
-                                    </div>
+                                    <h4 style={{ marginTop: 0 }}>Manage Member: @{member.username} {member.first_name || member.last_name ? `(${member.first_name} ${member.last_name})` : ''} </h4>
                                     <div style={{ marginBottom: theme.spacing.md }}>
                                       <label style={{ display: 'block', marginBottom: theme.spacing.xs }}>Change Role:</label>
                                       <select
