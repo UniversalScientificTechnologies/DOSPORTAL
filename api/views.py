@@ -18,6 +18,7 @@ from DOSPORTAL.models import (
     Record,
     DetectorLogbook,
     Detector,
+    DetectorManufacturer,
     OrganizationUser,
     User,
     Organization,
@@ -27,13 +28,43 @@ from .serializers import (
     RecordSerializer,
     DetectorLogbookSerializer,
     DetectorSerializer,
+    DetectorManufacturerSerializer,
     UserProfileSerializer,
     OrganizationUserSerializer,
     OrganizationDetailSerializer,
 )
+
 from .qr_utils import generate_qr_code, generate_qr_detector_with_label
 
 logger = logging.getLogger("api.auth")
+
+@api_view(["GET", "POST"])
+@permission_classes((AllowAny,))
+def DetectorManufacturer(request):
+    """Get all detector manufacturers or add a new one."""
+    if request.method == "GET":
+        items = DetectorManufacturer.objects.all()
+        serializer = DetectorManufacturerSerializer(items, many=True)
+        return Response(serializer.data)
+    elif request.method == "POST":
+        serializer = DetectorManufacturerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+@api_view(["GET"])
+@permission_classes((AllowAny,))
+def DetectorManufacturerDetail(request, manufacturer_id):
+    """Get detector manufacturer by id."""
+    try:
+        item = DetectorManufacturer.objects.get(id=manufacturer_id)
+    except DetectorManufacturer.DoesNotExist:
+        return Response({"detail": "Not found."}, status=404)
+    serializer = DetectorManufacturerSerializer(item)
+    return Response(serializer.data)
+
 
 
 @api_view(["POST"])
