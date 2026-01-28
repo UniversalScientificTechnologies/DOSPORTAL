@@ -10,22 +10,30 @@ export const theme = {
     muted: '#6b7280',
     mutedLight: '#9ca3af',
     mutedLighter: '#d1d5db',
-    
+
     bg: '#ffffff',
     card: '#ffffff',
-    
+
     border: '#e5e7eb',
-    
+
     primary: '#0d6efd',
     primaryHover: '#535bf2',
     primaryLight: '#646cff',
-    
+
     success: '#198754',
     successLight: '#16a34a',
-    
+    successBg: '#d4edda',
+    successText: '#155724',
+    successBorder: '#c3e6cb',
+
     danger: '#dc3545',
-    
+
     warning: '#f59e0b',
+    warningBg: '#fefce8',
+    warningBorder: '#fde047',
+
+    infoBg: '#f0f9ff',
+    infoBorder: '#bfdbfe',
   },
   
   spacing: {

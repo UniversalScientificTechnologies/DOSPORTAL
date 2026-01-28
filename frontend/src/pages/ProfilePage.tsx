@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import { DetectorCard } from '../components/DetectorCard'
-import { ProfileField } from '../components/ProfileField'
+import { FormField } from '../components/FormField'
 import { Section } from '../components/Section'
 import { CardGrid } from '../components/CardGrid'
 import { EmptyState } from '../components/EmptyState'
@@ -38,10 +38,12 @@ interface Detector {
 export const ProfilePage = ({
   apiBase,
   isAuthed,
+  getAuthHeader,
 }: {
   apiBase: string
   originBase: string
   isAuthed: boolean
+  getAuthHeader: () => { Authorization?: string }
 }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [organizations, setOrganizations] = useState<Organization[]>([])
@@ -60,7 +62,10 @@ export const ProfilePage = ({
         // Fetch user profile
         const profileRes = await fetch(`${apiBase}/user/profile/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!profileRes.ok) throw new Error(`Profile HTTP ${profileRes.status}`)
         const profileData = await profileRes.json()
@@ -69,7 +74,10 @@ export const ProfilePage = ({
         // Fetch organizations
         const orgsRes = await fetch(`${apiBase}/user/organizations/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (orgsRes.ok) {
           const orgsData = await orgsRes.json()
@@ -79,7 +87,10 @@ export const ProfilePage = ({
         // Fetch detectors
         const detectorsRes = await fetch(`${apiBase}/detector/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (detectorsRes.ok) {
           const detectorsData = await detectorsRes.json()
@@ -119,18 +130,12 @@ export const ProfilePage = ({
     }
 
     try {
-      // Get CSRF token
-      const csrftoken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('csrftoken='))
-        ?.split('=')[1] || ''
-
       const res = await fetch(`${apiBase}/user/profile/`, {
         method: 'PUT',
-        credentials: 'include',
+        
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken,
+          ...getAuthHeader()
         },
         body: JSON.stringify({
           [field]: value,
@@ -191,11 +196,11 @@ export const ProfilePage = ({
             position: 'fixed',
             top: '80px',
             right: '20px',
-            backgroundColor: '#d4edda',
-            color: '#155724',
+            backgroundColor: theme.colors.successBg,
+            color: theme.colors.successText,
             padding: `${theme.spacing.lg} ${theme.spacing['2xl']}`,
             borderRadius: theme.borders.radius.sm,
-            border: `${theme.borders.width} solid #c3e6cb`,
+            border: `${theme.borders.width} solid ${theme.colors.successBorder}`,
             boxShadow: theme.shadows.sm,
             zIndex: 1000,
             animation: 'slideIn 0.3s ease-out',
@@ -209,13 +214,13 @@ export const ProfilePage = ({
         {error && <div className="error" style={{ marginBottom: theme.spacing.lg }}>{error}</div>}
 
         <div style={{ maxWidth: '600px' }}>
-          <ProfileField
+          <FormField
             label="Username"
             value={profile.username}
             isReadOnly={true}
           />
 
-          <ProfileField
+          <FormField
             label="Email"
             value={profile.email}
             type="email"
@@ -224,7 +229,7 @@ export const ProfilePage = ({
             isSaving={isSaving}
           />
 
-          <ProfileField
+          <FormField
             label="First Name"
             value={profile.first_name}
             isOptional={true}
@@ -232,7 +237,7 @@ export const ProfilePage = ({
             isSaving={isSaving}
           />
 
-          <ProfileField
+          <FormField
             label="Last Name"
             value={profile.last_name}
             isOptional={true}
@@ -242,28 +247,62 @@ export const ProfilePage = ({
         </div>
       </Section>
 
-      <Section title="Organizations" style={{ marginTop: theme.spacing.xl }}>
-        {organizations.length === 0 ? (
-          <EmptyState message="You are not a member of any organizations." />
-        ) : (
+      <section className="panel" style={{ marginTop: theme.spacing.xl }}>
+        <header className="panel-header">
+          <div>
+            <h2 style={{ marginTop: 0, marginBottom: 0 }}>Organizations</h2>
+          </div>
+          <a 
+            href="/organization/create"
+            style={{
+              display: 'inline-block',
+              padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+              background: theme.colors.success,
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: theme.borders.radius.sm,
+              fontSize: theme.typography.fontSize.base,
+              fontWeight: theme.typography.fontWeight.medium,
+              transition: theme.transitions.fast,
+            }}
+          >
+            + Create Organization
+          </a>
+        </header>
+
+        <div className="panel-body">
+          {organizations.length === 0 ? (
+            <EmptyState message="You are not a member of any organizations." />
+          ) : (
             <div>
               {ownedOrgs.length > 0 && (
                 <div style={{ marginBottom: theme.spacing['2xl'] }}>
                   <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Owner</h4>
                   {ownedOrgs.map((org) => (
-                    <div
+                    <a
                       key={org.id}
+                      href={`/organization/${org.id}`}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         padding: theme.spacing.lg,
-                        backgroundColor: '#f0f9ff',
-                        border: `${theme.borders.width} solid #bfdbfe`,
+                        backgroundColor: theme.colors.infoBg,
+                        border: `${theme.borders.width} solid ${theme.colors.infoBorder}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
+                        textDecoration: 'none',
+                        transition: theme.transitions.fast,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>({org.data_policy})</span>
-                    </div>
+                      <div>
+                        <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>({org.data_policy})</span>
+                      </div>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginLeft: theme.spacing.lg }}>
+                        [Owner]
+                      </span>
+                    </a>
                   ))}
                 </div>
               )}
@@ -272,19 +311,30 @@ export const ProfilePage = ({
                 <div style={{ marginBottom: theme.spacing['2xl'] }}>
                   <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Admin</h4>
                   {adminOrgs.map((org) => (
-                    <div
+                    <a
                       key={org.id}
+                      href={`/organization/${org.id}`}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         padding: theme.spacing.lg,
-                        backgroundColor: '#fefce8',
-                        border: `${theme.borders.width} solid #fde047`,
+                        backgroundColor: theme.colors.warningBg,
+                        border: `${theme.borders.width} solid ${theme.colors.warningBorder}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
+                        textDecoration: 'none',
+                        transition: theme.transitions.fast,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
-                    </div>
+                      <div>
+                        <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
+                      </div>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginLeft: theme.spacing.lg }}>
+                        [Admin]
+                      </span>
+                    </a>
                   ))}
                 </div>
               )}
@@ -293,25 +343,37 @@ export const ProfilePage = ({
                 <div>
                   <h4 style={{ color: theme.colors.textDark, marginBottom: theme.spacing.md }}>Member</h4>
                   {memberOrgs.map((org) => (
-                    <div
+                    <a
                       key={org.id}
+                      href={`/organization/${org.id}`}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         padding: theme.spacing.lg,
-                        backgroundColor: '#f3f4f6',
+                        backgroundColor: theme.colors.mutedLighter,
                         border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
                         borderRadius: theme.borders.radius.sm,
                         marginBottom: theme.spacing.sm,
                         color: theme.colors.textDark,
+                        textDecoration: 'none',
+                        transition: theme.transitions.fast,
                       }}
                     >
-                      <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
-                    </div>
+                      <div>
+                        <strong>{org.name}</strong> <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm }}>(Policy: {org.data_policy})</span>
+                      </div>
+                      <span style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.medium, marginLeft: theme.spacing.lg }}>
+                        [Member]
+                      </span>
+                    </a>
                   ))}
                 </div>
               )}
             </div>
           )}
-      </Section>
+        </div>
+      </section>
 
       {/* Detectors Section */}
       <Section title="Detectors Maintained" style={{ marginTop: theme.spacing.xl }}>

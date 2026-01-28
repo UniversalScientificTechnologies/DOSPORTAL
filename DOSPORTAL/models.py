@@ -1,3 +1,6 @@
+import secrets
+import hashlib
+from django.utils import timezone
 import datetime
 from typing import Iterable
 from django.db import models
@@ -17,6 +20,7 @@ from django.contrib.gis.db import models as geomodels
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import Distance
 from django import forms
+from django.contrib.postgres.fields import ArrayField, HStoreField
 
 from DOSPORTAL.services.file_validation import validate_uploaded_file
 
@@ -825,9 +829,41 @@ class TrajectoryPoint(models.Model):
     def __str__(self) -> str:
         return "Trajectory point: {}".format(self.trajectory)
 
+class OrganizationInvite(models.Model):
+    """
+    One-time invite link for joining an organization.
+    """
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="invites"
+    )
+    token_hash = models.CharField(max_length=64, unique=True, help_text="SHA256 hex digest of the invite token")
+    user_type = models.CharField(max_length=2, choices=[("ME", "Member"), ("AD", "Admin")], default="ME")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_invites"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    used_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="used_invites"
+    )
+    revoked_at = models.DateTimeField(null=True, blank=True)
 
-from django.contrib.postgres.fields import ArrayField, HStoreField
+    @property
+    def is_active(self):
+        now = timezone.now()
+        return self.used_at is None and self.revoked_at is None and now < self.expires_at
 
+    @staticmethod
+    def generate_token():
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def hash_token(token: str) -> str:
+        return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    def __str__(self):
+        return f"Invite for {self.organization.name} (active: {self.is_active})"
 
 class SpectrumData(UUIDMixin):
     """

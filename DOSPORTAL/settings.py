@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     #'background_task',
     #'django_json_widget',
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
     "jquery",
     "import_export",
@@ -66,6 +67,7 @@ INSTALLED_APPS = [
     "guardian",
     "prettyjson",
     "storages",
+    "drf_spectacular",
     #  'organizations',
 ]
 
@@ -205,13 +207,21 @@ MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
 
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'DOSPORTAL API',
+    'DESCRIPTION': 'API Documentation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 

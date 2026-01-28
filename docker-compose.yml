@@ -28,6 +28,11 @@ services:
     image: dosportal-frontend:local
     volumes:
       - ./frontend:/app/frontend
+    environment:
+      - CHOKIDAR_USEPOLLING=true   # Docker Desktop on Windows: file events need polling
+      - WATCHPACK_POLLING=true
+      - VITE_HMR_HOST=localhost
+      - VITE_HMR_PORT=5173
     depends_on:
       - backend
     ports:

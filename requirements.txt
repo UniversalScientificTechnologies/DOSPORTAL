@@ -39,7 +39,11 @@ django-gravatar2
 django-prettyjson
 
 django-markdownx
+drf-spectacular
 
 markdown
 djangorestframework
 setuptools
+
+pytest
+pytest-django
