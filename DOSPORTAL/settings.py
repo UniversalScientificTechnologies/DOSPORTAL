@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "guardian",
     "prettyjson",
     "storages",
+    "drf_spectacular",
     #  'organizations',
 ]
 
@@ -209,11 +210,18 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'DOSPORTAL API',
+    'DESCRIPTION': 'API Documentation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 
