@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-
 import { useParams, Link } from 'react-router-dom';
 import { PageLayout } from '../components/PageLayout';
 import { theme } from '../theme';
@@ -48,6 +47,59 @@ export const OrganizationDetailPage = ({
       setError(e.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  type MemberManageState = {
+  editingId: number | null;
+  newRole: string;
+  deletingId: number | null;
+};
+  const [memberManage, setMemberManage] = useState<MemberManageState>({ editingId: null, newRole: '', deletingId: null });
+  
+  const handleChangeRole = async (memberId: number, newRole: string) => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const member = org.members.find((m: Member) => m.id === memberId);
+      if (!member) throw new Error('Member not found');
+      const res = await fetch(`${apiBase}/organizations/${id}/member/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ username: member.username, user_type: newRole }),
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Failed to change role');
+      setSuccessMsg('Role updated successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      setMemberManage({ ...memberManage, editingId: null });
+      await fetchOrg();
+    } catch (e: any) {
+      setSaveError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteMember = async (memberId: number) => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const member = org.members.find((m: Member) => m.id === memberId);
+      if (!member) throw new Error('Member not found');
+      const res = await fetch(`${apiBase}/organizations/${id}/member/`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ username: member.username }),
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Failed to delete member');
+      setSuccessMsg('Member removed successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
+      setMemberManage({ ...memberManage, deletingId: null });
+      await fetchOrg();
+    } catch (e: any) {
+      setSaveError(e.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -251,27 +303,128 @@ export const OrganizationDetailPage = ({
                       <div style={{ color: theme.colors.muted, fontStyle: 'italic' }}>No members yet.</div>
                     ) : (
                       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                        {org.members.map((member: Member) => (
-                          <li key={member.id} style={{
-                            padding: `${theme.spacing.sm} 0`,
-                            borderBottom: `1px solid ${theme.colors.border}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}>
-                            <span style={{color: theme.colors.textSecondary}}>
-                              @{member.username}
-                              {member.first_name || member.last_name ? (
-                                <span style={{ color: theme.colors.textDark, marginLeft: theme.spacing.sm }}>
-                                  {member.first_name} {member.last_name}
-                                </span>
-                              ) : null}
-                            </span>
-                            <span style={{ color: theme.colors.textSecondary, fontWeight: 500 }}>
-                              {member.user_type === 'OW' ? 'Owner' : member.user_type === 'AD' ? 'Admin' : 'Member'}
-                            </span>
-                          </li>
-                        ))}
+                        {org.members.map((member: Member) => {
+                          const isManaging = memberManage.editingId === member.id;
+                          const canManage = !readOnly && member.user_type !== 'OW';
+                          return (
+                            <li key={member.id} style={{
+                              padding: `${theme.spacing.sm} 0`,
+                              borderBottom: `1px solid ${theme.colors.border}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}>
+                              <span style={{color: theme.colors.textSecondary}}>
+                                @{member.username}
+                                {member.first_name || member.last_name ? (
+                                  <span style={{ color: theme.colors.textDark, marginLeft: theme.spacing.sm }}>
+                                    {member.first_name} {member.last_name}
+                                  </span>
+                                ) : null}
+                              </span>
+                              <span style={{ color: theme.colors.textSecondary, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                {canManage && !isManaging && (
+                                  <button
+                                    type="button"
+                                    style={{ color: theme.colors.primary, background: 'none', border: 'none', cursor: 'pointer', marginLeft: 12 }}
+                                    onClick={() => setMemberManage({ editingId: member.id, newRole: member.user_type, deletingId: null })}
+                                  >
+                                    Manage
+                                  </button>
+                                )}
+                                {!isManaging && (
+                                  <span>{member.user_type === 'OW' ? 'Owner' : member.user_type === 'AD' ? 'Admin' : 'Member'}</span>
+                                )}
+                              </span>
+                              {/* Popup for manage actions */}
+                              {isManaging && (
+                                <div style={{
+                                  position: 'fixed',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100vw',
+                                  height: '100vh',
+                                  background: 'rgba(0,0,0,0.3)',
+                                  zIndex: 2000,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}>
+                                  <div style={{
+                                    background: 'white',
+                                    borderRadius: theme.borders.radius.md,
+                                    boxShadow: theme.shadows.lg,
+                                    padding: theme.spacing['2xl'],
+                                    minWidth: 350,
+                                    maxWidth: 400,
+                                    position: 'relative',
+                                  }}>
+                                    <button
+                                      style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}
+                                      onClick={() => setMemberManage({ editingId: null, newRole: '', deletingId: null })}
+                                      aria-label="Close"
+                                    >×</button>
+                                    <h4 style={{ marginTop: 0 }}>Manage Member</h4>
+                                    <div style={{ marginBottom: theme.spacing.md }}>
+                                      <b>@{member.username}</b> {member.first_name || member.last_name ? `(${member.first_name} ${member.last_name})` : ''}
+                                    </div>
+                                    <div style={{ marginBottom: theme.spacing.md }}>
+                                      <label style={{ display: 'block', marginBottom: theme.spacing.xs }}>Change Role:</label>
+                                      <select
+                                        value={memberManage.newRole || member.user_type}
+                                        onChange={e => setMemberManage({ ...memberManage, newRole: e.target.value })}
+                                        disabled={saving}
+                                        style={{
+                                          width: '100%',
+                                          marginBottom: theme.spacing.md,
+                                          padding: theme.spacing.sm,
+                                          background: theme.colors.bg,
+                                          color: theme.colors.textDark,
+                                          border: `${theme.borders.width} solid ${theme.colors.mutedLighter}`,
+                                          borderRadius: theme.borders.radius.sm,
+                                          fontSize: theme.typography.fontSize.base,
+                                          boxSizing: 'border-box',
+                                          appearance: 'none',
+                                          WebkitAppearance: 'none',
+                                          MozAppearance: 'none',
+                                        }}
+                                      >
+                                        <option value="ME">Member</option>
+                                        <option value="AD">Admin</option>
+                                      </select>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: theme.spacing.md, marginBottom: theme.spacing.md }}>
+                                      <button
+                                        type="button"
+                                        style={{ padding: `${theme.spacing.sm} ${theme.spacing.lg}`, background: theme.colors.success, color: theme.colors.bg}}
+                                        disabled={saving || (memberManage.newRole === member.user_type)}
+                                        onClick={() => handleChangeRole(member.id, memberManage.newRole || member.user_type)}
+                                      >
+                                        Change
+                                      </button>
+                                      <button
+                                        type="button"
+                                        style={{ padding: `${theme.spacing.sm} ${theme.spacing.lg}`, color: 'white', background: theme.colors.danger, border: 'none', borderRadius: theme.borders.radius.sm }}
+                                        disabled={saving}
+                                        onClick={() => handleDeleteMember(member.id)}
+                                      >
+                                        Remove
+                                      </button>
+                                      <button
+                                        type="button"
+                                        style={{ padding: `${theme.spacing.sm} ${theme.spacing.lg}` }}
+                                        disabled={saving}
+                                        onClick={() => setMemberManage({ editingId: null, newRole: '', deletingId: null })}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </div>

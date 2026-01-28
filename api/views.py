@@ -314,10 +314,15 @@ def UserOrganizations(request):
     return Response(serializer.data)
 
 
-@api_view(["POST"])
+@api_view(["POST", "PUT", "DELETE"])
 @permission_classes((IsAuthenticated,))
-def AddOrganizationMember(request, org_id):
-    """Add a user to an organization by username. Only owner/admin can add."""
+def OrganizationMember(request, org_id):
+    """
+    Permissions: Only owner/admin can do this.
+    POST: Add a user to an organization by username.
+    PUT: Change a user's role to an organization by username.
+    PUT: Remove a user from an organization by username.
+    """
     username = request.data.get("username")
     user_type = request.data.get("user_type", "ME")
     if not username:
@@ -327,18 +332,57 @@ def AddOrganizationMember(request, org_id):
     except Organization.DoesNotExist:
         return Response({"detail": "Organization not found."}, status=404)
     
-    # Only allow owner/admin to add
-    org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
-    if not org_user or org_user.user_type not in ["OW", "AD"]:
-        return Response({"detail": "You do not have permission to add members."}, status=403)
-    try:
-        user = DjangoUser.objects.get(username=username)
-    except DjangoUser.DoesNotExist:
-        return Response({"detail": "User not found."}, status=404)
-    if OrganizationUser.objects.filter(user=user, organization=org).exists():
-        return Response({"detail": "User already a member."}, status=400)
-    OrganizationUser.objects.create(user=user, organization=org, user_type=user_type)
-    return Response({"detail": "User added."}, status=201)
+
+    if request.method == "POST":
+        # Only allow owner/admin to add member
+        org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
+        if not org_user or org_user.user_type not in ["OW", "AD"]:
+            return Response({"detail": "You do not have permission to add members."}, status=403)
+        try:
+            user = DjangoUser.objects.get(username=username)
+        except DjangoUser.DoesNotExist:
+            return Response({"detail": "User not found."}, status=404)
+        if OrganizationUser.objects.filter(user=user, organization=org).exists():
+            return Response({"detail": "User already a member."}, status=400)
+        OrganizationUser.objects.create(user=user, organization=org, user_type=user_type)
+        return Response({"detail": "User added."}, status=201)
+    elif request.method == "PUT":
+        # Only allow owner/admin to change role
+        org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
+        if not org_user or org_user.user_type not in ["OW", "AD"]:
+            return Response({"detail": "You do not have permission to add members."}, status=403)
+        try:
+            user = DjangoUser.objects.get(username=username)
+        except DjangoUser.DoesNotExist:
+            return Response({"detail": "User not found."}, status=404)
+        org_member = OrganizationUser.objects.filter(user=user, organization=org).first()
+        if not org_member:
+            return Response({"detail": "User is not a member of this organization."}, status=404)
+        if user_type not in ["ME", "AD"]:
+            return Response({"detail": "Invalid role."}, status=400)
+        org_member.user_type = user_type
+        org_member.save()
+        return Response({"detail": f"Role updated to {user_type}."}, status=200)
+    elif request.method == "DELETE":
+        try:
+            user = DjangoUser.objects.get(username=username)
+        except DjangoUser.DoesNotExist:
+            return Response({"detail": "User not found."}, status=404)
+        
+        # Only allow owner/admin to remove member OR self to remove self
+        if user != request.user: # can remove self 
+            org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
+            if not org_user or org_user.user_type not in ["OW", "AD"]:
+                return Response({"detail": "You do not have permission to remove this member."}, status=403)
+
+        org_member = OrganizationUser.objects.filter(user=user, organization=org).first()
+        if org_member.user_type == "OW":
+            return Response({"detail": "You cannot remove the owner from the organization."}, status=403)
+
+        if not org_member:
+            return Response({"detail": "User is not a member of this organization."}, status=404)
+        org_member.delete()
+        return Response({"detail": "User removed from organization."}, status=200)
 
 
 @api_view(["POST"])
