@@ -99,13 +99,6 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             </li>
         </ul>
 
-
-        {% if user.is_authenticated %}
-            
-              <span class="mx-4"> Hi <b><a href="{% url 'profile' %}">{{ user.username }}</a></b>! </span>
-              <a href="{% url 'logout' %}" class="btn btn-outline-dark">Log Out</a>
-        {% endif %}
-
         </div>
     </div>
     </nav>
