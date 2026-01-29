@@ -527,10 +527,18 @@ def DetectorQRCode(request, detector_id):
         return response
 
     except Exception as e:
+        logger.error(
+            "DetectorQRCode user=%s auth=%s header=%s error=%s",
+            request.user,
+            request.auth,
+            "present" if request.headers.get("Authorization") else "missing",
+            str(e),
+        )
         return Response(
-            {"detail": f"Error generating QR code: {str(e)}"},
+            {"detail": f"Error generating QR code."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+    
 
 @api_view(["POST"])
 @permission_classes((IsAuthenticated,))
