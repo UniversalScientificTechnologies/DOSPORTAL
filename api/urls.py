@@ -24,6 +24,7 @@ urlpatterns = [
     path("logbook/<uuid:entry_id>/", views.DetectorLogbookPut),
     path("user/profile/", views.UserProfile),
     path("user/organizations/", views.UserOrganizations),
+    path("user/organizations/owned/", views.UserOrganizationsOwned),
     path("organizations/", views.Organizations),
     path("organizations/<uuid:org_id>/", views.OrganizationDetail),
     path("organizations/<uuid:org_id>/member/", views.OrganizationMember),

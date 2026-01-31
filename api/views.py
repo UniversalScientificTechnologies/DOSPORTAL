@@ -34,7 +34,9 @@ from .serializers import (
     UserProfileSerializer,
     OrganizationUserSerializer,
     OrganizationDetailSerializer,
+    OrganizationSummarySerializer,
 )
+
 
 from .qr_utils import generate_qr_code, generate_qr_detector_with_label
 
@@ -375,6 +377,15 @@ def UserOrganizations(request):
         "organization"
     )
     serializer = OrganizationUserSerializer(org_users, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def UserOrganizationsOwned(request):
+    """Get all organizations where user is Amin/Owner."""
+    org_users = OrganizationUser.objects.filter(user=request.user, user_type__in=["OW", "AD"]).select_related("organization")
+    organizations = [ou.organization for ou in org_users]
+    serializer = OrganizationSummarySerializer(organizations, many=True)
     return Response(serializer.data)
 
 
