@@ -1,3 +1,4 @@
+from DOSPORTAL.models import DetectorType, DetectorManufacturer
 from rest_framework import serializers
 from DOSPORTAL.models import (
     measurement,
@@ -20,11 +21,18 @@ class DetectorManufacturerSerializer(serializers.ModelSerializer):
 
 
 class DetectorTypeSerializer(serializers.ModelSerializer):
-    manufacturer = DetectorManufacturerSerializer(read_only=True)
+    manufacturer = serializers.PrimaryKeyRelatedField(queryset=DetectorManufacturer.objects.all())
+
 
     class Meta:
         model = DetectorType
         fields = ("id", "name", "manufacturer", "url", "description")
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep["manufacturer"] = DetectorManufacturerSerializer(instance.manufacturer).data if instance.manufacturer else None
+        return rep
+
 
 
 class OrganizationSummarySerializer(serializers.ModelSerializer):
@@ -62,12 +70,28 @@ class UserSummarySerializer(serializers.ModelSerializer):
 
 
 class DetectorSerializer(serializers.ModelSerializer):
+    type = DetectorTypeSerializer()
+    owner = OrganizationSummarySerializer(read_only=True)
+
+    type_id = serializers.PrimaryKeyRelatedField(
+        source="type",
+        queryset=DetectorType.objects.all(),
+        required=True,
+        write_only=False
+    )
     type = DetectorTypeSerializer(read_only=True)
     owner = OrganizationSummarySerializer(read_only=True)
 
     class Meta:
         model = Detector
         fields = "__all__"
+        extra_fields = ["type_id"]
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep["type_id"] = str(instance.type.id) if instance.type else None
+        rep["owner"] = str(instance.owner.id) if instance.owner else None
+        return rep
 
 
 class RecordSerializer(serializers.ModelSerializer):

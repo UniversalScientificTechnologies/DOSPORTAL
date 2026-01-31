@@ -19,6 +19,7 @@ from DOSPORTAL.models import (
     DetectorLogbook,
     Detector,
     DetectorManufacturer,
+    DetectorType,
     OrganizationUser,
     User,
     Organization,
@@ -28,6 +29,7 @@ from .serializers import (
     RecordSerializer,
     DetectorLogbookSerializer,
     DetectorSerializer,
+    DetectorTypeSerializer,
     DetectorManufacturerSerializer,
     UserProfileSerializer,
     OrganizationUserSerializer,
@@ -65,7 +67,20 @@ def DetectorManufacturerDetail(request, manufacturer_id):
     serializer = DetectorManufacturerSerializer(item)
     return Response(serializer.data)
 
-
+@api_view(["GET", "POST"])
+@permission_classes((IsAuthenticated,))
+def DetectorTypeList(request):
+    """Get all detector types or create a new one."""
+    if request.method == "GET":
+        items = DetectorType.objects.select_related("manufacturer").all()
+        serializer = DetectorTypeSerializer(items, many=True)
+        return Response(serializer.data)
+    elif request.method == "POST":
+        serializer = DetectorTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            dtype = serializer.save()
+            return Response(DetectorTypeSerializer(dtype).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
 @permission_classes((AllowAny,))
@@ -198,7 +213,7 @@ def RecordGet(request):
     return Response(serializer.data)
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 @permission_classes((IsAuthenticated,))
 def DetectorGet(request):
     logger.info(
@@ -207,9 +222,27 @@ def DetectorGet(request):
         request.auth,
         "present" if request.headers.get("Authorization") else "missing",
     )
-    items = Detector.objects.select_related("type__manufacturer", "owner").all()
-    serializer = DetectorSerializer(items, many=True)
-    return Response(serializer.data)
+    if request.method == "GET":
+        items = Detector.objects.select_related("type__manufacturer", "owner").all()
+        serializer = DetectorSerializer(items, many=True)
+        return Response(serializer.data)
+    elif request.method == "POST":
+        data = request.data.copy()
+        owner_id = data.get("owner")
+        if not owner_id:
+            return Response({"detail": "Owner organization is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            org = Organization.objects.get(id=owner_id)
+        except Organization.DoesNotExist:
+            return Response({"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND)
+        org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
+        if not org_user or org_user.user_type not in ["OW", "AD"]:
+            return Response({"detail": "You do not have permission to add detectors to this organization."}, status=status.HTTP_403_FORBIDDEN)
+        serializer = DetectorSerializer(data=data)
+        if serializer.is_valid():
+            detector = serializer.save(owner=org)
+            return Response(DetectorSerializer(detector).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
