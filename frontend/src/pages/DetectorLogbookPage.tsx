@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { CreateEntryButton } from '../components/CreateEntryButton'
 import ReactMarkdown from 'react-markdown'
 import { PageLayout } from '../components/PageLayout'
 import { theme } from '../theme'
@@ -117,13 +118,7 @@ export const DetectorLogbookPage = ({
               <h2>Detector Logbook</h2>
             )}
           </div>
-          <button 
-            className="pill" 
-            onClick={() => navigate(`/logbook/${id}/create`)}
-            style={{ background: theme.colors.success, border: `${theme.borders.width} solid ${theme.colors.success}` }}
-          >
-            + Create Entry
-          </button>
+          <CreateEntryButton to={`/logbook/${id}/create`} style={{ marginLeft: 12 }} />
         </header>
 
         {error && <div className="error" style={{ marginBottom: '1rem' }}>{error}</div>}

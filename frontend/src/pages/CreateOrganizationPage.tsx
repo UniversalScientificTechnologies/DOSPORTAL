@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { theme } from '../theme'
+import { LabeledInput } from '../components/LabeledInput'
 import profileBg from '../assets/img/SPACEDOS01.jpg'
 
 export const CreateOrganizationPage = ({
@@ -105,32 +106,14 @@ export const CreateOrganizationPage = ({
 
         <form onSubmit={handleSubmit} className="panel-body">
           <div style={{ maxWidth: '600px' }}>
-            <div style={{ marginBottom: theme.spacing['2xl'] }}>
-              <label 
-                htmlFor="org_name"
-                style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textDark }}
-              >
-                Organization Name *
-              </label>
-              <input
-                type="text"
-                id="org_name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., My Research Lab"
-                required
-                style={{
-                  width: '100%',
-                  padding: theme.spacing.sm,
-                  border: `${theme.borders.width} solid ${theme.colors.border}`,
-                  borderRadius: theme.borders.radius.sm,
-                  fontSize: theme.typography.fontSize.base,
-                  background: theme.colors.bg,
-                  color: theme.colors.textDark,
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
+            <LabeledInput
+              id="org_name"
+              label="Organization Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., My Research Lab"
+              required
+            />
 
             <div style={{ marginBottom: theme.spacing['2xl'] }}>
               <label 
@@ -165,57 +148,23 @@ export const CreateOrganizationPage = ({
               </p>
             </div>
 
-            <div style={{ marginBottom: theme.spacing['2xl'] }}>
-              <label 
-                htmlFor="website"
-                style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textDark }}
-              >
-                Website
-              </label>
-              <input
-                type="url"
-                id="website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-                style={{
-                  width: '100%',
-                  padding: theme.spacing.sm,
-                  border: `${theme.borders.width} solid ${theme.colors.border}`,
-                  borderRadius: theme.borders.radius.sm,
-                  fontSize: theme.typography.fontSize.base,
-                  background: theme.colors.bg,
-                  color: theme.colors.textDark,
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
+            <LabeledInput
+              id="website"
+              label="Website"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://example.com"
+              type="url"
+            />
 
-            <div style={{ marginBottom: theme.spacing['2xl'] }}>
-              <label 
-                htmlFor="contact_email"
-                style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textDark }}
-              >
-                Contact Email
-              </label>
-              <input
-                type="email"
-                id="contact_email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="contact@example.com"
-                style={{
-                  width: '100%',
-                  padding: theme.spacing.sm,
-                  border: `${theme.borders.width} solid ${theme.colors.border}`,
-                  borderRadius: theme.borders.radius.sm,
-                  fontSize: theme.typography.fontSize.base,
-                  background: theme.colors.bg,
-                  color: theme.colors.textDark,
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
+            <LabeledInput
+              id="contact_email"
+              label="Contact Email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="contact@example.com"
+              type="email"
+            />
 
             <div style={{ marginBottom: theme.spacing['2xl'] }}>
               <label 
