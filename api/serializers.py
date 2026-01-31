@@ -21,12 +21,15 @@ class DetectorManufacturerSerializer(serializers.ModelSerializer):
 
 
 class DetectorTypeSerializer(serializers.ModelSerializer):
+
     manufacturer = serializers.PrimaryKeyRelatedField(queryset=DetectorManufacturer.objects.all())
+    image = serializers.ImageField(read_only=True)
 
 
     class Meta:
         model = DetectorType
-        fields = ("id", "name", "manufacturer", "url", "description")
+        fields = ("id", "name", "manufacturer", "url", "description", "image")
+
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)

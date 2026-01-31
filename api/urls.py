@@ -19,6 +19,7 @@ urlpatterns = [
     path("detector-manufacturer/", views.DetectorManufacturer),
     path("detector-manufacturer/<uuid:manufacturer_id>/", views.DetectorManufacturerDetail),
     path("detector-type/", views.DetectorTypeList),
+    path("detector-type/<uuid:type_id>/", views.DetectorTypeDetail),
     path("logbook/", views.DetectorLogbookGet),
     path("logbook/add/", views.DetectorLogbookPost),
     path("logbook/<uuid:entry_id>/", views.DetectorLogbookPut),

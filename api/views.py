@@ -84,6 +84,17 @@ def DetectorTypeList(request):
             return Response(DetectorTypeSerializer(dtype).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def DetectorTypeDetail(request, type_id):
+    """Get detector type by id."""
+    try:
+        item = DetectorType.objects.get(id=type_id)
+    except DetectorType.DoesNotExist:
+        return Response({"detail": "Not found."}, status=404)
+    serializer = DetectorTypeSerializer(item, context={"request": request})
+    return Response(serializer.data)
+
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def Login(request):

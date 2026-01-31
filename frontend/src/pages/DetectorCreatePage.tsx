@@ -5,6 +5,7 @@ import { PageLayout } from "../components/PageLayout";
 import { theme } from "../theme";
 import { LabeledInput } from "../components/LabeledInput";
 import logbookBg from "../assets/img/SPACEDOS01.jpg";
+import { DetectorTypeInfo } from "../components/DetectorTypeInfo";
 
 export const DetectorCreatePage = ({
   apiBase,
@@ -20,11 +21,39 @@ export const DetectorCreatePage = ({
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [owner, setOwner] = useState("");
+  const [typeInfo, setTypeInfo] = useState<any | null>(null);
   const [accessOptions, setAccessOptions] = useState<
     { value: string; label: string }[]
   >([]);
 
-  
+  // Fetch detector type info when type changes
+  useEffect(() => {
+    if (!isAuthed) return; // waiting for creadentials
+
+    if (!type) {
+      setTypeInfo(null);
+      return;
+    }
+    const fetchTypeInfo = async () => {
+      try {
+        const res = await fetch(`${apiBase}/detector-type/${type}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setTypeInfo(data);
+      } catch (e) {
+        setTypeInfo(null);
+      }
+    };
+    fetchTypeInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, apiBase, isAuthed]);
+
   useEffect(() => {
     if (!isAuthed) return; // waiting for creadentials
 
@@ -56,7 +85,7 @@ export const DetectorCreatePage = ({
       }
     };
 
-     const fetchDetectorTypes = async () => {
+    const fetchDetectorTypes = async () => {
       try {
         const res = await fetch(`${apiBase}/detector-type/`, {
           method: "GET",
@@ -151,6 +180,7 @@ export const DetectorCreatePage = ({
     );
   }
 
+
   return (
     <PageLayout
       backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}
@@ -227,6 +257,10 @@ export const DetectorCreatePage = ({
                 ))}
               </select>
             </div>
+            {/* Detector Type Info Display */}
+            {type && typeInfo && (
+              <DetectorTypeInfo type={typeInfo} />
+            )}
 
             <div style={{ marginBottom: theme.spacing["2xl"] }}>
               <label
