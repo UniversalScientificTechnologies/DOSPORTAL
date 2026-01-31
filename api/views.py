@@ -240,6 +240,15 @@ def DetectorGet(request):
         org_user = OrganizationUser.objects.filter(user=request.user, organization=org).first()
         if not org_user or org_user.user_type not in ["OW", "AD"]:
             return Response({"detail": "You do not have permission to add detectors to this organization."}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Ensure owner is in access
+        access_ids = set()
+        if "access" in data and isinstance(data["access"], list):
+            access_ids = set(str(a) for a in data["access"])
+        owner_id_str = str(owner_id)
+        access_ids.add(owner_id_str)
+        data["access"] = list(access_ids)
+
         serializer = DetectorSerializer(data=data)
         if serializer.is_valid():
             detector = serializer.save(owner=org)
