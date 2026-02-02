@@ -253,7 +253,7 @@ jobs:
         env:
           APP_DIR: ${{ needs.prepare.outputs.app_dir }}
           ENV_FILE: ${{ needs.prepare.outputs.app_dir }}/env/${{ needs.prepare.outputs.environment }}.env
-          COMPOSE_FILE: docker-compose.yml
+          COMPOSE_FILE: docker-compose.prod.yml
           PROJECT_NAME: ${{ needs.prepare.outputs.project_name }}
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_NAME_BASE: ${{ env.IMAGE_NAME_BASE }}
