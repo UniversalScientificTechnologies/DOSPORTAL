@@ -104,5 +104,6 @@ urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
 ]
 
-
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Don't add static media URLs when using S3 storage
+if settings.MEDIA_URL:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
