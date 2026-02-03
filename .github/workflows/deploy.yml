@@ -311,6 +311,14 @@ jobs:
             echo "==> Run migrations"
             docker exec "${PROJECT_NAME}-backend-1" python manage.py migrate --noinput
 
+            echo "==> Setup MinIO bucket (if needed)"
+            if [ -f "setup-minio-bucket.sh" ]; then
+              chmod +x setup-minio-bucket.sh
+              ./setup-minio-bucket.sh || echo "Warning: MinIO setup failed, continuing..."
+            else
+              echo "No setup-minio-bucket.sh found, skipping MinIO setup"
+            fi
+
             echo "==> Show status"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS ps
 
@@ -334,31 +342,18 @@ jobs:
             });
       
       - name: Update PR comment with deployment info
-        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment'
+        if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment' && needs.prepare.outputs.comment_id
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
             try {
-              const comment = await github.rest.issues.getComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: ${{ needs.prepare.outputs.comment_id }}
-              });
-              
-              const updatedBody = comment.data.body + '\n\n---\n✅ **Test deployment completed!**\n🔗 Available at: https://test.portal.dos.ust.cz';
-              
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: ${{ needs.prepare.outputs.comment_id }},
-                body: updatedBody
-              });
-            } catch (error) {
-              console.log('Could not update comment, creating new one instead:', error.message);
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: '✅ **Test deployment completed!**\n🔗 Available at: https://test.portal.dos.ust.cz'
               });
+            } catch (error) {
+              console.error('Could not create comment:', error.message);
             }
