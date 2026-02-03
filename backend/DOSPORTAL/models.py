@@ -269,7 +269,7 @@ class DetectorType(UUIDMixin):
     manufacturer = models.ForeignKey(DetectorManufacturer, on_delete=models.CASCADE)
 
     image = models.ImageField(
-        name=_("Detector image"),
+        verbose_name=_("Detector image"),
         help_text=_("Detector image"),
         upload_to="detector_images",
         null=True,
