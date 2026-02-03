@@ -215,12 +215,20 @@ AWS_QUERYSTRING_AUTH = True  # Use pre-signed URLs
 AWS_QUERYSTRING_EXPIRE = 3600  # URLs expire after 1 hour (in seconds)
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 
-# Use S3-compatible storage for media files
-DEFAULT_FILE_STORAGE = "DOSPORTAL.storage_backends.MinIOMediaStorage"
-# Store public URL for custom storage backend
+# Django 6+ storage configuration
+STORAGES = {
+    "default": {
+        "BACKEND": "DOSPORTAL.storage_backends.MinIOMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# Store public URL for custom storage backend (used by custom storage to rewrite host)
 MINIO_PUBLIC_URL = os.getenv("MINIO_PUBLIC_URL")
-# MEDIA_URL is not used with pre-signed URLs, but set it for compatibility
-MEDIA_URL = "/media/"
+# For presigned URLs, do not set MEDIA_URL; admin and templates should use file.url
+MEDIA_URL = None
 
 
 

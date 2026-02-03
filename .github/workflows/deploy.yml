@@ -311,13 +311,8 @@ jobs:
             echo "==> Run migrations"
             docker exec "${PROJECT_NAME}-backend-1" python manage.py migrate --noinput
 
-            echo "==> Setup MinIO bucket (if needed)"
-            if [ -f "setup-minio-bucket.sh" ]; then
-              chmod +x setup-minio-bucket.sh
-              ./setup-minio-bucket.sh || echo "Warning: MinIO setup failed, continuing..."
-            else
-              echo "No setup-minio-bucket.sh found, skipping MinIO setup"
-            fi
+            echo "==> Setup MinIO bucket"
+            docker exec "${PROJECT_NAME}-backend-1" python manage.py setup_minio || echo "Warning: MinIO setup failed, continuing..."
 
             echo "==> Show status"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS ps
