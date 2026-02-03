@@ -1,0 +1,48 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .content-resize {
+        
+    }
+
+    .content-resize img {
+        max-width: 100%;
+    }
+</style>
+
+<div class="card my-4">
+  <div class="card-header d-flex justify-content-between">
+      <span > Detector type: <span class="h3"><a class="text-decoration-none" href="{{detector.url}}">{{detector.name}} <i class="bi bi-box-arrow-up-right small"></i></a> </span></span>
+      <span class="text-muted"> {{detector.id}} 
+        {% if user.is_authenticated %}
+      <a href="{{detector.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+      {%endif%}
+      </span>
+  </div>
+  <div class="card-body">
+    {{ detector.image }}
+    <img src="{{ detector.image.url }}">
+
+    <span> {{detector.manufacturer | safe}} </span>
+    {% if detector.description %}
+    
+    <div class="m-3 callout content-resize" style="overflow: hidden;">
+    {{detector.description_formatted | safe}}
+    </div>
+    {%endif%}
+
+    
+    </div>
+  </div>
+
+
+</div>
+
+
+</div>
+
+{% endblock %}

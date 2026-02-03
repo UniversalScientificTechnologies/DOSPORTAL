@@ -1,0 +1,110 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+{% load martortags %}
+{% load crispy_forms_tags %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/detectors/">Detectors</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ detector.name }}</li>
+  </ol>
+</nav>
+
+<div class="card my-4">
+  <div class="card-header d-flex justify-content-between">
+      <span > Detector: <span class="h2">{{detector.name}} </span></span>
+      <span class="text-muted"> {{detector.id}} 
+        {% if user.is_authenticated %}
+      <a href="{{detector.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+      {%  endif%}
+      </span>
+  </div>
+  <div class="card-body">
+    {% if detector.description %}
+    <div class="m-3 callout">
+    {{detector.description }}
+    </div>
+    {%endif%}
+<ul>
+  <li><strong>Serial number:</strong> <span class="btn btn-sm btn-outline-success">{{detector.sn}}</span></a>
+  <li><strong>Type:</strong> {{ detector.type.formatted_label|safe }}</a>
+  <li><strong>Calibrations</strong>
+    <ol>
+      {% for calibration in detector.calib.all %}
+        <li><a href="/calibration/{{ calibration.id }}/">{{ calibration | truncatechars:"100"}}</a></li>
+      {% endfor %}
+    </ol>
+  {% comment %}<li><strong>Advanced metadata:</strong></li> {% endcomment}
+  <span class="ml-3">{{detector.data}}</span>
+  
+  {% comment %}
+    <li><strong>Measurements conducted with this detector:</strong>
+      <ul>
+      {%for record in detector.records.all %}
+        <li> <a href="/measurement/{{ record.measurement.id }}/">{{ record.measurement }}</a>
+      {%endfor%}
+      </ul>
+  {% endcomment %}
+  
+    <li><strong>Records created with this detector:</strong>
+      <ol>
+      {%for record in detector.records.all %}
+        <li> <a href="/record/{{ record.id }}/">{{ record.id }}</a>
+      {%endfor%}
+      </ol>
+  </ul>
+    </div>
+  </div>
+
+
+</div>
+
+
+
+
+<h3>Servisní záznamy: </h3>
+{% for logbook in detector.logbook.all %}
+<div class="card mb-3">
+
+  <div class="card-header">
+    #{{ forloop.counter }} {{logbook.author}} @ {{logbook.created}} {% if user.is_authenticated %}<a href="{{logbook.get_admin_url}}" class="small text-muted"> <i class="bi bi-pencil"></i></a>{%endif%}
+  </div>
+
+  <div class="card-body">
+    {{logbook.text | safe }}
+  </div>
+
+</div>
+
+{%endfor%}
+{% if not detector.logbook.all %}
+
+<div class="alert alert-warning" role="alert">
+  No log in logbook of this detector.
+</div>
+{%endif%}
+
+
+
+
+<div class="card mb-5">
+<div class="card-header">
+  <a class="small" type="button" data-bs-toggle="collapse" data-bs-target="#add_record_collapse" aria-expanded="false" aria-controls="collapseExample">
+    Add new service log
+  </a>
+
+</div>
+<div class="card-body collapse py-2" id="add_record_collapse">
+  <form method="post" action="new_logbook_record">
+    {% csrf_token %}
+    {{ DetectorLogblogForm | crispy }}
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+</div>
+</div>
+
+{% endblock %}

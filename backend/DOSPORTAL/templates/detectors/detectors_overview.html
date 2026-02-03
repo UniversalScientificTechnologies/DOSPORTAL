@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load martortags %}
+
+{% block content %}
+
+<h1>Detectors DOSPORTAL database</h1>
+{% if detector_list %}
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">Type</th>
+      <th scope="col">SerialNumber</th>
+      <th scope="col">Popis</th>
+      <th scope="col">Records</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for detector in detector_list.reverse %}
+  <tr>
+    <th scope="row">{{ forloop.counter }}</th>
+    <td><a href="/detector/{{detector.id}}/" class="link" style="text-decoration: none;">{{ detector.name }}</a></td>
+    <td>{{ detector.type }}</td>
+    <td>{{detector.sn}}</td>
+    <td> <div style="max-height: 50pt;overflow-y: auto;">{{detector.description | safe_markdown }}</div></td>
+    <td>{{detector.records.count }}</td>
+  </tr>
+
+    {% endfor %}
+  </tbody>
+  </table>
+{% else %}
+  <p>There are no detector in database.</p>
+{% endif %}
+
+
+{% endblock %}

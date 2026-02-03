@@ -1,0 +1,47 @@
+
+{% extends "base.html" %}
+{% load martortags %}
+
+{% block content %}
+
+Organizace <a href="{%url 'organization-detail' slug=organization.slug  %}"><b> {{ organization.name }}  {% if user.is_authenticated %} <a href="{{organization.get_admin_url}}"><i class="bi bi-pencil"></i></a>{%endif%}</b>
+
+<br>
+
+<div class="d-flex flex-wrap align-items-center text-decoration-none">
+{% for a in organization.user_organizations.all %}
+    <a href="{%url 'user_profile' username=a.user.username %}" class="text-decoration-none">
+        <div class="d-flex align-items-center m-2">
+            <img src="{{a.user.profile.image.url}}" class="rounded-circle" alt="{{a.user.full_name }}" style="width: 40px; height: 40px; object-fit: cover;">
+            <small class="ml-2 py-2 pr-3">{{a.user}}</small>
+        </div>
+    </a>
+{% endfor %}
+</div>
+
+</div>
+
+<hr>
+
+<h2>Detectors</h2>
+{% for detector in organization.detectors.all %}
+
+
+<a href="{% url 'detector-view' pk=detector.pk %}"> {{detector}}</a> <br>
+{% endfor %}
+
+{% comment %}
+<hr>
+<h2>Maintainer of detectors:</h2>
+
+TODO:
+
+<h2>Author of measurements</h2>
+
+TODO:
+{% endcomment %}
+
+
+
+
+{% endblock %}

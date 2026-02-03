@@ -1,0 +1,137 @@
+
+{% extends "base.html" %}
+{% load martortags %}
+
+{% block content %}
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/measurements/">Measurements</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ measurement.name }}</li>
+  </ol>
+</nav>
+
+  <div class="card my-4">
+    <div class="card-header d-flex justify-content-between">
+        <span > Measurement: <span class="h2">{{measurement.name}} </span></span>
+        <span class="text-muted"> {{measurement.id}} 
+          {% if user.is_authenticated %}
+        <a href="{{measurement.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+        {%endif%}
+        </span>
+    </div>
+    <div class="card-body">
+      {% if measurement.description %}
+      <div class="m-3 callout">
+      {{measurement.description |safe_markdown}}
+      </div>
+      {%endif%}
+  <ul>
+    <li><strong>Author:</strong> <a href="/user/{{ measurement.author.username }}">{{ measurement.author }}</a>
+    <li><strong>Log type:</strong> {{ measurement.measurement_type }}
+    <li><strong>Beginning:</strong> {{ measurement.time_start }}
+    <li><strong>Ending:</strong> {{ measurement.time_konec }}
+    <li><strong>Flight:</strong> <a href="{{measurement.flight.get_absolute_url}}">{{ measurement.flight }}</a> {% if user.is_authenticated %} <a href="{{measurement.flight.get_admin_url}}"><i class="bi bi-pencil"></i></a>{%endif%}
+    <li><strong>Records:</strong> 
+      <ul>
+      {% for record in measurement.records.all %}
+        <li><a href="/record/{{record.id}}/"> {{record}}</a> {%if record.detector %}(<a href="/detector/{{record.detector.id}}/" data-bs-toggle="tooltip" data-bs-placement="top" title="SN: {{record.detector.sn}}">{{record.detector.name}}</a>){%endif%}  
+          {% if user.is_authenticated %}
+          <a href="{{record.get_admin_url}}"><i class="bi bi-pencil"></i></a>
+          {%endif%}</li>
+      {% endfor %}
+      </ul>
+      <li><strong>Měřící kampaně:</strong>
+        <ul>
+        {% for camp in measurement.campaings.all %}
+          <li>{{camp.name}} </li>
+        {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+  </ul>
+
+  </div>
+  {% if user.is_authenticated %}
+  <div class="card my-4">
+  <div class="card-header">
+  <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#upload_data_collapse" aria-expanded="false" aria-controls="collapseExample">
+    Upload data
+  </button>
+  </div>
+  
+  <div class="card-body is-one-third collapse py-2" id="upload_data_collapse">
+    {% load crispy_forms_tags %}
+    <form method="post" action="./record/new/" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ record_form | crispy }}
+    <button class="btn btn-primary" type="submit"> Submit </button>
+
+    </form>
+    </div>
+</div>
+
+{%endif%}
+
+  <div>
+    <div class="card my-4">
+      <div class="card-header"><h3>Data details:</h3></div>
+        <div id="data_container" class="card-body">
+            <h3> NOT INITIALIZED </h3>
+        </div>
+    </div>
+
+  </div>
+
+  <div class="card my-4">
+    <div class="card-header"><h3>Graphs:</h3></div>
+    <div class="card-body">
+      <div id="graph1"></div>
+      <div id="graph2"></div>
+    </div>
+  </div>
+
+
+<script> 
+ // $('#data_container').load('./visualizate/');
+
+ // https://portal.dos.ust.cz/measurement/94d199b7-3c76-4154-a6c5-5c81236b3e71/visualizate/
+
+
+ Plotly.d3.csv('./measured_evolution/', function(err, rows){
+  function unpack(rows, key) {
+      return rows.map(function(row) { return row[key]; });
+  }
+
+  var trace1 = {
+      type: "scatter",
+      mode: "lines+markers",
+      x: unpack(rows, 'cas'),  // předpokládáme, že 'cas' je sloupec v CSV
+      y: unpack(rows, 'hodnota'), // předpokládáme, že 'hodnota' je sloupec v CSV
+      line: {color: '#17BECF'}
+  };
+
+  var data = [trace1];
+
+  var layout = {
+      title: 'Základní Graf',
+      xaxis: {
+          title: 'Čas',
+          rangeselector: selectorOptions,
+          rangeslider: {}
+      },
+      yaxis: {
+          title: 'Hodnota'
+      }
+  };
+
+  Plotly.newPlot('graph1', data, layout);
+});
+
+
+</script>
+
+{% endblock %}
