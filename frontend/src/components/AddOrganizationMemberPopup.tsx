@@ -44,7 +44,7 @@ export const AddOrganizationMemberPopup = ({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/organizations/${orgId}/add_member/`, {
+      const res = await fetch(`${apiBase}/organizations/${orgId}/member/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ username: username.trim(), user_type: userType }),

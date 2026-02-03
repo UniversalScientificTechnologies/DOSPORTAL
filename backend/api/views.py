@@ -43,6 +43,16 @@ from .qr_utils import generate_qr_code, generate_qr_detector_with_label
 logger = logging.getLogger("api.auth")
 
 
+def check_org_admin_permission(user, org):
+    """
+    Check if user is admin or owner of the organization.
+    Returns (has_permission: bool, org_user: OrganizationUser|None)
+    """
+    org_user = OrganizationUser.objects.filter(user=user, organization=org).first()
+    has_permission = org_user and org_user.user_type in ["OW", "AD"]
+    return has_permission, org_user
+
+
 @api_view(["GET", "POST"])
 @permission_classes((AllowAny,))
 def DetectorManufacturer(request):
@@ -261,10 +271,8 @@ def DetectorGet(request):
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
-        org_user = OrganizationUser.objects.filter(
-            user=request.user, organization=org
-        ).first()
-        if not org_user or org_user.user_type not in ["OW", "AD"]:
+        has_permission, _ = check_org_admin_permission(request.user, org)
+        if not has_permission:
             return Response(
                 {
                     "detail": "You do not have permission to add detectors to this organization."
@@ -453,13 +461,15 @@ def OrganizationMember(request, org_id):
         return Response({"detail": "Organization not found."}, status=404)
 
     if request.method == "POST":
-        # Only allow owner/admin to add member
-        org_user = OrganizationUser.objects.filter(
-            user=request.user, organization=org
-        ).first()
-        if not org_user or org_user.user_type not in ["OW", "AD"]:
+        has_permission, _ = check_org_admin_permission(request.user, org)
+        if not has_permission:
             return Response(
                 {"detail": "You do not have permission to add members."}, status=403
+            )
+        # Only allow adding Member or Admin roles
+        if user_type not in ["ME", "AD"]:
+            return Response(
+                {"detail": "Invalid user_type. Only ME or AD allowed."}, status=400
             )
         try:
             user = DjangoUser.objects.get(username=username)
@@ -473,12 +483,10 @@ def OrganizationMember(request, org_id):
         return Response({"detail": "User added."}, status=201)
     elif request.method == "PUT":
         # Only allow owner/admin to change role
-        org_user = OrganizationUser.objects.filter(
-            user=request.user, organization=org
-        ).first()
-        if not org_user or org_user.user_type not in ["OW", "AD"]:
+        has_permission, _ = check_org_admin_permission(request.user, org)
+        if not has_permission:
             return Response(
-                {"detail": "You do not have permission to add members."}, status=403
+                {"detail": "You do not have permission to change roles."}, status=403
             )
         try:
             user = DjangoUser.objects.get(username=username)
@@ -504,10 +512,8 @@ def OrganizationMember(request, org_id):
 
         # Only allow owner/admin to remove member OR self to remove self
         if user != request.user:  # can remove self
-            org_user = OrganizationUser.objects.filter(
-                user=request.user, organization=org
-            ).first()
-            if not org_user or org_user.user_type not in ["OW", "AD"]:
+            has_permission, _ = check_org_admin_permission(request.user, org)
+            if not has_permission:
                 return Response(
                     {"detail": "You do not have permission to remove this member."},
                     status=403,
@@ -516,15 +522,14 @@ def OrganizationMember(request, org_id):
         org_member = OrganizationUser.objects.filter(
             user=user, organization=org
         ).first()
+        if not org_member:
+            return Response(
+                {"detail": "User is not a member of this organization."}, status=404
+            )
         if org_member.user_type == "OW":
             return Response(
                 {"detail": "You cannot remove the owner from the organization."},
                 status=403,
-            )
-
-        if not org_member:
-            return Response(
-                {"detail": "User is not a member of this organization."}, status=404
             )
         org_member.delete()
         return Response({"detail": "User removed from organization."}, status=200)
@@ -583,10 +588,8 @@ def OrganizationDetail(request, org_id):
 
     elif request.method == "PUT":
         # Check if user is owner or admin
-        org_user = OrganizationUser.objects.filter(
-            user=request.user, organization=org
-        ).first()
-        if not org_user or org_user.user_type not in ["OW", "AD"]:
+        has_permission, _ = check_org_admin_permission(request.user, org)
+        if not has_permission:
             return Response(
                 {"detail": "You do not have permission to edit this organization."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -671,10 +674,8 @@ def CreateOrganizationInvite(request, org_id):
         org = Organization.objects.get(id=org_id)
     except Organization.DoesNotExist:
         return Response({"detail": "Organization not found."}, status=404)
-    org_user = OrganizationUser.objects.filter(
-        user=request.user, organization=org
-    ).first()
-    if not org_user or org_user.user_type not in ["OW", "AD"]:
+    has_permission, _ = check_org_admin_permission(request.user, org)
+    if not has_permission:
         return Response(
             {"detail": "You do not have permission to create invites."}, status=403
         )
