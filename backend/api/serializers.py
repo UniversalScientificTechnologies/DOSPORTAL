@@ -10,7 +10,7 @@ from DOSPORTAL.models import (
     Organization,
     User,
     OrganizationUser,
-    OrganizationInvite
+    OrganizationInvite,
 )
 
 
@@ -22,20 +22,23 @@ class DetectorManufacturerSerializer(serializers.ModelSerializer):
 
 class DetectorTypeSerializer(serializers.ModelSerializer):
 
-    manufacturer = serializers.PrimaryKeyRelatedField(queryset=DetectorManufacturer.objects.all())
+    manufacturer = serializers.PrimaryKeyRelatedField(
+        queryset=DetectorManufacturer.objects.all()
+    )
     image = serializers.ImageField(read_only=True)
-
 
     class Meta:
         model = DetectorType
         fields = ("id", "name", "manufacturer", "url", "description", "image")
 
-
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep["manufacturer"] = DetectorManufacturerSerializer(instance.manufacturer).data if instance.manufacturer else None
+        rep["manufacturer"] = (
+            DetectorManufacturerSerializer(instance.manufacturer).data
+            if instance.manufacturer
+            else None
+        )
         return rep
-
 
 
 class OrganizationSummarySerializer(serializers.ModelSerializer):
@@ -49,7 +52,17 @@ class OrganizationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        fields = ("id", "name", "slug", "data_policy", "website", "contact_email", "description", "created_at", "members")
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "data_policy",
+            "website",
+            "contact_email",
+            "description",
+            "created_at",
+            "members",
+        )
         read_only_fields = ("id", "slug", "created_at")
 
     def get_members(self, obj):
@@ -80,7 +93,7 @@ class DetectorSerializer(serializers.ModelSerializer):
         source="type",
         queryset=DetectorType.objects.all(),
         required=True,
-        write_only=False
+        write_only=False,
     )
     type = DetectorTypeSerializer(read_only=True)
     owner = OrganizationSummarySerializer(read_only=True)
@@ -138,6 +151,7 @@ class OrganizationUserSerializer(serializers.Serializer):
     user_type = serializers.CharField()
     data_policy = serializers.CharField(source="organization.get_data_policy_display")
 
+
 class OrganizationInviteSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationInvite
@@ -153,4 +167,12 @@ class OrganizationInviteSerializer(serializers.ModelSerializer):
             "revoked_at",
             "is_active",
         ]
-        read_only_fields = ["id", "created_by", "created_at", "used_at", "used_by", "revoked_at", "is_active"]
+        read_only_fields = [
+            "id",
+            "created_by",
+            "created_at",
+            "used_at",
+            "used_by",
+            "revoked_at",
+            "is_active",
+        ]
