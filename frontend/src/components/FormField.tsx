@@ -9,9 +9,6 @@ interface FormFieldProps {
   type?: 'text' | 'email' | 'select' | 'textarea' | 'url';
   onSave?: (value: string) => Promise<void>;
   isSaving?: boolean;
-  isEditing?: boolean;
-  onEdit?: () => void;
-  onCancel?: () => void;
   options?: { value: string; label: string }[];
 }
 
@@ -23,8 +20,6 @@ export const FormField = ({
   type = 'text',
   onSave,
   isSaving = false,
-  onEdit,
-  onCancel,
   options,
 }: FormFieldProps) => {
   const [isEditing, setIsEditing] = useState(false);

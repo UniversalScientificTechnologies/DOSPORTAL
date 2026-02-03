@@ -219,20 +219,14 @@ export const OrganizationDetailPage = ({
                 value={org.name}
                 isReadOnly={readOnly}
                 isSaving={saving && editingField === 'name'}
-                onEdit={() => setEditingField('name')}
-                isEditing={editingField === 'name'}
                 onSave={(value) => handleSaveField('name', value)}
-                onCancel={() => setEditingField(null)}
               />
               <FormField
                 label="Data Policy"
                 value={org.data_policy}
                 isReadOnly={readOnly}
                 isSaving={saving && editingField === 'data_policy'}
-                isEditing={editingField === 'data_policy'}
-                onEdit={() => setEditingField('data_policy')}
                 onSave={value => handleSaveField('data_policy', value)}
-                onCancel={() => setEditingField(null)}
                 type="select"
                 options={[
                   { value: 'PR', label: 'Private' },
@@ -245,10 +239,7 @@ export const OrganizationDetailPage = ({
                 value={org.website || ''}
                 isReadOnly={readOnly}
                 isSaving={saving && editingField === 'website'}
-                isEditing={editingField === 'website'}
-                onEdit={() => setEditingField('website')}
                 onSave={(value) => handleSaveField('website', value)}
-                onCancel={() => setEditingField(null)}
                 type="url"
               />
               <FormField
@@ -256,10 +247,7 @@ export const OrganizationDetailPage = ({
                 value={org.contact_email || ''}
                 isReadOnly={readOnly}
                 isSaving={saving && editingField === 'contact_email'}
-                isEditing={editingField === 'contact_email'}
-                onEdit={() => setEditingField('contact_email')}
                 onSave={(value) => handleSaveField('contact_email', value)}
-                onCancel={() => setEditingField(null)}
                 type="email"
               />
               <FormField
@@ -267,10 +255,7 @@ export const OrganizationDetailPage = ({
                 value={org.description || ''}
                 isReadOnly={readOnly}
                 isSaving={saving && editingField === 'description'}
-                isEditing={editingField === 'description'}
-                onEdit={() => setEditingField('description')}
                 onSave={(value) => handleSaveField('description', value)}
-                onCancel={() => setEditingField(null)}
                 type="textarea"
               />
               

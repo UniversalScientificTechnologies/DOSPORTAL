@@ -87,6 +87,7 @@ export const theme = {
   shadows: {
     sm: '0 6px 18px rgba(0,0,0,0.08)',
     md: '0 0 0 0.2rem rgba(13,110,253,0.25)',
+    lg: '0 10px 25px rgba(0,0,0,0.15)',
   },
   
   transitions: {
