@@ -22,8 +22,6 @@ services:
     image: ${BACKEND_IMAGE:-ghcr.io/universalscientifictechnologies/dosportal-backend:master}
     env_file:
       - .env
-    ports:
-      - "8100:8000"
     depends_on:
       - db_dosportal
       - redis
@@ -54,13 +52,13 @@ services:
     image: minio/minio
     env_file:
       - .env
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    command: server /data --console-address ":9001"
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL}
+      MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+      MINIO_BROWSER_REDIRECT: "on"
+    command: server /data --console-address ":9001" --address ":9000"
     volumes:
       - ./data/minio:/data
     networks:

@@ -30,6 +30,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "0.0.0.0", "backend"]
 
+# Site URL configuration
+SITE_URL = os.getenv("SITE_URL", "http://localhost:8080")
+SITE_PORT = os.getenv("SITE_PORT", "8080")
+
+# Trust X-Forwarded headers from nginx proxy
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 CSRF_TRUSTED_ORIGINS = os.getenv(
     "CSRF_TRUSTED_ORIGINS",
     "https://portal.dos.ust.cz,https://eurados-demo.dos.ust.cz,http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173"
@@ -179,6 +187,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://frontend:5173",
     "http://0.0.0.0:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -191,17 +201,17 @@ STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "static/"
 
 
-# S3 Configuration
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "minioadmin")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "dosportal-media")
-AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "http://minio:9000")
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
-AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN")
-AWS_DEFAULT_ACL = os.getenv("AWS_DEFAULT_ACL", "public-read")
-AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
+# MinIO Configuration (S3-compatible)
+AWS_ACCESS_KEY_ID = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+AWS_SECRET_ACCESS_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+AWS_STORAGE_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME", "dosportal-media")
+AWS_S3_ENDPOINT_URL = os.getenv("MINIO_ENDPOINT_URL", "http://minio:9000")
+AWS_S3_REGION_NAME = os.getenv("MINIO_REGION", "us-east-1")
+AWS_S3_CUSTOM_DOMAIN = os.getenv("MINIO_PUBLIC_URL")
+AWS_DEFAULT_ACL = os.getenv("MINIO_DEFAULT_ACL", "public-read")
+AWS_S3_SIGNATURE_VERSION = "s3v4"
 
-# Use S3 for media files
+# Use S3-compatible storage for media files
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
 
