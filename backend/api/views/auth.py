@@ -117,6 +117,7 @@ def Signup(request):
         )
 
 
+@extend_schema(tags=["Authentication"])
 @api_view(["POST"])
 @permission_classes((IsAuthenticated,))
 def Logout(request):

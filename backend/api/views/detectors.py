@@ -40,6 +40,7 @@ def check_org_admin_permission(user, org):
     return has_permission, org_user
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["GET", "POST"])
 @permission_classes((AllowAny,))
 def DetectorManufacturer(request):
@@ -56,6 +57,7 @@ def DetectorManufacturer(request):
         return Response(serializer.errors, status=400)
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["GET"])
 @permission_classes((AllowAny,))
 def DetectorManufacturerDetail(request, manufacturer_id):
@@ -92,6 +94,7 @@ def DetectorTypeList(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorTypeDetail(request, type_id):
@@ -163,6 +166,7 @@ def DetectorGet(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookGet(request):
@@ -193,10 +197,10 @@ def DetectorLogbookGet(request):
     return Response(serializer.data)
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["POST"])
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookPost(request):
-
     detector_id = request.data.get("detector")
     if detector_id:
         try:
@@ -222,6 +226,7 @@ def DetectorLogbookPost(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["PUT"])
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookPut(request, entry_id):
@@ -263,6 +268,7 @@ def DetectorLogbookPut(request, entry_id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Detectors"])
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorQRCode(request, detector_id):
