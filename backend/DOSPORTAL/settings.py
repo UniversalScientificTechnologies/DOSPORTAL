@@ -32,7 +32,7 @@ ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "0.0.0.0", "backend"]
 
 CSRF_TRUSTED_ORIGINS = os.getenv(
     "CSRF_TRUSTED_ORIGINS",
-    "https://portal.dos.ust.cz,https://eurados-demo.dos.ust.cz,http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173"
+    "https://portal.dos.ust.cz,https://eurados-demo.dos.ust.cz,http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173",
 ).split(",")
 
 # Application definition
@@ -213,14 +213,31 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ]
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'DOSPORTAL API',
-    'DESCRIPTION': 'API Documentation',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    "TITLE": "DOSPORTAL API",
+    "DESCRIPTION": "API Documentation for DOSPORTAL",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/api/",
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+        "filter": True,
+    },
+    "TAGS": [
+        {"name": "Authentication", "description": "User authentication endpoints"},
+        {
+            "name": "Organizations",
+            "description": "Organization and membership management",
+        },
+        {"name": "Detectors", "description": "Radiation detector management"},
+        {"name": "Measurements", "description": "Measurement data operations"},
+    ],
 }
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
