@@ -49,7 +49,7 @@ class Command(BaseCommand):
                 pass  # No policy to delete
             
             # Verify bucket is accessible
-            response = s3_client.list_objects_v2(Bucket=bucket_name, MaxKeys=1)
+            s3_client.list_objects_v2(Bucket=bucket_name, MaxKeys=1)
             self.stdout.write(self.style.SUCCESS('✓ Bucket is accessible'))
             
             self.stdout.write(self.style.SUCCESS(f'\n✓ Done! Bucket {bucket_name} is configured as private.'))
