@@ -207,13 +207,15 @@ AWS_SECRET_ACCESS_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 AWS_STORAGE_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME", "dosportal-media")
 AWS_S3_ENDPOINT_URL = os.getenv("MINIO_ENDPOINT_URL", "http://minio:9000")
 AWS_S3_REGION_NAME = os.getenv("MINIO_REGION", "us-east-1")
-AWS_S3_CUSTOM_DOMAIN = os.getenv("MINIO_PUBLIC_URL")
 AWS_DEFAULT_ACL = os.getenv("MINIO_DEFAULT_ACL", "public-read")
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 
 # Use S3-compatible storage for media files
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
+
+MINIO_PUBLIC_URL = os.getenv("MINIO_PUBLIC_URL")
+MEDIA_URL = f"{MINIO_PUBLIC_URL}/{AWS_STORAGE_BUCKET_NAME}/"
+
 
 
 REST_FRAMEWORK = {
