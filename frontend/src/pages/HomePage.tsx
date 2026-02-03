@@ -45,7 +45,7 @@ export const HomePage = () => {
             </p>
 
             <p>
-              UST collaborates closely with the <a href="https://odz.ujf.cas.cz/">Nuclear Physics Institute</a> of the Czech Academy of Sciences to develop advanced detectors. This collaboration ensures that our detectors meet the rigorous standards required for scientific research and personal dosimetry.
+              UST collaborates closely with the <a href="https://www.odz.ujf.cas.cz/">Nuclear Physics Institute</a> of the Czech Academy of Sciences to develop advanced detectors. This collaboration ensures that our detectors meet the rigorous standards required for scientific research and personal dosimetry.
             </p>
 
             <p>
