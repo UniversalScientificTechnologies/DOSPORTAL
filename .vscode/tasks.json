@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Test backend (all)",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "exec", "backend", "pytest", "DOSPORTAL/tests/"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test backend (path)",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "exec", "backend", "pytest", "${input:testPath}"],
+      "group": "test",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "testPath",
+      "type": "promptString",
+      "description": "Pytest path inside container",
+      "default": "DOSPORTAL/tests/api"
+    }
+  ]
+}
