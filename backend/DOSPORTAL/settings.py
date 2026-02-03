@@ -214,6 +214,7 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = True  # Use pre-signed URLs
 AWS_QUERYSTRING_EXPIRE = 3600  # URLs expire after 1 hour (in seconds)
 AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_ADDRESSING_STYLE = os.getenv("AWS_S3_ADDRESSING_STYLE", "path")
 
 # Django 6+ storage configuration
 STORAGES = {
