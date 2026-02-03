@@ -129,6 +129,10 @@ def Logout(request):
     )
 
 
+@extend_schema(
+    description="Get API version and git information",
+    tags=["System"],
+)
 @api_view(["GET"])
 @permission_classes((AllowAny,))
 def Version(request):

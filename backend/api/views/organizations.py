@@ -246,7 +246,12 @@ def OrganizationMember(request, org_id):
         return Response({"detail": "User removed from organization."}, status=200)
 
 
-@extend_schema(tags=["Authentication"])
+@extend_schema(
+    responses={200: UserProfileSerializer},
+    request=UserProfileSerializer,
+    description="Get or update current user profile information",
+    tags=["Authentication"],
+)
 @api_view(["GET", "PUT"])
 @permission_classes((IsAuthenticated,))
 def UserProfile(request):
@@ -269,7 +274,11 @@ def UserProfile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Authentication"])
+@extend_schema(
+    responses={200: OrganizationUserSerializer(many=True)},
+    description="Get all organizations that the current user is a member of",
+    tags=["Authentication"],
+)
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def UserOrganizations(request):
@@ -281,7 +290,11 @@ def UserOrganizations(request):
     return Response(serializer.data)
 
 
-@extend_schema(tags=["Authentication"])
+@extend_schema(
+    responses={200: OrganizationSummarySerializer(many=True)},
+    description="Get all organizations where the current user is Admin or Owner",
+    tags=["Authentication"],
+)
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def UserOrganizationsOwned(request):
@@ -349,7 +362,18 @@ def CreateOrganizationInvite(request, org_id):
     )
 
 
-@extend_schema(tags=["Organizations"])
+@extend_schema(
+    description="Accept an organization invite using a one-time token",
+    tags=["Organizations"],
+    parameters=[
+        OpenApiParameter(
+            name="token",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.PATH,
+            description="One-time invite token",
+        )
+    ],
+)
 @api_view(["POST"])
 @permission_classes((IsAuthenticated,))
 def AcceptOrganizationInvite(request, token):
@@ -392,7 +416,18 @@ def AcceptOrganizationInvite(request, token):
         return Response({"detail": "Invalid invite token."}, status=404)
 
 
-@extend_schema(tags=["Organizations"])
+@extend_schema(
+    description="Get details about an organization invite for preview before joining",
+    tags=["Organizations"],
+    parameters=[
+        OpenApiParameter(
+            name="token",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.PATH,
+            description="One-time invite token",
+        )
+    ],
+)
 @api_view(["GET"])
 @permission_classes((AllowAny,))
 def GetOrganizationInviteDetails(request, token):

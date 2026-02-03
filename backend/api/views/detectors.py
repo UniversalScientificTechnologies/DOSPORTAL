@@ -40,7 +40,12 @@ def check_org_admin_permission(user, org):
     return has_permission, org_user
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    responses={200: DetectorManufacturerSerializer(many=True)},
+    request=DetectorManufacturerSerializer,
+    description="Get all detector manufacturers or create a new manufacturer",
+    tags=["Detectors"],
+)
 @api_view(["GET", "POST"])
 @permission_classes((AllowAny,))
 def DetectorManufacturer(request):
@@ -57,7 +62,19 @@ def DetectorManufacturer(request):
         return Response(serializer.errors, status=400)
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    responses={200: DetectorManufacturerSerializer},
+    description="Get detector manufacturer by ID",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="manufacturer_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Detector manufacturer ID",
+        )
+    ],
+)
 @api_view(["GET"])
 @permission_classes((AllowAny,))
 def DetectorManufacturerDetail(request, manufacturer_id):
@@ -94,7 +111,19 @@ def DetectorTypeList(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    responses={200: DetectorTypeSerializer},
+    description="Get detector type by ID",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="type_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Detector type ID",
+        )
+    ],
+)
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorTypeDetail(request, type_id):
@@ -166,7 +195,37 @@ def DetectorGet(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    responses={200: DetectorLogbookSerializer(many=True)},
+    description="Get detector logbook entries with optional filters by detector, type, or date range",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="detector",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            description="Filter by detector ID",
+        ),
+        OpenApiParameter(
+            name="entry_type",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description="Filter by entry type",
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATETIME,
+            location=OpenApiParameter.QUERY,
+            description="Filter entries from this date (ISO 8601 format)",
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATETIME,
+            location=OpenApiParameter.QUERY,
+            description="Filter entries until this date (ISO 8601 format)",
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookGet(request):
@@ -197,7 +256,12 @@ def DetectorLogbookGet(request):
     return Response(serializer.data)
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    request=DetectorLogbookSerializer,
+    responses={201: DetectorLogbookSerializer},
+    description="Create a new detector logbook entry",
+    tags=["Detectors"],
+)
 @api_view(["POST"])
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookPost(request):
@@ -226,7 +290,20 @@ def DetectorLogbookPost(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    request=DetectorLogbookSerializer,
+    responses={200: DetectorLogbookSerializer},
+    description="Update a detector logbook entry",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="entry_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Logbook entry ID",
+        )
+    ],
+)
 @api_view(["PUT"])
 @permission_classes((IsAuthenticated,))
 def DetectorLogbookPut(request, entry_id):
@@ -268,7 +345,24 @@ def DetectorLogbookPut(request, entry_id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Detectors"])
+@extend_schema(
+    description="Generate QR code for a specific detector",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="detector_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Detector ID",
+        ),
+        OpenApiParameter(
+            name="label",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description="Include detector label (name and serial number) - true/false",
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def DetectorQRCode(request, detector_id):
