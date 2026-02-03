@@ -28,7 +28,7 @@ WORKDIR /DOSPORTAL
 COPY requirements.txt /DOSPORTAL/
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /DOSPORTAL/
+COPY backend/ /DOSPORTAL/
 
 RUN python manage.py collectstatic --noinput --clear || true
 

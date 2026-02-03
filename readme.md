@@ -125,3 +125,11 @@ cp .env.example .env
    - React frontend: http://localhost:5173
    - Django Backend: http://localhost:8100
    - MinIO console: http://localhost:9001
+
+5. Tests (backend)
+
+   > With running project.
+
+   ```bash
+   docker compose exec backend pytest DOSPORTAL/tests/
+   ```

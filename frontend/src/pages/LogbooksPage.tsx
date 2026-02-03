@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PageLayout } from '../components/PageLayout'
+import { CreateEntryButton } from '../components/CreateEntryButton'
 import { DetectorCard } from '../components/DetectorCard'
 import { Section } from '../components/Section'
 import { CardGrid } from '../components/CardGrid'
@@ -22,9 +23,11 @@ interface Detector {
 export const LogbooksPage = ({
   apiBase,
   isAuthed,
+  getAuthHeader,
 }: {
   apiBase: string
   isAuthed: boolean
+  getAuthHeader: () => { Authorization?: string }
 }) => {
   const [detectors, setDetectors] = useState<Detector[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +38,10 @@ export const LogbooksPage = ({
       try {
         const res = await fetch(`${apiBase}/detector/`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(),
+          },
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
@@ -61,7 +67,16 @@ export const LogbooksPage = ({
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-      <Section title="Detector Logbooks">
+      <Section
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <h2 style={{ margin: 0 }}>Detector Logbooks</h2>
+            <CreateEntryButton to="/detector/create" style={{ marginLeft: 'auto', minWidth: 160 }}>
+              + Add Detector
+            </CreateEntryButton>
+          </div>
+        }
+      >
         {error && <div className="error" style={{ marginBottom: theme.spacing.lg }}>{error}</div>}
 
         {detectors.length === 0 ? (
