@@ -3,8 +3,8 @@ from .auth import Login, Signup, Logout, Version
 
 # Detector views
 from .detectors import (
-    DetectorManufacturer,
-    DetectorManufacturerDetail,
+    detector_manufacturer_list,
+    detector_manufacturer_detail,
     DetectorTypeList,
     DetectorTypeDetail,
     DetectorGet,
@@ -41,8 +41,8 @@ __all__ = [
     "Logout",
     "Version",
     # Detectors
-    "DetectorManufacturer",
-    "DetectorManufacturerDetail",
+    "detector_manufacturer_list",
+    "detector_manufacturer_detail",
     "DetectorTypeList",
     "DetectorTypeDetail",
     "DetectorGet",

@@ -48,7 +48,7 @@ def check_org_admin_permission(user, org):
 )
 @api_view(["GET", "POST"])
 @permission_classes((AllowAny,))
-def DetectorManufacturer(request):
+def detector_manufacturer_list(request):
     """Get all detector manufacturers or add a new one."""
     if request.method == "GET":
         items = DetectorManufacturer.objects.all()
@@ -77,7 +77,7 @@ def DetectorManufacturer(request):
 )
 @api_view(["GET"])
 @permission_classes((AllowAny,))
-def DetectorManufacturerDetail(request, manufacturer_id):
+def detector_manufacturer_detail(request, manufacturer_id):
     """Get detector manufacturer by id."""
     try:
         item = DetectorManufacturer.objects.get(id=manufacturer_id)
