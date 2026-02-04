@@ -308,11 +308,8 @@ jobs:
             echo "==> Up (force recreate to apply env changes)"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS --env-file "$ENV_FILE" up -d --force-recreate --remove-orphans
 
-            echo "==> Run migrations"
-            docker exec "${PROJECT_NAME}-backend-1" python manage.py migrate --noinput
-
-            echo "==> Setup MinIO bucket"
-            docker exec "${PROJECT_NAME}-backend-1" python manage.py setup_minio || echo "Warning: MinIO setup failed, continuing..."
+            echo "==> Initialize DOSPORTAL (migrations + fixtures + MinIO)"
+            docker exec "${PROJECT_NAME}-backend-1" python manage.py init_dosportal
 
             echo "==> Show status"
             docker compose -p "$PROJECT_NAME" $COMPOSE_ARGS ps
