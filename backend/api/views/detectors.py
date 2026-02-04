@@ -193,6 +193,11 @@ def DetectorGet(request):
                 DetectorSerializer(detector).data, status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(
+            {"detail": "Method not allowed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
 
 @extend_schema(
