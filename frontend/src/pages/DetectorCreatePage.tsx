@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "../components/PageLayout";
-// Removed FormField, use native inputs
 import { theme } from "../theme";
 import { LabeledInput } from "../components/LabeledInput";
 import logbookBg from "../assets/img/SPACEDOS01.jpg";

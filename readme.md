@@ -1,7 +1,8 @@
 # DOSPORTAL
 
 ![image](https://github.com/UniversalScientificTechnologies/xDOS_doc/assets/5196729/6b18ef7f-3251-4674-94ab-62444ec7ba43)
-> Preview from DOSPORTAL record page. 
+
+> Preview from DOSPORTAL record page.
 
 DOSPORTAL is a web-based tool designed to manage and analyze dosimetry and spectrometry data, primarily from measurements conducted onboard aircraft. It provides an intuitive user interface for visualizing measurements, comparing datasets, and facilitating detector management. DOSPORTAL is being developed in collaboration with the [Nuclear Physics Institute CAS](https://www.ujf.cas.cz/en/) and (Universal Scientific Technologies s.r.o](https://www.ust.cz/). The platform is accessible via a web interface, ensuring users can interact with the data without the need for specialized software.
 
@@ -37,8 +38,8 @@ DOSPORTAL is designed to be platform-independent, ensuring accessibility from va
 ### Currently Supported:
 
 - **[AIRDOS Series](https://docs.dos.ust.cz/airdos/)**: Detectors designed for measuring ionizing radiation at flight altitudes aboard aircraft.
-- **[LABDOS Series](https://docs.dos.ust.cz/labdos)**: Portable ionizing radiation spectrometer-dosimeters intended for laboratory measurements or personal dosimetry. 
-- **[GEODOS Series](https://docs.dos.ust.cz/geodos)**: Detectors suitable for ground-based applications, both mobile and stationary. 
+- **[LABDOS Series](https://docs.dos.ust.cz/labdos)**: Portable ionizing radiation spectrometer-dosimeters intended for laboratory measurements or personal dosimetry.
+- **[GEODOS Series](https://docs.dos.ust.cz/geodos)**: Detectors suitable for ground-based applications, both mobile and stationary.
 
 ### Planned Support:
 
@@ -104,14 +105,12 @@ cp .env.example .env
 2. Create the media bucket in MinIO
 
    ```bash
-   docker run --rm --net=host \
-     -e MC_HOST_minio=http://minioadmin:minioadmin@localhost:9000 \
-     minio/mc mb --ignore-existing minio/dosportal-media
+   docker compose exec backend python manage.py init_dosportal
    ```
 
    Or use the console at http://localhost:9001 (minioadmin/minioadmin).
 
-3. Init database
+3. Init database & minio(s3 bucket)
 
    ```bash
    docker compose exec backend python3 manage.py makemigrations
@@ -122,9 +121,10 @@ cp .env.example .env
    ```
 
 4. Access services
-   - React frontend: http://localhost:5173
-   - Django Backend: http://localhost:8100
-   - MinIO console: http://localhost:9001
+   - React frontend: http://localhost:8080
+   - Django Admin: http://localhost:8080/admin
+   - Django API: http://localhost:8080/api
+   - MinIO console: http://localhost:8080/s3
 
 5. Tests (backend)
 
