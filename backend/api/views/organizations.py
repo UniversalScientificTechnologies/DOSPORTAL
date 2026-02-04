@@ -27,6 +27,10 @@ from ..serializers import (
     CreateInviteResponseSerializer,
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def check_org_admin_permission(user, org):
     """
@@ -73,9 +77,10 @@ def Organizations(request):
             )
             serializer = OrganizationDetailSerializer(org)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+            logger.exception("Error creating organization")
         except Exception as e:
             return Response(
-                {"detail": f"Error creating organization: {str(e)}"},
+                {"detail": "An error occurred while creating the organization."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
