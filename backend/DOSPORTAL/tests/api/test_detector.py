@@ -165,12 +165,8 @@ def test_get_detectors_with_data():
     dtype = DetectorType.objects.create(name="Gamma", manufacturer=manuf)
     org = Organization.objects.create(name="TestOrg")
 
-    detector1 = Detector.objects.create(
-        name="Detector 1", type=dtype, owner=org, sn="SN001"
-    )
-    detector2 = Detector.objects.create(
-        name="Detector 2", type=dtype, owner=org, sn="SN002"
-    )
+    Detector.objects.create(name="Detector 1", type=dtype, owner=org, sn="SN001")
+    Detector.objects.create(name="Detector 2", type=dtype, owner=org, sn="SN002")
 
     client = APIClient()
     client.force_authenticate(user=user)

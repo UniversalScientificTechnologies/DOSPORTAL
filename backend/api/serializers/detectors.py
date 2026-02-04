@@ -38,17 +38,15 @@ class DetectorTypeSerializer(serializers.ModelSerializer):
 
 
 class DetectorSerializer(serializers.ModelSerializer):
-    type = DetectorTypeSerializer()
-    owner = OrganizationSummarySerializer(read_only=True)
 
+    owner = OrganizationSummarySerializer(read_only=True)
+    type = DetectorTypeSerializer(read_only=True)
     type_id = serializers.PrimaryKeyRelatedField(
         source="type",
         queryset=DetectorType.objects.all(),
         required=True,
         write_only=False,
     )
-    type = DetectorTypeSerializer(read_only=True)
-    owner = OrganizationSummarySerializer(read_only=True)
 
     class Meta:
         model = Detector
