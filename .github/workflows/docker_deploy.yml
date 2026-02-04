@@ -14,27 +14,27 @@ env:
   IMAGE_NAME_BASE: universalscientifictechnologies/dosportal
 
 jobs:
-  backend-tests:
+    backend-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
       - name: Build backend image
-        run: docker compose -f docker-compose.yml build backend
+        run: docker compose -p "ci-${{ github.run_id }}" -f docker-compose.yml build backend
 
       - name: Create .env file for tests
         run: cp .env.example .env
 
       - name: Start dependencies
-        run: docker compose -f docker-compose.yml up -d db_dosportal redis minio
+        run: docker compose -p "ci-${{ github.run_id }}" -f docker-compose.yml up -d db_dosportal redis minio
 
       - name: Run backend tests
-        run: docker compose -f docker-compose.yml run --rm backend pytest DOSPORTAL/tests/
+        run: docker compose -p "ci-${{ github.run_id }}" -f docker-compose.yml run --rm --entrypoint "pytest" backend DOSPORTAL/tests/
 
       - name: Shutdown services
         if: always()
-        run: docker compose -f docker-compose.yml down -v
+        run: docker compose -p "ci-${{ github.run_id }}" -f docker-compose.yml down -v
 
   build-and-push-images:
     runs-on: ubuntu-latest
