@@ -137,13 +137,34 @@ export const DetectorLogbookPage = ({
                 Detector Information
               </h3>
               <button
-                onClick={() => {
-                  const link = document.createElement('a')
-                  link.href = `${apiBase}/detector/${detector.id}/qr/?label=true`
-                  link.download = `detector_${detector.sn}_qr.png`
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
+                onClick={async () => {
+                  try {
+                    const res = await fetch(
+                      `${apiBase}/detector/${detector.id}/qr/?label=true`,
+                      {
+                        method: 'GET',
+                        headers: {
+                          ...getAuthHeader(),
+                        },
+                      },
+                    )
+
+                    if (!res.ok) {
+                      throw new Error(`HTTP ${res.status}`)
+                    }
+
+                    const blob = await res.blob()
+                    const url = window.URL.createObjectURL(blob)
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.download = `detector_${detector.sn}_qr.png`
+                    document.body.appendChild(link)
+                    link.click()
+                    link.remove()
+                    window.URL.revokeObjectURL(url)
+                  } catch (e: any) {
+                    setError(`Failed to download QR code: ${e.message}`)
+                  }
                 }}
                 style={{
                   padding: `${theme.spacing.sm} ${theme.spacing.lg}`,

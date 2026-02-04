@@ -56,10 +56,9 @@ def generate_qr_detector_with_label(
     Returns:
         BytesIO object containing the labeled QR code image
     """
-    # Generate base QR code
     qr = qrcode.QRCode(
         version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=10,
         border=2,
     )
