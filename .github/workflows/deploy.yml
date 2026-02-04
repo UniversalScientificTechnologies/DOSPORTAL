@@ -28,6 +28,25 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_BASE: universalscientifictechnologies/dosportal
 jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build backend image
+        run: docker compose -f docker-compose.yml build backend
+
+      - name: Start dependencies
+        run: docker compose -f docker-compose.yml up -d db_dosportal redis minio
+
+      - name: Run backend tests
+        run: docker compose -f docker-compose.yml run --rm backend pytest DOSPORTAL/tests/
+
+      - name: Shutdown services
+        if: always()
+        run: docker compose -f docker-compose.yml down -v
+
   # Determine deployment environment
   prepare:
     runs-on: ubuntu-latest
@@ -156,7 +175,7 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
-    needs: prepare
+    needs: [prepare, backend-tests]
     if: needs.prepare.outputs.should_deploy == 'true'
     permissions:
       contents: read
