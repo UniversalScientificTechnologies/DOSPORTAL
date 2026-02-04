@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy'
+        description: "Environment to deploy"
         required: true
         type: choice
         options:
@@ -36,6 +36,9 @@ jobs:
 
       - name: Build backend image
         run: docker compose -f docker-compose.yml build backend
+
+      - name: Create .env file for tests
+        run: cp .env.example .env
 
       - name: Start dependencies
         run: docker compose -f docker-compose.yml up -d db_dosportal redis minio
@@ -87,7 +90,7 @@ jobs:
           IMAGE_TAG=""
           APP_DIR=""
           PROJECT_NAME=""
-          
+
           # Release (tag or published release)
           if [[ "${{ github.event_name }}" == "release" || ( "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/v* ) ]]; then
             SHOULD_DEPLOY="true"
@@ -99,7 +102,7 @@ jobs:
             fi
             APP_DIR="/data/ust/dosportal/release"
             PROJECT_NAME="dosportal-release"
-          
+
           # Master branch (master or dev)
           elif [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/dev" ) ]]; then
             SHOULD_DEPLOY="true"
@@ -107,7 +110,7 @@ jobs:
             IMAGE_TAG="master"
             APP_DIR="/data/ust/dosportal/master"
             PROJECT_NAME="dosportal-master"
-          
+
           # PR comment with /test-me
           elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
             if [[ "$COMMENT_BODY" == *"/test-me"* ]] && [[ "${{ github.event.issue.pull_request }}" != "" ]]; then
@@ -117,7 +120,7 @@ jobs:
               APP_DIR="/data/ust/dosportal/test"
               PROJECT_NAME="dosportal-test"
             fi
-          
+
           # Manual workflow dispatch
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             SHOULD_DEPLOY="true"
@@ -136,18 +139,18 @@ jobs:
               PROJECT_NAME="dosportal-test"
             fi
           fi
-          
+
           echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "app_dir=$APP_DIR" >> $GITHUB_OUTPUT
           echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
-          
+
           echo "Deployment decision:"
           echo "  Should deploy: $SHOULD_DEPLOY"
           echo "  Environment: $ENVIRONMENT"
           echo "  Image tag: $IMAGE_TAG"
-      
+
       - name: Create GitHub deployment
         if: steps.check.outputs.should_deploy == 'true' && steps.check.outputs.environment == 'test' && github.event_name == 'issue_comment'
         id: create_deployment
@@ -164,7 +167,7 @@ jobs:
               required_contexts: []
             });
             core.setOutput('deployment_id', deployment.data.id);
-            
+
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -187,7 +190,7 @@ jobs:
             dockerfile: backend.Dockerfile
           - component: frontend
             dockerfile: frontend.Dockerfile
-      
+
     steps:
       - name: Get PR info if needed
         if: github.event_name == 'issue_comment'
@@ -203,23 +206,23 @@ jobs:
             core.setOutput('ref', pr.data.head.ref);
             core.setOutput('sha', pr.data.head.sha);
             core.setOutput('repo', pr.data.head.repo.full_name);
-      
+
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           repository: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.repo || github.repository }}
           ref: ${{ github.event_name == 'issue_comment' && steps.pr_info.outputs.ref || github.ref }}
-        
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -230,7 +233,7 @@ jobs:
             type=ref,event=tag
             type=semver,pattern={{version}}
             type=raw,value=${{ needs.prepare.outputs.image_tag }}
-            
+
       - name: Build and push Docker image (${{ matrix.component }})
         uses: docker/build-push-action@v6
         with:
@@ -285,14 +288,14 @@ jobs:
           envs: APP_DIR,ENV_FILE,COMPOSE_FILE,PROJECT_NAME,REGISTRY,IMAGE_NAME_BASE,IMAGE_TAG,COMPOSE_CONTENT
           script: |
             set -euo pipefail
-            
+
             echo "==> Deploying to environment: $PROJECT_NAME"
             echo "==> Using image tag: $IMAGE_TAG"
-            
+
             echo "==> Preparing app dir"
             mkdir -p "$APP_DIR/env"
             cd "$APP_DIR"
-            
+
             echo "==> Creating docker-compose file"
             echo "$COMPOSE_CONTENT" | base64 -d > "$COMPOSE_FILE"
 
@@ -302,14 +305,14 @@ jobs:
               echo "Creating dummy env file at $ENV_FILE"
               touch "$ENV_FILE"
             fi
-            
+
             docker version >/dev/null
             docker compose version >/dev/null
 
             echo "==> Remove old images with same tag to force fresh pull"
             docker rmi "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG" 2>/dev/null || true
             docker rmi "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG" 2>/dev/null || true
-            
+
             echo "==> Pull images (explicit, public GHCR)"
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-backend:$IMAGE_TAG"
             docker pull "$REGISTRY/$IMAGE_NAME_BASE-frontend:$IMAGE_TAG"
@@ -337,7 +340,7 @@ jobs:
             docker image prune -af --filter "until=168h"
 
             echo "==> Done"
-      
+
       - name: Mark deployment as successful
         if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment' && needs.prepare.outputs.deployment_id
         uses: actions/github-script@v7
@@ -351,7 +354,7 @@ jobs:
               environment_url: 'https://test.portal.dos.ust.cz',
               description: 'Deployment completed successfully'
             });
-      
+
       - name: Update PR comment with deployment info
         if: needs.prepare.outputs.environment == 'test' && github.event_name == 'issue_comment' && needs.prepare.outputs.comment_id
         continue-on-error: true
