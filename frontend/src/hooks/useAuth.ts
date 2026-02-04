@@ -45,21 +45,30 @@ export const useAuth = () => {
 		throw new Error(data.detail || `Login failed (HTTP ${res.status})`)
 	}
 
-	const signup = async (username: string, password: string, password_confirm: string, email: string) => {
+	const signup = async (
+		username: string,
+		firstName: string,
+		lastName: string,
+		password: string,
+		password_confirm: string,
+		email: string,
+	) => {
 		const res = await fetch(`${API_BASE}/signup/`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ username, password, password_confirm, email }),
+			body: JSON.stringify({
+				username,
+				first_name: firstName,
+				last_name: lastName,
+				email,
+				password,
+				password_confirm,
+			}),
 		})
 
 		if (res.ok) {
-			const data = await res.json()
-			const newToken = data.token
-			localStorage.setItem('authToken', newToken)
-			setToken(newToken)
-			setIsAuthed(true)
 			return
 		}
 

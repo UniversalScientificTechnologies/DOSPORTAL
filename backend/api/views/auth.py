@@ -15,6 +15,7 @@ from api.serializers import (
     LoginRequestSerializer,
     LoginResponseSerializer,
     SignupRequestSerializer,
+    SignupResponseSerializer,
 )
 
 logger = logging.getLogger("api.auth")
@@ -39,28 +40,44 @@ def Login(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    user = authenticate(request, username=username, password=password)
-
-    if user is not None:
-        token, created = Token.objects.get_or_create(user=user)
-        return Response(
-            {
-                "detail": "Login successful.",
-                "username": user.username,
-                "token": token.key,
-            },
-            status=status.HTTP_200_OK,
-        )
-    else:
+    # First check if user exists
+    try:
+        user = DjangoUser.objects.get(username=username)
+    except DjangoUser.DoesNotExist:
         return Response(
             {"detail": "Invalid username or password."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
+    # Check if inactive (approval pending)
+    if not user.is_active:
+        return Response(
+            {"detail": "Account has not been approved by an administrator yet."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Verify password
+    if not user.check_password(password):
+        return Response(
+            {"detail": "Invalid username or password."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # User is valid and active - issue token
+    token, created = Token.objects.get_or_create(user=user)
+    return Response(
+        {
+            "detail": "Login successful.",
+            "username": user.username,
+            "token": token.key,
+        },
+        status=status.HTTP_200_OK,
+    )
+
 
 @extend_schema(
     request=SignupRequestSerializer,
-    responses={201: LoginResponseSerializer},
+    responses={201: SignupResponseSerializer},
     description="Create a new user account",
     tags=["Authentication"],
 )
@@ -69,13 +86,24 @@ def Login(request):
 def Signup(request):
     """API signup endpoint that creates a new user account."""
     username = request.data.get("username")
+    first_name = request.data.get("first_name")
+    last_name = request.data.get("last_name")
+    email = request.data.get("email")
     password = request.data.get("password")
     password_confirm = request.data.get("password_confirm")
-    email = request.data.get("email", "")
 
-    if not username or not password or not password_confirm:
+    if (
+        not username
+        or not first_name
+        or not last_name
+        or not email
+        or not password
+        or not password_confirm
+    ):
         return Response(
-            {"detail": "Username, password, and password confirmation are required."},
+            {
+                "detail": "Username, first name, last name, email, password, and password confirmation are required."
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -97,16 +125,26 @@ def Signup(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    if DjangoUser.objects.filter(email=email).exists():
+        return Response(
+            {"detail": "Email already exists."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
         user = DjangoUser.objects.create_user(
-            username=username, password=password, email=email
+            username=username,
+            password=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
         )
-        token, created = Token.objects.get_or_create(user=user)
+        user.is_active = False
+        user.save(update_fields=["is_active"])
         return Response(
             {
-                "detail": "Account created successfully.",
+                "detail": "Account created successfully. Awaiting admin approval.",
                 "username": user.username,
-                "token": token.key,
             },
             status=status.HTTP_201_CREATED,
         )
