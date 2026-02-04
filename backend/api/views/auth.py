@@ -110,9 +110,10 @@ def Signup(request):
             },
             status=status.HTTP_201_CREATED,
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Error creating account for username %s", username)
         return Response(
-            {"detail": f"Error creating account: {str(e)}"},
+            {"detail": "An error occurred while creating the account."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
