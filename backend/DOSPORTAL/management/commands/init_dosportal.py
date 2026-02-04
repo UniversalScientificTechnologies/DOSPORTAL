@@ -44,13 +44,13 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('==> DOSPORTAL initialization completed'))
 
     def _load_fixtures(self, options):
-        User = get_user_model()
-        # Ignorovat AnonymousUser od django-guardian
-        real_user_count = User.objects.exclude(username='AnonymousUser').count()
+        from DOSPORTAL.models import DetectorType
+        
+        detector_type_count = DetectorType.objects.count()
 
-        if real_user_count == 0 or options['force_fixtures']:
-            if real_user_count == 0:
-                self.stdout.write('==> Database is empty (only AnonymousUser), loading fixtures...')
+        if detector_type_count == 0 or options['force_fixtures']:
+            if detector_type_count == 0:
+                self.stdout.write('==> Database is empty (no detector types), loading fixtures...')
             else:
                 self.stdout.write('==> Force loading fixtures...')
 
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f'==> Failed to load fixtures: {e}'))
                 raise
         else:
-            self.stdout.write(f'==> Database already has {real_user_count} user(s), skipping fixtures')
+            self.stdout.write(f'==> Database already has {detector_type_count} detector type(s), skipping fixtures')
 
     def _setup_minio(self):
         self.stdout.write('==> Setting up MinIO...')
