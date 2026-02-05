@@ -1,6 +1,5 @@
 import pytest
 from rest_framework.test import APIClient
-import json
 
 
 @pytest.mark.django_db

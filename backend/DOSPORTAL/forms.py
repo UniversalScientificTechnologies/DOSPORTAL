@@ -1,9 +1,6 @@
 from django import forms
-from .models import Detector, Record, Profile, Organization, DetectorCalib
+from .models import Detector, Record, Organization, DetectorCalib
 
-from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
 from markdownx.fields import MarkdownxFormField
 
 

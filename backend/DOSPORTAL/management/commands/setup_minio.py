@@ -35,7 +35,7 @@ class Command(BaseCommand):
             try:
                 s3_client.head_bucket(Bucket=bucket_name)
                 self.stdout.write(self.style.SUCCESS(f'✓ Bucket {bucket_name} already exists'))
-            except:
+            except Exception:
                 # Create bucket
                 self.stdout.write(f'Creating bucket {bucket_name}...')
                 s3_client.create_bucket(Bucket=bucket_name)
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             self.stdout.write('Setting bucket to private...')
             try:
                 s3_client.delete_bucket_policy(Bucket=bucket_name)
-            except:
+            except Exception:
                 pass  # No policy to delete
             
             # Verify bucket is accessible

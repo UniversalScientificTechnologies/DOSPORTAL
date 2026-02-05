@@ -1,21 +1,13 @@
 
-from time import sleep
-from .models import Record, Flight
-from .helpers_cari import *
-import uuid
+from .models import Record
+from .helpers_cari import create_cari_input
 
 import os
-import sys
-import csv
-import time
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import datetime
 import json
 
 
-import os
 
 def process_flight_entry(Flight):
     print("FLIGHT:", Flight)
@@ -93,10 +85,10 @@ def process_record_entry(pk):
     print('METADATA FILE', metadata)
     print(type(metadata))
 
-    if type(metadata) == str:
+    if isinstance(metadata, str):
         metadata = json.loads(metadata)
 
-    if not 'outputs' in metadata:
+    if 'outputs' not in metadata:
         metadata["outputs"] = {}
 
     metadata["outputs"]["dose_rate_mean"] = dose_rate_per_exposition.mean()

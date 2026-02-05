@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save 
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from .models import Profile, Record, SpectrumData, Detector
+from .models import Profile, Record, Detector
 import json
 import pandas as pd
 import datetime
@@ -49,7 +49,8 @@ def save_record(sender, instance, created = None, **kwargs):
         with open(filepath, 'r') as file:
             for line in file:
                 parts_size = len(line.split(","))
-                if parts_size > max_size: max_size = parts_size
+                if parts_size > max_size:
+                    max_size = parts_size
 
                 if line.startswith("$HIST"):
                     parts = line.split(",")

@@ -1,11 +1,7 @@
-from django import forms
-from django.http import HttpResponse, JsonResponse
-from django.views import generic
 from .models import (Flight)
 
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render
 
-from DOSPORTAL import models
 
 
 

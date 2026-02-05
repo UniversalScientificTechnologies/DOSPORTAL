@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
+import { SignupSuccessPage } from './pages/SignupSuccessPage'
 import { LogbooksPage } from './pages/LogbooksPage'
 import { DetectorLogbookPage } from './pages/DetectorLogbookPage'
 import { LogbookEntryPage } from './pages/LogbookEntryPage'
@@ -29,6 +30,7 @@ function App() {
             path="/signup"
             element={isAuthed ? <Navigate to="/" replace /> : <SignupPage originBase={ORIGIN_BASE} onSignup={signup} />}
           />
+          <Route path="/signup/success" element={<SignupSuccessPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/logbooks" element={<LogbooksPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/logbook/:id" element={<DetectorLogbookPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />

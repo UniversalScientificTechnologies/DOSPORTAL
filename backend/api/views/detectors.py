@@ -415,6 +415,6 @@ def DetectorQRCode(request, detector_id):
             str(e),
         )
         return Response(
-            {"detail": f"Error generating QR code."},
+            {"detail": "Error generating QR code."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

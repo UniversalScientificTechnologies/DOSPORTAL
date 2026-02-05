@@ -1,27 +1,13 @@
-import math
-from django import forms
 from django.http import HttpResponse, JsonResponse
-from django.views import generic
 import numpy as np
-from .models import (DetectorManufacturer, measurement, Record, 
-                     Detector, DetectorType, DetectorLogbook)
-from .forms import DetectorLogblogForm
+from .models import (Record)
 import os
 from django.conf import settings
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 
-from DOSPORTAL import models
-import json
 
-from django.views import generic
-from django.views.generic import ListView
 
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, SingleTableView
 import django_tables2 as tables
-from django_tables2.utils import Accessor
-from django_tables2 import RequestConfig
-from django_tables2.utils import A  # alias for Accessor
 from django.utils.html import format_html
 from django.urls import reverse
 
@@ -96,7 +82,6 @@ def obtain_parameters_from_log(file):
     record_metadata['detector'] = dict(zip(['DET', 'detector_type', 'firmware_build', 'channels', 'firmware_commit', 'firmware_origin', 'detector_sn'], line_1))
 
     time_start = 0
-    stop_stop = 0
     while True:
         line = f.readline()
         if line.startswith('$HIST'):
@@ -146,10 +131,10 @@ def RecordNewView(request):
             original_file_name = data.log_file.name
 
             # Create a new file name
-            new_file_name = "new_" + original_file_name
+            _new_file_name = "new_" + original_file_name
             
-            new_file_name = data.pk
-            new_file_path = os.path.join(settings.MEDIA_ROOT, 'user_records', str(data.pk) )
+            _new_file_name = data.pk
+            _new_file_path = os.path.join(settings.MEDIA_ROOT, 'user_records', str(data.pk) )
 
             pk = data.pk
             data.author = request.user
@@ -173,7 +158,7 @@ def RecordView(request, pk):
 
     #outputs = json.loads(rec.metadata).get('outputs', {})
     print("metadata", type(rec.metadata))
-    if type(rec.metadata) == str:
+    if isinstance(rec.metadata, str):
         outputs = eval(rec.metadata).get('outputs', {})
     else:
         outputs = rec.metadata.get('outputs', {})
@@ -182,8 +167,8 @@ def RecordView(request, pk):
 
 def GetSpectrum(request, pk):
 
-    minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
-    maxEnergy = request.GET.get('maxEnergy', 'nan')
+    _minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
+    _maxEnergy = request.GET.get('maxEnergy', 'nan')
     logarithm = request.GET.get('logarithm', 'false') == 'true'
 
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import loginBg from '../assets/img/login_background.jpg'
 import { theme } from '../theme'
 
@@ -6,9 +7,19 @@ export const SignupPage = ({
   onSignup,
 }: {
   originBase: string
-  onSignup: (username: string, password: string, passwordConfirm: string, email: string) => Promise<void>
+  onSignup: (
+    username: string,
+    firstName: string,
+    lastName: string,
+    password: string,
+    passwordConfirm: string,
+    email: string,
+  ) => Promise<void>
 }) => {
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -20,8 +31,9 @@ export const SignupPage = ({
     setStatus('loading')
     setError(null)
     try {
-      await onSignup(username, password, passwordConfirm, email)
+      await onSignup(username, firstName, lastName, password, passwordConfirm, email)
       setStatus('success')
+      navigate('/signup/success')
     } catch (err: any) {
       setStatus('error')
       setError(err.message)
@@ -74,7 +86,35 @@ export const SignupPage = ({
             </div>
 
             <div className="field">
-              <label htmlFor="email">Email (optional)</label>
+              <label htmlFor="first_name">First name</label>
+              <input
+                id="first_name"
+                name="first_name"
+                type="text"
+                autoComplete="given-name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="last_name">Last name</label>
+              <input
+                id="last_name"
+                name="last_name"
+                type="text"
+                autoComplete="family-name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="email">Email</label>
               <input
                 id="email"
                 name="email"
@@ -83,6 +123,7 @@ export const SignupPage = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@example.com"
+                required
               />
             </div>
 

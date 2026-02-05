@@ -1,32 +1,20 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from .models import (DetectorManufacturer, measurement, 
-                     Record, Detector, DetectorType)
+from .models import (measurement, 
+                     Record, Detector)
 
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 
 from .forms import RecordForm
 
-from DOSPORTAL import models
 
-from django_q.tasks import async_task
 
 import pandas as pd
 import numpy as np
-import matplotlib
 from datetime import datetime, timedelta
-import gpxpy
-import json
 
 
-import matplotlib.pyplot as plt
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import io
 
 
 FIRST_CHANNEL = 10
@@ -79,7 +67,6 @@ def handle_uploaded_file(f, file):
 
 
 def obtain_parameters_from_log(file):
-    import os
 
     f = open(file)
     line_1 = f.readline().rstrip().split(',')
@@ -87,7 +74,6 @@ def obtain_parameters_from_log(file):
     record_metadata['detector'] = dict(zip(['DET', 'detector_type', 'firmware_build', 'channels', 'firmware_commit', 'firmware_origin', 'detector_sn'], line_1))
 
     time_start = 0
-    stop_stop = 0
     while True:
         line = f.readline()
         if line.startswith('$HIST'):
@@ -184,8 +170,8 @@ def MeasurementDataView(request, pk):
         print("MAM GET... ")
 
         a=measurement.objects.get(pk=pk)
-        rec=Record.objects.filter(measurement=pk, record_type="S")
-        loc=Record.objects.filter(measurement=pk, record_type="L")
+        Record.objects.filter(measurement=pk, record_type="S")
+        Record.objects.filter(measurement=pk, record_type="L")
 
 
         #return HttpResponse(a)
@@ -202,10 +188,9 @@ def measuredDataGet(request, pk):
         #headers={"Content-Disposition": 'attachment; filename="data.csv"'},
     )
 
-    series = []
-    a=measurement.objects.get(pk=pk)
+    measurement.objects.get(pk=pk)
     rec=Record.objects.filter(measurement=pk, record_type="S")
-    loc=Record.objects.filter(measurement=pk, record_type="L")
+    Record.objects.filter(measurement=pk, record_type="L")
 
 
     b = rec[0]
@@ -214,11 +199,10 @@ def measuredDataGet(request, pk):
 
     print(b.log_file, b.log_filename)
     f = open(b.log_file.path )
-    log_info = f.readline()
+    f.readline()
     f.close()
 
     histogram = []
-    metadata = {}
 
     with open(b.log_file.path) as f:
         r = f.readline()
@@ -259,9 +243,9 @@ def measuredDataGet(request, pk):
     #df = df.reset_index(drop=True)
 
 
-    l=[]
-    l.extend(range(0,2000))
-    df = pd.read_csv(b.log_file.path, sep=' ', header=None, names=l, comment='#', low_memory=False)#,engine='python' )
+    column_names = []
+    column_names.extend(range(0, 2000))
+    df = pd.read_csv(b.log_file.path, sep=' ', header=None, names=column_names, comment='#', low_memory=False)  # ,engine='python' )
     #df = pd.read_csv(b.log_file.path, header=None, comment='*', low_memory=False, skiprows=1)
     #df = df[df[0].str.startswith("$HIST")]
     #df = df[0].str.split(",", expand=True)
@@ -377,8 +361,7 @@ def measuredDataGet(request, pk):
 
 def measuredSpectraGet(request, pk):
 
-    series = []
-    a=measurement.objects.get(pk=pk)
+    measurement.objects.get(pk=pk)
 
     part_from = int(float(request.GET.get('start', 0)))  
     part_to = int(float(request.GET.get('end', 0)))    
@@ -406,7 +389,6 @@ def measuredSpectraGet(request, pk):
         df.loc[df[0]=='$DOS','seconds'] = 0
         df['runtime'] = df['seconds'].diff() * -1
 
-        run = 0
         df['run'] = np.nan
         df['run'].fillna(method="ffill", inplace=True)
 
@@ -450,7 +432,7 @@ def measuredSpectraGet(request, pk):
 
 def measurementGetData(request, pk):
 
-    a=measurement.objects.get(pk=pk)
-    rec=Record.objects.filter(measurement=pk, record_type="S")
-    loc=Record.objects.filter(measurement=pk, record_type="L")
+    measurement.objects.get(pk=pk)
+    Record.objects.filter(measurement=pk, record_type="S")
+    Record.objects.filter(measurement=pk, record_type="L")
 

@@ -18,13 +18,20 @@ class LoginResponseSerializer(serializers.Serializer):
 
 class SignupRequestSerializer(serializers.Serializer):
     username = serializers.CharField(help_text="Desired username")
+    first_name = serializers.CharField(help_text="First name")
+    last_name = serializers.CharField(help_text="Last name")
+    email = serializers.EmailField(help_text="Email address")
     password = serializers.CharField(
         help_text="Password (min 8 characters)", style={"input_type": "password"}
     )
     password_confirm = serializers.CharField(
         help_text="Password confirmation", style={"input_type": "password"}
     )
-    email = serializers.EmailField(required=False, help_text="Email address (optional)")
+
+
+class SignupResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+    username = serializers.CharField()
 
 
 class AddOrganizationMemberRequestSerializer(serializers.Serializer):
