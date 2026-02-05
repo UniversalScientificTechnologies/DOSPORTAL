@@ -74,7 +74,6 @@ def obtain_parameters_from_log(file):
     record_metadata['detector'] = dict(zip(['DET', 'detector_type', 'firmware_build', 'channels', 'firmware_commit', 'firmware_origin', 'detector_sn'], line_1))
 
     time_start = 0
-    stop_stop = 0
     while True:
         line = f.readline()
         if line.startswith('$HIST'):
@@ -171,8 +170,8 @@ def MeasurementDataView(request, pk):
         print("MAM GET... ")
 
         a=measurement.objects.get(pk=pk)
-        rec=Record.objects.filter(measurement=pk, record_type="S")
-        loc=Record.objects.filter(measurement=pk, record_type="L")
+        Record.objects.filter(measurement=pk, record_type="S")
+        Record.objects.filter(measurement=pk, record_type="L")
 
 
         #return HttpResponse(a)
@@ -189,10 +188,9 @@ def measuredDataGet(request, pk):
         #headers={"Content-Disposition": 'attachment; filename="data.csv"'},
     )
 
-    series = []
-    a=measurement.objects.get(pk=pk)
+    measurement.objects.get(pk=pk)
     rec=Record.objects.filter(measurement=pk, record_type="S")
-    loc=Record.objects.filter(measurement=pk, record_type="L")
+    Record.objects.filter(measurement=pk, record_type="L")
 
 
     b = rec[0]
@@ -201,11 +199,10 @@ def measuredDataGet(request, pk):
 
     print(b.log_file, b.log_filename)
     f = open(b.log_file.path )
-    log_info = f.readline()
+    f.readline()
     f.close()
 
     histogram = []
-    metadata = {}
 
     with open(b.log_file.path) as f:
         r = f.readline()
@@ -364,8 +361,7 @@ def measuredDataGet(request, pk):
 
 def measuredSpectraGet(request, pk):
 
-    series = []
-    a=measurement.objects.get(pk=pk)
+    measurement.objects.get(pk=pk)
 
     part_from = int(float(request.GET.get('start', 0)))  
     part_to = int(float(request.GET.get('end', 0)))    
@@ -393,7 +389,6 @@ def measuredSpectraGet(request, pk):
         df.loc[df[0]=='$DOS','seconds'] = 0
         df['runtime'] = df['seconds'].diff() * -1
 
-        run = 0
         df['run'] = np.nan
         df['run'].fillna(method="ffill", inplace=True)
 
@@ -437,7 +432,7 @@ def measuredSpectraGet(request, pk):
 
 def measurementGetData(request, pk):
 
-    a=measurement.objects.get(pk=pk)
-    rec=Record.objects.filter(measurement=pk, record_type="S")
-    loc=Record.objects.filter(measurement=pk, record_type="L")
+    measurement.objects.get(pk=pk)
+    Record.objects.filter(measurement=pk, record_type="S")
+    Record.objects.filter(measurement=pk, record_type="L")
 

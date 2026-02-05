@@ -35,7 +35,7 @@ def make_string(row, tally, radiation):
     altitude = str(round(row['Altitude'] * 0.001, 3)) # kilometers
     time_str_formatted = row['UTC'].strftime('%Y/%m/%d') # YYYY/MM/DD
     
-    out_str = latitude_dir + ', ' + latitude + ', ' + longitude_dir + ', ' +  latitude + ', K, ' + altitude + ', ' + time_str_formatted + ', H' + str(row['UTC'].hour) + ', D' + str(tally_dict[tally]) + ', P' + str(radiation_dict[radiation]) + ', C4, S0\n'
+    out_str = latitude_dir + ', ' + latitude + ', ' + longitude_dir + ', ' +  longitude + ', K, ' + altitude + ', ' + time_str_formatted + ', H' + str(row['UTC'].hour) + ', D' + str(tally_dict[tally]) + ', P' + str(radiation_dict[radiation]) + ', C4, S0\n'
     return out_str
 
 def create_cari_input(df, tally, radiation, filename):

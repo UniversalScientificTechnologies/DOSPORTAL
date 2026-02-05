@@ -82,7 +82,6 @@ def obtain_parameters_from_log(file):
     record_metadata['detector'] = dict(zip(['DET', 'detector_type', 'firmware_build', 'channels', 'firmware_commit', 'firmware_origin', 'detector_sn'], line_1))
 
     time_start = 0
-    stop_stop = 0
     while True:
         line = f.readline()
         if line.startswith('$HIST'):
@@ -132,10 +131,10 @@ def RecordNewView(request):
             original_file_name = data.log_file.name
 
             # Create a new file name
-            new_file_name = "new_" + original_file_name
+            _new_file_name = "new_" + original_file_name
             
-            new_file_name = data.pk
-            new_file_path = os.path.join(settings.MEDIA_ROOT, 'user_records', str(data.pk) )
+            _new_file_name = data.pk
+            _new_file_path = os.path.join(settings.MEDIA_ROOT, 'user_records', str(data.pk) )
 
             pk = data.pk
             data.author = request.user
@@ -168,8 +167,8 @@ def RecordView(request, pk):
 
 def GetSpectrum(request, pk):
 
-    minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
-    maxEnergy = request.GET.get('maxEnergy', 'nan')
+    _minEnergy = request.GET.get('minEnergy', 'nan') # nan string je tu z duvodu, ze to je vychozi hodnota v js
+    _maxEnergy = request.GET.get('maxEnergy', 'nan')
     logarithm = request.GET.get('logarithm', 'false') == 'true'
 
 

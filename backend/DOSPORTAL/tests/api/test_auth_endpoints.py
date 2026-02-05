@@ -209,7 +209,7 @@ def test_login_missing_fields():
 
 @pytest.mark.django_db
 def test_logout_success():
-    user = User.objects.create_user(
+    User.objects.create_user(
         username="logoutuser", password="logoutpass123", is_active=True
     )
     client = APIClient()
@@ -233,7 +233,7 @@ def test_logout_no_token():
 
 @pytest.mark.django_db
 def test_token_validity_success():
-    user = User.objects.create_user(
+    User.objects.create_user(
         username="validuser", password="validpass123", is_active=True
     )
     client = APIClient()
