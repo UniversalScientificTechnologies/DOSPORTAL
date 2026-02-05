@@ -243,9 +243,9 @@ def measuredDataGet(request, pk):
     #df = df.reset_index(drop=True)
 
 
-    l=[]
-    l.extend(range(0,2000))
-    df = pd.read_csv(b.log_file.path, sep=' ', header=None, names=l, comment='#', low_memory=False)#,engine='python' )
+    column_names = []
+    column_names.extend(range(0, 2000))
+    df = pd.read_csv(b.log_file.path, sep=' ', header=None, names=column_names, comment='#', low_memory=False)  # ,engine='python' )
     #df = pd.read_csv(b.log_file.path, header=None, comment='*', low_memory=False, skiprows=1)
     #df = df[df[0].str.startswith("$HIST")]
     #df = df[0].str.split(",", expand=True)

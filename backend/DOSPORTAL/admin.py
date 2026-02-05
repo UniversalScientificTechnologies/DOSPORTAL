@@ -1,5 +1,23 @@
 from django.contrib import admin
-from .models import *
+from .models import (
+    Airports,
+    OrganizationUser,
+    Profile,
+    DetectorManufacturer,
+    measurement,
+    Organization,
+    Record,
+    Detector,
+    DetectorLogbook,
+    DetectorType,
+    DetectorCalib,
+    Flight,
+    MeasurementDataFlight,
+    measurement_campaign,
+    Trajectory,
+    TrajectoryPoint,
+    SpectrumData,
+)
 
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin

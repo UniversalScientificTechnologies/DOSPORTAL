@@ -158,7 +158,7 @@ def RecordView(request, pk):
 
     #outputs = json.loads(rec.metadata).get('outputs', {})
     print("metadata", type(rec.metadata))
-    if type(rec.metadata) == str:
+    if isinstance(rec.metadata, str):
         outputs = eval(rec.metadata).get('outputs', {})
     else:
         outputs = rec.metadata.get('outputs', {})

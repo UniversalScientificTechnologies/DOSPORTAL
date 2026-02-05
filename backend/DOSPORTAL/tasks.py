@@ -1,6 +1,6 @@
 
 from .models import Record
-from .helpers_cari import *
+from .helpers_cari import create_cari_input
 
 import os
 import numpy as np
@@ -85,7 +85,7 @@ def process_record_entry(pk):
     print('METADATA FILE', metadata)
     print(type(metadata))
 
-    if type(metadata) == str:
+    if isinstance(metadata, str):
         metadata = json.loads(metadata)
 
     if 'outputs' not in metadata:

@@ -49,7 +49,8 @@ def save_record(sender, instance, created = None, **kwargs):
         with open(filepath, 'r') as file:
             for line in file:
                 parts_size = len(line.split(","))
-                if parts_size > max_size: max_size = parts_size
+                if parts_size > max_size:
+                    max_size = parts_size
 
                 if line.startswith("$HIST"):
                     parts = line.split(",")

@@ -46,8 +46,9 @@ class  DetectorOverview(generic.ListView):
         form = DetectorLogblogForm(request.POST) 
         if form.is_valid():
 
-            text = form.cleaned_data['text']
-            DetectorLogbook.objects.create(detector=detector, author=request.user, text=text)
+            _text = form.cleaned_data['text']
+            # FIXME: 'detector' is undefined here. Please provide the correct detector instance.
+            # DetectorLogbook.objects.create(detector=detector, author=request.user, text=text)
 
             return redirect('detector-view')
 
