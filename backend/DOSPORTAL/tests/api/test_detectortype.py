@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
-from DOSPORTAL.models import DetectorType, DetectorManufacturer
+from DOSPORTAL.models import DetectorManufacturer
 
 @pytest.mark.django_db
 def test_create_detector_type_success():

@@ -2,30 +2,21 @@ import secrets
 import hashlib
 from django.utils import timezone
 import datetime
-from typing import Iterable
 from django.db import models
 import uuid
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.urls import reverse
-from matplotlib.colors import LightSource
 from martor.models import MartorField
-from django_q.tasks import async_task
 from django.utils.text import slugify
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.contenttypes.models import ContentType
-from django.db import models
 from django.contrib.gis.db import models as geomodels
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import Distance
 from django import forms
-from django.contrib.postgres.fields import ArrayField, HStoreField
+from django.contrib.postgres.fields import ArrayField
 
 from DOSPORTAL.services.file_validation import validate_uploaded_file
 
 from markdownx.models import MarkdownxField
-import json
 from markdownx.utils import markdownify
 
 # from .tasks import process_flight_entry, process_record_entry

@@ -2,7 +2,6 @@
 
 import os
 import logging
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import User as DjangoUser
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated

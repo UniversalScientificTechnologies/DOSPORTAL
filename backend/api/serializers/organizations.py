@@ -4,7 +4,6 @@ from rest_framework import serializers
 from DOSPORTAL.models import (
     Organization,
     User,
-    OrganizationUser,
     OrganizationInvite,
 )
 

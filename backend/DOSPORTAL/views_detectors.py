@@ -1,16 +1,11 @@
-from django import forms
-from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from .models import (DetectorManufacturer, measurement, DetectorCalib,
-                     Record, Detector, DetectorType, DetectorLogbook)
+from .models import (DetectorCalib,
+                     Detector, DetectorType, DetectorLogbook)
 from .forms import DetectorLogblogForm, DetectorEditForm, DetectorCalibForm, DetectorCalibFormSet
 
 from django.shortcuts import get_object_or_404, redirect, render
 
-from DOSPORTAL import models
 
-from django.views import generic
-from django.views.generic import ListView
 
 
 FIRST_CHANNEL = 10

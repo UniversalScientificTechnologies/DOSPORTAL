@@ -78,7 +78,7 @@ def Organizations(request):
             serializer = OrganizationDetailSerializer(org)
             logger.exception("Error creating organization")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
+        except Exception:
             return Response(
                 {"detail": "An error occurred while creating the organization."},
                 status=status.HTTP_400_BAD_REQUEST,

@@ -1,32 +1,20 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from .models import (DetectorManufacturer, measurement, 
-                     Record, Detector, DetectorType)
+from .models import (measurement, 
+                     Record, Detector)
 
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 
 from .forms import RecordForm
 
-from DOSPORTAL import models
 
-from django_q.tasks import async_task
 
 import pandas as pd
 import numpy as np
-import matplotlib
 from datetime import datetime, timedelta
-import gpxpy
-import json
 
 
-import matplotlib.pyplot as plt
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import io
 
 
 FIRST_CHANNEL = 10
@@ -79,7 +67,6 @@ def handle_uploaded_file(f, file):
 
 
 def obtain_parameters_from_log(file):
-    import os
 
     f = open(file)
     line_1 = f.readline().rstrip().split(',')

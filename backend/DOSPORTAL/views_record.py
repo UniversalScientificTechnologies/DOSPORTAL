@@ -1,27 +1,13 @@
-import math
-from django import forms
 from django.http import HttpResponse, JsonResponse
-from django.views import generic
 import numpy as np
-from .models import (DetectorManufacturer, measurement, Record, 
-                     Detector, DetectorType, DetectorLogbook)
-from .forms import DetectorLogblogForm
+from .models import (Record)
 import os
 from django.conf import settings
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 
-from DOSPORTAL import models
-import json
 
-from django.views import generic
-from django.views.generic import ListView
 
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, SingleTableView
 import django_tables2 as tables
-from django_tables2.utils import Accessor
-from django_tables2 import RequestConfig
-from django_tables2.utils import A  # alias for Accessor
 from django.utils.html import format_html
 from django.urls import reverse
 

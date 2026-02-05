@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save 
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from .models import Profile, Record, SpectrumData, Detector
+from .models import Profile, Record, Detector
 import json
 import pandas as pd
 import datetime
