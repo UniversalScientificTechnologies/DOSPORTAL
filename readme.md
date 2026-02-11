@@ -129,3 +129,9 @@ cp .env.example .env
    ```bash
    docker compose exec backend pytest DOSPORTAL/tests/
    ```
+
+6. Check code quality before PR
+
+   ```
+   docker compose exec backend ruff check . --fix
+   ```
