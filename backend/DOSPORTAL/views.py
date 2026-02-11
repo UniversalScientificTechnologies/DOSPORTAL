@@ -1,6 +1,6 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
-from .models import (Measurement, Detector)
+from .models import (Measurement, Detector, File)
 
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -156,8 +156,8 @@ def MeasurementDataView(request, pk):
         print("MAM GET... ")
 
         a=Measurement.objects.get(pk=pk)
-        Record.objects.filter(measurement=pk, record_type="S")
-        Record.objects.filter(measurement=pk, record_type="L")
+        File.objects.filter(measurement=pk, record_type="S")
+        File.objects.filter(measurement=pk, record_type="L")
 
 
         #return HttpResponse(a)
@@ -175,8 +175,8 @@ def measuredDataGet(request, pk):
     )
 
     Measurement.objects.get(pk=pk)
-    rec=Record.objects.filter(measurement=pk, record_type="S")
-    Record.objects.filter(measurement=pk, record_type="L")
+    rec=File.objects.filter(measurement=pk, record_type="S")
+    File.objects.filter(measurement=pk, record_type="L")
 
 
     b = rec[0]
@@ -352,8 +352,8 @@ def measuredSpectraGet(request, pk):
     part_from = int(float(request.GET.get('start', 0)))  
     part_to = int(float(request.GET.get('end', 0)))    
 
-    rec=Record.objects.filter(measurement=pk, record_type="S")
-    #loc=record.objects.filter(measurement=pk, record_type="L")
+    rec=File.objects.filter(measurement=pk, record_type="S")
+    #loc=File.objects.filter(measurement=pk, record_type="L")
 
     #l=[]
     #l.extend(range(0,2000))
@@ -419,6 +419,6 @@ def measuredSpectraGet(request, pk):
 def measurementGetData(request, pk):
 
     Measurement.objects.get(pk=pk)
-    Record.objects.filter(measurement=pk, record_type="S")
-    Record.objects.filter(measurement=pk, record_type="L")
+    File.objects.filter(measurement=pk, record_type="S")
+    File.objects.filter(measurement=pk, record_type="L")
 
