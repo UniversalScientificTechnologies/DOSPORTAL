@@ -21,16 +21,6 @@ FIRST_CHANNEL = 10
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 
-    model = Measurement
-    context_object_name = 'measurements_list' 
-    queryset = Measurement.objects.filter()
-    template_name = 'measurements/measurements_list.html' 
-
-
-    def get_context_data(self, **kwargs):
-        context = super(MeasurementsListView, self).get_context_data(**kwargs)
-        context['some_data'] = 'This is just some data'
-        return context
 
 
 class NewMeasurementForm(forms.ModelForm):
@@ -121,7 +111,7 @@ def MeasurementRecordNewView(request, pk):
                     data.detector = detector_pk
                 data.metadata = metadata
                 data.record_duration = timedelta(seconds = metadata['record']['duration'])
-            data.measurement = measurement.objects.get(pk=pk)
+            data.measurement = Measurement.objects.get(pk=pk)
 
             print(data)
             data.save()
@@ -137,7 +127,7 @@ def MeasurementRecordNewView(request, pk):
 
 def MeasurementDetailView(request, pk):
     #model = measurement
-    ms = get_object_or_404(measurement, pk=pk)
+    ms = get_object_or_404(Measurement, pk=pk)
     record_form = RecordForm()
     return render(request, 'measurements/measurement_detail.html', context={'measurement': ms, 'record_form': record_form})
 
@@ -165,7 +155,7 @@ def MeasurementDataView(request, pk):
         print(pk)
         print("MAM GET... ")
 
-        a=measurement.objects.get(pk=pk)
+        a=Measurement.objects.get(pk=pk)
         Record.objects.filter(measurement=pk, record_type="S")
         Record.objects.filter(measurement=pk, record_type="L")
 
@@ -184,7 +174,7 @@ def measuredDataGet(request, pk):
         #headers={"Content-Disposition": 'attachment; filename="data.csv"'},
     )
 
-    measurement.objects.get(pk=pk)
+    Measurement.objects.get(pk=pk)
     rec=Record.objects.filter(measurement=pk, record_type="S")
     Record.objects.filter(measurement=pk, record_type="L")
 
@@ -357,7 +347,7 @@ def measuredDataGet(request, pk):
 
 def measuredSpectraGet(request, pk):
 
-    measurement.objects.get(pk=pk)
+    Measurement.objects.get(pk=pk)
 
     part_from = int(float(request.GET.get('start', 0)))  
     part_to = int(float(request.GET.get('end', 0)))    
@@ -428,7 +418,7 @@ def measuredSpectraGet(request, pk):
 
 def measurementGetData(request, pk):
 
-    measurement.objects.get(pk=pk)
+    Measurement.objects.get(pk=pk)
     Record.objects.filter(measurement=pk, record_type="S")
     Record.objects.filter(measurement=pk, record_type="L")
 
