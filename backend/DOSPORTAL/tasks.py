@@ -1,5 +1,5 @@
 
-from .models import Record
+from .models import File
 from .helpers_cari import create_cari_input
 
 import os
@@ -52,7 +52,7 @@ def process_record_entry(pk):
     print("DOSPORTAL PROCESS_RECORD_ENTRY", pk)
     print(">.... django-Q ")
 
-    record = Record.objects.filter(pk=pk)[0]
+    record = File.objects.filter(pk=pk)[0]
 
     print(record)
 

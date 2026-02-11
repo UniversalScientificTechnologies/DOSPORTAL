@@ -97,18 +97,14 @@ cp .env.example .env
 1. Start services
 
    ```bash
-   sudo docker compose up -d [--build]
+   sudo docker compose up -d
    ```
-
-   > Use `--build` flag to reflect changes in the codebase.
 
 2. Create the media bucket in MinIO
 
    ```bash
    docker compose exec backend python manage.py init_dosportal
    ```
-
-   Or use the console at http://localhost:9001 (minioadmin/minioadmin).
 
 3. Init database & minio(s3 bucket)
 

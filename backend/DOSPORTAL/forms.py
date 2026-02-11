@@ -1,5 +1,5 @@
 from django import forms
-from .models import Detector, Record, Organization, DetectorCalib
+from .models import Detector, File, Organization, DetectorCalib
 
 from markdownx.fields import MarkdownxFormField
 
@@ -85,7 +85,7 @@ class RecordForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Record
+        model = File
         exclude = ("time_end", "measurement", "log_original_filename", "metadata", "duration", "record_duration", "author", 'data_file',
                    "metadata_file", "created", "detector", "time_of_interest_start", "time_of_interest_end", 'calib', 'record_type')
 

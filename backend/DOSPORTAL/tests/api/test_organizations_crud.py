@@ -1,6 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
-from DOSPORTAL.models import Organization, OrganizationUser, User
+from django.contrib.auth.models import User
+from DOSPORTAL.models import Organization, OrganizationUser
 
 
 @pytest.mark.django_db

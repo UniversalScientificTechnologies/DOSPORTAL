@@ -1,18 +1,18 @@
-"""Measurements and Records serializers."""
+"""Measurements relatedserializers."""
 
 from rest_framework import serializers
-from DOSPORTAL.models import measurement, Record
+from DOSPORTAL.models import Measurement, File
 
 
-class RecordSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Record
+        model = File
         fields = "__all__"
 
 
 class MeasurementsSerializer(serializers.ModelSerializer):
-    records = RecordSerializer(read_only=True, many=True)
+    files = FileSerializer(read_only=True, many=True)
 
     class Meta:
-        model = measurement
+        model = Measurement
         fields = "__all__"

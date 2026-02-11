@@ -31,7 +31,7 @@ from .organizations import (
 from .measurements import (
     MeasurementsGet,
     MeasurementsPost,
-    RecordGet,
+    FileGet,
 )
 
 __all__ = [
@@ -63,5 +63,5 @@ __all__ = [
     # Measurements
     "MeasurementsGet",
     "MeasurementsPost",
-    "RecordGet",
+    "FileGet",
 ]

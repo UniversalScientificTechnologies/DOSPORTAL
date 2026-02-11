@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save 
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from .models import Profile, Record, Detector
+from .models import Profile, File, Detector
 import json
 import pandas as pd
 import datetime
@@ -28,8 +28,8 @@ def save_profile(sender, instance, **kwargs):
 
 
 
-@receiver(post_save, sender=Record)
-def save_record(sender, instance, created = None, **kwargs):
+@receiver(post_save, sender=File)
+def save_file(sender, instance, created = None, **kwargs):
 
     if created:
         filepath = instance.log_file.path

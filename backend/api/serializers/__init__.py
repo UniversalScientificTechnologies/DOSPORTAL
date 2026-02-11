@@ -31,7 +31,7 @@ from .detectors import (
 # Measurements & Records
 from .measurements import (
     MeasurementsSerializer,
-    RecordSerializer,
+    FileSerializer,
 )
 
 __all__ = [
@@ -58,5 +58,5 @@ __all__ = [
     "DetectorLogbookSerializer",
     # Measurements
     "MeasurementsSerializer",
-    "RecordSerializer",
+    "FileSerializer",
 ]

@@ -4,16 +4,16 @@ from .models import (
     OrganizationUser,
     Profile,
     DetectorManufacturer,
-    measurement,
+    Measurement,
     Organization,
-    Record,
+    File,
     Detector,
     DetectorLogbook,
     DetectorType,
     DetectorCalib,
     Flight,
     MeasurementDataFlight,
-    measurement_campaign,
+    MeasurementCampaign,
     Trajectory,
     TrajectoryPoint,
     SpectrumData,
@@ -64,12 +64,12 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 admin.site.register(Profile)
 admin.site.register(DetectorManufacturer)
-admin.site.register(measurement)
+admin.site.register(Measurement)
 admin.site.register(Organization, OrganizationAdmin)
 #admin.site.register(OrganizationUser)
 
 
-class RecordAdmin(admin.ModelAdmin):
+class FileAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         if obj:
             form = obj.calibration_select_form()
@@ -77,7 +77,7 @@ class RecordAdmin(admin.ModelAdmin):
             form = super().get_form(request, obj, **kwargs)
         return form
     
-admin.site.register(Record, RecordAdmin)
+admin.site.register(File, FileAdmin)
 
 
 class DetectorAdmin(admin.ModelAdmin):
@@ -91,7 +91,7 @@ admin.site.register(DetectorCalib)
 admin.site.register(Airports, AirportsAdmin)
 admin.site.register(Flight)
 admin.site.register(MeasurementDataFlight)
-admin.site.register(measurement_campaign)
+admin.site.register(MeasurementCampaign)
 
 
 admin.site.register(Trajectory)

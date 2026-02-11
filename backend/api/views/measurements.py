@@ -4,15 +4,15 @@ from rest_framework.decorators import api_view, permission_classes
 
 from drf_spectacular.utils import extend_schema
 
-from DOSPORTAL.models import measurement, Record
-from ..serializers import MeasurementsSerializer, RecordSerializer
+from DOSPORTAL.models import Measurement, File
+from ..serializers import MeasurementsSerializer, FileSerializer
 
 
 @extend_schema(tags=["Measurements"])
 @api_view(["GET"])
 @permission_classes((AllowAny,))
 def MeasurementsGet(request):
-    items = measurement.objects.all()
+    items = Measurement.objects.all()
     serializer = MeasurementsSerializer(items, many=True)
     return Response(serializer.data)
 
@@ -30,7 +30,7 @@ def MeasurementsPost(request):
 @extend_schema(tags=["Measurements"])
 @api_view(["GET"])
 @permission_classes((AllowAny,))
-def RecordGet(request):
-    items = Record.objects.all()
-    serializer = RecordSerializer(items, many=True)
+def FileGet(request):
+    items = File.objects.all()
+    serializer = FileSerializer(items, many=True)
     return Response(serializer.data)

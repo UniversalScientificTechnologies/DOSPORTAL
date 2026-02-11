@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 import numpy as np
-from .models import (Record)
+from .models import File
 import os
 from django.conf import settings
 from django.shortcuts import redirect, render
@@ -46,7 +46,7 @@ class RecordTable(tables.Table):
                 )
 
     class Meta:
-        model = Record
+        model = File
         fields = ("row_number", "link", "belongs", "author", "data_policy", "log_original_filename")  # replace with your field names
 
     def render_row_number(self, record):
@@ -55,7 +55,7 @@ class RecordTable(tables.Table):
 
 
 def RecordsListView(request):
-    table = RecordTable(Record.objects.all(), order_by = 'created',  
+    table = RecordTable(File.objects.all(), order_by = 'created',  
         template_name="django_tables2/bootstrap5-responsive.html")
 
     table.paginate(page=request.GET.get("page", 1), per_page=25)
@@ -154,7 +154,7 @@ def RecordNewView(request):
         return render(request, 'records/record_new.html', {'form': form})
 
 def RecordView(request, pk):
-    rec = Record.objects.get(pk=pk)
+    rec = File.objects.get(pk=pk)
 
     #outputs = json.loads(rec.metadata).get('outputs', {})
     print("metadata", type(rec.metadata))
@@ -172,7 +172,7 @@ def GetSpectrum(request, pk):
     logarithm = request.GET.get('logarithm', 'false') == 'true'
 
 
-    record = Record.objects.filter(pk=pk)
+    record = File.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].data_file.path)
     
     # if not (minEnergy != 'nan' and maxEnergy != 'nan'):
@@ -207,7 +207,7 @@ def GetEvolution(request, pk):
     maxTime = request.GET.get('maxTime', 'nan')
     logarithm = request.GET.get('logarithm', 'false') == 'true'
 
-    record = Record.objects.filter(pk=pk)
+    record = File.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].data_file.path)
 
     df['time'] = df['time'].astype(float)
@@ -256,7 +256,7 @@ def GetEvolution(request, pk):
 
 def GetHistogram(request, pk):
 
-    record = Record.objects.filter(pk=pk)
+    record = File.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].data_file.path).drop('time', axis=1)
 
     #print(df)
@@ -271,7 +271,7 @@ def GetHistogram(request, pk):
 
 def GetTelemetry(request, pk):
 
-    record = Record.objects.filter(pk=pk)
+    record = File.objects.filter(pk=pk)
     df = pd.read_pickle(record[0].metadata_file.path).drop('time', axis=1)
     df = df.astype(float)
 

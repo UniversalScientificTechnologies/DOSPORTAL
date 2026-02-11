@@ -1,8 +1,7 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.views import generic
-from .models import (measurement, 
-                     Record, Detector)
+from .models import (Measurement, Detector)
 
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -23,10 +22,9 @@ FIRST_CHANNEL = 10
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 
-class MeasurementsListView(generic.ListView):
-    model = measurement
+    model = Measurement
     context_object_name = 'measurements_list' 
-    queryset = measurement.objects.filter()
+    queryset = Measurement.objects.filter()
     template_name = 'measurements/measurements_list.html' 
 
 
@@ -55,9 +53,8 @@ class NewMeasurementForm(forms.ModelForm):
     )
 
     class Meta:
-        model = measurement
-        exclude = ("time_end", "measurement", 'author', 'time_start',
-                   "location_file", 'base_location_lat', 'base_location_lon', 'base_location_alt')
+        model = Measurement
+        exclude = ("time_end", "measurement", 'author', 'time_start', 'base_location_lat', 'base_location_lon', 'base_location_alt')
 
 
 def handle_uploaded_file(f, file):

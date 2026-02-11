@@ -1,9 +1,9 @@
 """Organization and User serializers."""
 
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from DOSPORTAL.models import (
     Organization,
-    User,
     OrganizationInvite,
 )
 
