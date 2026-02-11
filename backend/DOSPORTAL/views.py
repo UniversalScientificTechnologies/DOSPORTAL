@@ -1,6 +1,5 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
-from django.views import generic
 from .models import (Measurement, Detector)
 
 from django.shortcuts import get_object_or_404, redirect, render

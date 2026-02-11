@@ -6,12 +6,8 @@ from django.utils.translation import gettext as _
 from django.contrib.postgres.fields import ArrayField
 from ..models.utils import UUIDMixin
 from ..models.organizations import Organization
-from ..models.detectors import Detector, DetectorCalib
 from martor.models import MartorField
-from markdownx.models import MarkdownxField
-from markdownx.utils import markdownify
 from DOSPORTAL.services.file_validation import validate_uploaded_file
-import datetime
 
 def _validate_log_file(uploaded_file):
     return validate_uploaded_file(
