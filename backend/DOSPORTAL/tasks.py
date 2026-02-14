@@ -1,12 +1,13 @@
 
 from .models import File
+from .models.spectrals import SpectralRecord, SpectralRecordArtifact
 from .helpers_cari import create_cari_input
-
+from django.core.files.base import ContentFile
+import io
 import os
 import numpy as np
 import pandas as pd
 import json
-
 
 
 def process_flight_entry(Flight):
@@ -100,6 +101,149 @@ def process_record_entry(pk):
     record.save()
 
     return dose_rate
+
+
+def process_spectral_record_into_spectral_file_async(spectral_record_id):
+    
+    print(f"creating spectral record artifact of type: {SpectralRecordArtifact.SPECTRAL_FILE}")
+    
+    def get_candy_line_lenght(file_obj):
+        file_obj.seek(0)
+        candy_line = None
+
+        for line in file_obj:
+            decoded = line.decode("utf-8").strip()
+            if decoded.startswith("$CANDY"):
+                candy_line = decoded
+                break
+
+        if candy_line is None:
+            raise ValueError("No $CANDY row found in file")
+
+        num_columns = len(candy_line.split(","))
+        file_obj.seek(0)
+
+        return num_columns
+
+    try:
+        record = SpectralRecord.objects.get(id=spectral_record_id)
+        print(f"Processing SpectralRecord {record.id}")
+        
+        record.processing_status = SpectralRecord.PROCESSING_IN_PROGRESS
+        record.save(update_fields=['processing_status'])
+        
+        # Get raw file
+        if not record.raw_file or record.raw_file.file_type != File.FILE_TYPE_LOG:
+            raise ValueError("No valid raw log file found")
+        
+        print(f"Processing file from S3: {record.raw_file.filename}")
+        
+        num_columns = get_candy_line_lenght(record.raw_file.file)
+
+        df_log = pd.read_csv(
+            record.raw_file.file,
+            sep=',',
+            header=None,
+            names=num_columns,
+            on_bad_lines='skip'
+        )
+        
+        record.raw_file.file.close()
+        
+        print(f"Loaded {len(df_log)} rows from S3")
+        
+        df_candy = df_log[df_log[0] == '$CANDY']
+        
+        print(f"df_candy: {df_log}")
+
+        if df_candy.empty:
+            raise ValueError("No $CANDY data found in log file")
+            
+        print(f"Found {len(df_candy)} CANDY entries")
+        
+        # Extract data
+        time_col = df_candy[2].astype(float)
+        particle_col = df_candy[3].astype(float)
+        spectrum_channels = df_candy.iloc[:, 10:].fillna(0).astype(int)
+        
+        df_wide = pd.DataFrame({
+            'id': range(len(df_candy)),
+            'time_ms': time_col.values,
+            'particle_count': particle_col.values
+        })
+        
+        # Add spectrum channels as columns
+        channel_names = [f'channel_{i}' for i in spectrum_channels.columns]
+        spectrum_channels.columns = channel_names
+        df_wide = pd.concat([df_wide, spectrum_channels], axis=1)
+        
+        # Normalize time to start from 0
+        df_wide['time_ms'] = df_wide['time_ms'] - df_wide['time_ms'].min()
+        
+        print(f"Created wide DataFrame: {df_wide.shape[0]} records x {df_wide.shape[1]} columns")
+        print(f"Time range: {df_wide['time_ms'].min():.1f} - {df_wide['time_ms'].max():.1f} ms")
+        print(f"Channels: {len(channel_names)}")
+        
+        # Save as Parquet
+        parquet_buffer = io.BytesIO()
+        df_wide.to_parquet(parquet_buffer, engine='fastparquet', index=False)
+        parquet_buffer.seek(0)
+        
+        # Create File instance for Parquet
+        spectral_file = File.objects.create(
+            filename=f"spectral_{record.id}.parquet",
+            file_type=File.FILE_TYPE_OTHER,
+            source_type="generated",
+            author=None,  # System generated
+            owner=record.owner,
+            metadata={
+                'source_record_id': str(record.id),
+                'data_type': 'spectral_parquet_wide',
+                'records_count': len(df_wide),
+                'channels_count': len(channel_names),
+                'time_range_ms': [float(df_wide['time_ms'].min()), float(df_wide['time_ms'].max())],
+                'channel_columns': channel_names
+            }
+        )
+        
+        # Save Parquet content directly to S3
+        spectral_file.file.save(
+            f"spectral_{record.id}.parquet",
+            ContentFile(parquet_buffer.read()),
+            save=True
+        )
+        
+        print(f"Parquet file saved to S3: {spectral_file.file.name}")
+        
+        # Create SpectralRecordArtifact
+        SpectralRecordArtifact.objects.create(
+            spectral_record=record,
+            artifact=spectral_file,
+            artifact_type=SpectralRecordArtifact.SPECTRAL_FILE
+        )
+        
+        # Update processing status to completed
+        record.processing_status = SpectralRecord.PROCESSING_COMPLETED
+        record.save(update_fields=['processing_status'])
+        
+        print(f"SpectralRecord {record.id} processed successfully - Parquet artifact created: {spectral_file.id}")
+        
+    except Exception as e:
+        import traceback
+        print(f"Error processing SpectralRecord {spectral_record_id}: {str(e)}")
+        print(traceback.format_exc())
+        
+        # Update processing status to failed
+        try:
+            record = SpectralRecord.objects.get(id=spectral_record_id)
+            record.processing_status = SpectralRecord.PROCESSING_FAILED
+            record.metadata = record.metadata or {}
+            record.metadata['processing_error'] = str(e)
+            record.save(update_fields=['processing_status', 'metadata'])
+        except:
+            pass  # Record might not exist
+        
+        raise
 
 
 

@@ -17,6 +17,8 @@ from .models import (
     Trajectory,
     TrajectoryPoint,
     SpectrumData,
+    SpectralRecord,
+    SpectralRecordArtifact
 )
 
 from import_export import resources
@@ -66,6 +68,8 @@ admin.site.register(Profile)
 admin.site.register(DetectorManufacturer)
 admin.site.register(Measurement)
 admin.site.register(Organization, OrganizationAdmin)
+
+
 #admin.site.register(OrganizationUser)
 
 
@@ -98,6 +102,8 @@ admin.site.register(Trajectory)
 admin.site.register(TrajectoryPoint)
 
 admin.site.register(SpectrumData)
+admin.site.register(SpectralRecord)
+admin.site.register(SpectralRecordArtifact)
 
 
 admin.site.unregister([q_models.Failure])

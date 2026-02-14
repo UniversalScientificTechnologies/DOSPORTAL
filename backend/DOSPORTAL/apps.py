@@ -5,4 +5,4 @@ class DosportalConfig(AppConfig):
     name = 'DOSPORTAL'
 
     def ready(self):
-        pass
+        import DOSPORTAL.signals  # noqa
