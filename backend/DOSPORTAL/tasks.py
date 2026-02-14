@@ -140,21 +140,21 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         
         num_columns = get_candy_line_lenght(record.raw_file.file)
 
-        df_log = pd.read_csv(
+        df_log_raw = pd.read_csv(
             record.raw_file.file,
             sep=',',
             header=None,
-            names=num_columns,
+            names=range(num_columns),
             on_bad_lines='skip'
         )
         
         record.raw_file.file.close()
         
-        print(f"Loaded {len(df_log)} rows from S3")
+        print(f"Loaded {len(df_log_raw)} rows from S3")
         
-        df_candy = df_log[df_log[0] == '$CANDY']
+        df_candy = df_log_raw[df_log_raw[0] == '$CANDY']
         
-        print(f"df_candy: {df_log}")
+        print(f"df_candy: {df_candy}")
 
         if df_candy.empty:
             raise ValueError("No $CANDY data found in log file")
@@ -166,7 +166,7 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         particle_col = df_candy[3].astype(float)
         spectrum_channels = df_candy.iloc[:, 10:].fillna(0).astype(int)
         
-        df_wide = pd.DataFrame({
+        df_to_save = pd.DataFrame({
             'id': range(len(df_candy)),
             'time_ms': time_col.values,
             'particle_count': particle_col.values
@@ -175,38 +175,37 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         # Add spectrum channels as columns
         channel_names = [f'channel_{i}' for i in spectrum_channels.columns]
         spectrum_channels.columns = channel_names
-        df_wide = pd.concat([df_wide, spectrum_channels], axis=1)
+        df_to_save = pd.concat([df_to_save, spectrum_channels], axis=1)
         
         # Normalize time to start from 0
-        df_wide['time_ms'] = df_wide['time_ms'] - df_wide['time_ms'].min()
+        df_to_save['time_ms'] = df_to_save['time_ms'] - df_to_save['time_ms'].min()
         
-        print(f"Created wide DataFrame: {df_wide.shape[0]} records x {df_wide.shape[1]} columns")
-        print(f"Time range: {df_wide['time_ms'].min():.1f} - {df_wide['time_ms'].max():.1f} ms")
+        print(f"Created wide DataFrame: {df_to_save.shape[0]} records x {df_to_save.shape[1]} columns")
+        print(f"Time range: {df_to_save['time_ms'].min():.1f} - {df_to_save['time_ms'].max():.1f} ms")
         print(f"Channels: {len(channel_names)}")
         
         # Save as Parquet
         parquet_buffer = io.BytesIO()
-        df_wide.to_parquet(parquet_buffer, engine='fastparquet', index=False)
+        df_to_save.to_parquet(parquet_buffer, engine='fastparquet', index=False)
         parquet_buffer.seek(0)
         
         # Create File instance for Parquet
         spectral_file = File.objects.create(
             filename=f"spectral_{record.id}.parquet",
-            file_type=File.FILE_TYPE_OTHER,
+            file_type=File.FILE_TYPE_PARQUET,
             source_type="generated",
             author=None,  # System generated
             owner=record.owner,
             metadata={
                 'source_record_id': str(record.id),
                 'data_type': 'spectral_parquet_wide',
-                'records_count': len(df_wide),
+                'records_count': len(df_to_save),
                 'channels_count': len(channel_names),
-                'time_range_ms': [float(df_wide['time_ms'].min()), float(df_wide['time_ms'].max())],
+                'time_range_ms': [float(df_to_save['time_ms'].min()), float(df_to_save['time_ms'].max())],
                 'channel_columns': channel_names
             }
         )
         
-        # Save Parquet content directly to S3
         spectral_file.file.save(
             f"spectral_{record.id}.parquet",
             ContentFile(parquet_buffer.read()),
@@ -215,14 +214,12 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         
         print(f"Parquet file saved to S3: {spectral_file.file.name}")
         
-        # Create SpectralRecordArtifact
         SpectralRecordArtifact.objects.create(
             spectral_record=record,
             artifact=spectral_file,
             artifact_type=SpectralRecordArtifact.SPECTRAL_FILE
         )
         
-        # Update processing status to completed
         record.processing_status = SpectralRecord.PROCESSING_COMPLETED
         record.save(update_fields=['processing_status'])
         
@@ -233,7 +230,6 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         print(f"Error processing SpectralRecord {spectral_record_id}: {str(e)}")
         print(traceback.format_exc())
         
-        # Update processing status to failed
         try:
             record = SpectralRecord.objects.get(id=spectral_record_id)
             record.processing_status = SpectralRecord.PROCESSING_FAILED
@@ -241,7 +237,7 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
             record.metadata['processing_error'] = str(e)
             record.save(update_fields=['processing_status', 'metadata'])
         except:
-            pass  # Record might not exist
+            pass  # Record might not exist; me atm: *_*
         
         raise
 

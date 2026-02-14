@@ -41,6 +41,15 @@ def check_org_admin_permission(user, org):
     has_permission = org_user and org_user.user_type in ["OW", "AD"]
     return has_permission, org_user
 
+def check_org_member_permission(user, org):
+    """
+    Check if user has permission of member (or higher).
+    Returns (has_permission: bool, org_user: OrganizationUser|None)
+    """
+    org_user = OrganizationUser.objects.filter(user=user, organization=org).first()
+    has_permission = org_user and org_user.user_type in ["OW", "AD", "ME"]
+    return has_permission, org_user
+
 
 @extend_schema(
     request=CreateOrganizationRequestSerializer,

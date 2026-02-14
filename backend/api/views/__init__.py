@@ -31,7 +31,21 @@ from .organizations import (
 from .measurements import (
     MeasurementsGet,
     MeasurementsPost,
-    FileGet,
+)
+
+# File views
+from .files import (
+    FileList,
+    FileDetail,
+    FileUpload,
+)
+
+# Spectral views
+from .spectrals import (
+    SpectralRecordList,
+    SpectralRecordCreate,
+    SpectralRecordHistogram,
+    SpectralRecordHistogramSimple,
 )
 
 __all__ = [
@@ -63,5 +77,13 @@ __all__ = [
     # Measurements
     "MeasurementsGet",
     "MeasurementsPost",
-    "FileGet",
+    # Files
+    "FileList",
+    "FileDetail",
+    "FileUpload",
+    # Spectrals
+    "SpectralRecordList",
+    "SpectralRecordCreate", 
+    "SpectralRecordHistogram",
+    "SpectralRecordHistogramSimple",
 ]
