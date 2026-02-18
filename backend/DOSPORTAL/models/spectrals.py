@@ -156,15 +156,11 @@ class SpectralRecord(UUIDMixin):
 
     owner = models.ForeignKey(
         Organization,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="records_owning",
-        max_length=2,
-        choices=Organization.DATA_POLICY_CHOICES,
-        default="PU",
-        help_text=_(
-            "Data policy of this record. Field can be overridden depending on the settings of the owning organization."
-        ),
+        help_text=_("Organization that owns this record"),
     )
 
     author = models.ForeignKey(

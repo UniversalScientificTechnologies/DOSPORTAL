@@ -228,6 +228,66 @@ class TestSpectralRecordListEndpoint:
         statuses = [item['processing_status'] for item in response.data]
         assert SpectralRecord.PROCESSING_PENDING in statuses
         assert SpectralRecord.PROCESSING_COMPLETED in statuses
+    
+    def test_owner_field_returns_spectral_record_owner_name(self, api_client, user_with_org, organization, sample_candy_log):
+        from django.utils import timezone
+        
+        api_client.force_authenticate(user=user_with_org)
+        
+        file_with_owner = File.objects.create(
+            filename='Test Log with Owner',
+            file=SimpleUploadedFile("test.txt", sample_candy_log.encode('utf-8'), content_type="text/plain"),
+            file_type=File.FILE_TYPE_LOG,
+            owner=organization,
+            source_type="uploaded"
+        )
+        
+        spectral_record = SpectralRecord.objects.create(
+            name='Record with Owner',
+            raw_file=file_with_owner,
+            author=user_with_org,
+            owner=organization,
+            processing_status=SpectralRecord.PROCESSING_PENDING,
+            time_start=timezone.now()
+        )
+        
+        response = api_client.get('/api/spectral-record/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) >= 1
+        
+        record_data = next((r for r in response.data if r['id'] == str(spectral_record.id)), None)
+        assert record_data is not None
+        assert record_data['owner'] == organization.name
+    
+    def test_owner_field_null_when_no_spectral_record_owner(self, api_client, user_with_org, sample_candy_log):
+        from django.utils import timezone
+        
+        api_client.force_authenticate(user=user_with_org)
+        
+        file_without_owner = File.objects.create(
+            filename='Test Log without Owner',
+            file=SimpleUploadedFile("test2.txt", sample_candy_log.encode('utf-8'), content_type="text/plain"),
+            file_type=File.FILE_TYPE_LOG,
+            owner=None,
+            source_type="uploaded"
+        )
+        
+        spectral_record = SpectralRecord.objects.create(
+            name='Record without Owner',
+            raw_file=file_without_owner,
+            author=user_with_org,
+            processing_status=SpectralRecord.PROCESSING_PENDING,
+            time_start=timezone.now()
+        )
+        
+        response = api_client.get('/api/spectral-record/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        
+        record_data = next((r for r in response.data if r['id'] == str(spectral_record.id)), None)
+        assert record_data is not None
+        assert record_data['owner'] is None
 
 
 @pytest.mark.django_db

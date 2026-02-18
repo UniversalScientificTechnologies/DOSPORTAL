@@ -214,6 +214,23 @@ export const MeasurementDetailPage = ({
               isReadOnly={true}
             />
             
+            {measurement.author && (
+              <div style={{ marginBottom: theme.spacing['2xl'], paddingBottom: theme.spacing.lg, borderBottom: `${theme.borders.width} solid ${theme.colors.border}` }}>
+                <label style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textSecondary }}>
+                  Author
+                </label>
+                <Link
+                  to={`/user/${measurement.author.id}`}
+                  style={{
+                    color: theme.colors.primary,
+                    textDecoration: 'none',
+                  }}
+                >
+                  @{measurement.author.username}
+                </Link>
+              </div>
+            )}
+            
             {measurement.owner && (
               <div style={{ marginBottom: theme.spacing['2xl'], paddingBottom: theme.spacing.lg, borderBottom: `${theme.borders.width} solid ${theme.colors.border}` }}>
                 <label style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textSecondary }}>

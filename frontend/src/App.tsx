@@ -17,7 +17,9 @@ import { DetectorCreatePage } from './pages/DetectorCreatePage';
 import { FileUploadPage } from './pages/FileUploadPage';
 import { MeasurementsPage } from './pages/MeasurementsPage';
 import { MeasurementDetailPage } from './pages/MeasurementDetailPage';
+import { LogsPage } from './pages/LogsPage';
 import { AirportDetailPage } from './pages/AirportDetailPage';
+import { UserDetailPage } from './pages/UserDetailPage';
 
 function App() {
   const { API_BASE, ORIGIN_BASE, isAuthed, login, signup, logout, getAuthHeader } = useAuth()
@@ -42,12 +44,14 @@ function App() {
           <Route path="/logbook/:id/edit/:entryId" element={<LogbookEntryPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/detector/create" element={<DetectorCreatePage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/profile" element={<ProfilePage apiBase={API_BASE} originBase={ORIGIN_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/user/:id" element={<UserDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/organization/create" element={<CreateOrganizationPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/organization/:id" element={<OrganizationDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/invite/:token" element={<InviteAcceptPage apiBase={API_BASE} getAuthHeader={getAuthHeader} />} />
           <Route path="/files/upload" element={<FileUploadPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/measurements" element={<MeasurementsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/measurement/:id" element={<MeasurementDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/logs" element={<LogsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/airport/:id" element={<AirportDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

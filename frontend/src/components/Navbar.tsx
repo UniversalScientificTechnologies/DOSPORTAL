@@ -21,6 +21,9 @@ export const Navbar = ({
             <Link to="/measurements" className="nav-link">
                 Measurements
             </Link>
+            <Link to="/logs" className="nav-link">
+                Logs
+            </Link>
           </>
         )}
       </div>

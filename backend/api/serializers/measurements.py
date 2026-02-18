@@ -4,7 +4,7 @@ from rest_framework import serializers
 from DOSPORTAL.models import Measurement, File, SpectrumData
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
 from DOSPORTAL.models.flights import Flight, Airports
-from .organizations import OrganizationSummarySerializer
+from .organizations import OrganizationSummarySerializer, UserSummarySerializer
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -54,6 +54,7 @@ class FlightSerializer(serializers.ModelSerializer):
 class MeasurementsSerializer(serializers.ModelSerializer):
     files = FileSerializer(read_only=True, many=True)
     owner = OrganizationSummarySerializer(read_only=True)
+    author = UserSummarySerializer(read_only=True)
     flight = FlightSerializer(read_only=True)
 
     class Meta:
