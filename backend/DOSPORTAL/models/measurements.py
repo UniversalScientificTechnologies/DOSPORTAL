@@ -9,6 +9,8 @@ from martor.models import MartorField
 from DOSPORTAL.services.file_validation import validate_uploaded_file
 from .flights import Flight
 from .files import File
+from .spectrals import SpectralRecord
+from .organizations import Organization
 
 def _validate_log_file(uploaded_file):
     return validate_uploaded_file(
@@ -95,6 +97,16 @@ class Measurement(UUIDMixin):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="measurements"
     )
 
+    owner = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="measurements",
+        verbose_name=_("Owner organization"),
+        help_text=_("Organization that owns this measurement"),
+    )
+
     name = models.CharField(
         _("measurement name"),
         max_length=150,
@@ -126,14 +138,6 @@ class Measurement(UUIDMixin):
     base_location_lon = models.FloatField(null=True, default=None, blank=True)
     base_location_alt = models.FloatField(null=True, default=None, blank=True)
 
-
-    files = models.ManyToManyField(
-        File,
-        related_name='measurements',
-        blank=True,
-        help_text=_('Files (logs, trajectories, docs, etc.) associated with this measurement.'),
-    )
-
     def get_absolute_url(self):
         return reverse("measurement-detail", args=[str(self.id)])
 
@@ -143,19 +147,41 @@ class Measurement(UUIDMixin):
     def user_directory_path(instance, filename):
         return "data/user_records/{0}/{1}".format(instance.user.id, filename)
 
+    records = models.ManyToManyField(
+        SpectralRecord,
+        related_name='measurements',
+        blank=True,
+        verbose_name=_('Spectral records'),
+        help_text=_('Spectral records associated with this measurement.'),
+    )
+
+    files = models.ManyToManyField(
+        File,
+        related_name='measurements',
+        blank=True,
+        verbose_name=_('Additional files'),
+        help_text=_('Additional files (documents, images, certificates) not associated with specific records.'),
+    )
 
     flight = models.ForeignKey(
         Flight,
         on_delete=models.CASCADE,
         related_name="measurement",
         null=True,
-        verbose_name=_("Reference na objekt s informacemi o letu"),
         blank=True,
+        verbose_name=_('Flight'),
+        help_text=_('Flight information associated with this measurement.'),
     )
 
-    campaings = models.ManyToManyField(
-        MeasurementCampaign, related_name="Campaigns", blank=True
+    campaigns = models.ManyToManyField(
+        MeasurementCampaign,
+        related_name='campaigns',
+        blank=True,
+        verbose_name=_('Campaigns'),
+        help_text=_('Measurement campaigns this measurement belongs to.'),
     )
+
+    
 
 
 class Trajectory(UUIDMixin):

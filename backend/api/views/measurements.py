@@ -1,19 +1,31 @@
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 
 from drf_spectacular.utils import extend_schema
 
 from DOSPORTAL.models import Measurement
 from ..serializers import MeasurementsSerializer
+from .organizations import get_user_organizations
 
 
-@extend_schema(tags=["Measurements"])
+@extend_schema(
+    tags=["Measurements"],
+    description="Get list of measurements accessible to the current user (filtered by organization membership)"
+)
 @api_view(["GET"])
-@permission_classes((AllowAny,))
+@permission_classes([IsAuthenticated])
 def MeasurementsGet(request):
-    items = Measurement.objects.all()
-    serializer = MeasurementsSerializer(items, many=True)
+    # Filter: measurements from user's organizations OR authored by user
+    user_orgs = get_user_organizations(request.user)
+    queryset = Measurement.objects.filter(
+        owner__in=user_orgs
+    ) | Measurement.objects.filter(author=request.user)
+    
+    # Order by most recent first
+    queryset = queryset.order_by('-time_created').distinct()
+    
+    serializer = MeasurementsSerializer(queryset, many=True)
     return Response(serializer.data)
 
 

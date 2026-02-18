@@ -51,6 +51,26 @@ def check_org_member_permission(user, org):
     return has_permission, org_user
 
 
+def get_user_organizations(user, user_types=None):
+    """
+    Get list of organization IDs where user is a member.
+    
+    Args:
+        user: User instance
+        user_types: user types to filter by (default: ["OW", "AD", "ME"])
+    
+    Returns:
+        organization IDs
+    """
+    if user_types is None:
+        user_types = ["OW", "AD", "ME"]
+    
+    return OrganizationUser.objects.filter(
+        user=user,
+        user_type__in=user_types
+    ).values_list('organization_id', flat=True)
+
+
 @extend_schema(
     request=CreateOrganizationRequestSerializer,
     responses={201: OrganizationDetailSerializer},
