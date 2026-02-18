@@ -14,9 +14,14 @@ export const Navbar = ({
             <span className="nav-brand">DOSPORTAL</span>
         </Link>
         {isAuthed && (
-          <Link to="/logbooks" className="nav-link">
-              LogBooks
-          </Link>
+          <>
+            <Link to="/logbooks" className="nav-link">
+                LogBooks
+            </Link>
+            <Link to="/measurements" className="nav-link">
+                Measurements
+            </Link>
+          </>
         )}
       </div>
       <div className="nav-right">

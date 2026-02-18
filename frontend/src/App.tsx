@@ -15,6 +15,9 @@ import { OrganizationDetailPage } from './pages/OrganizationDetailPage'
 import { InviteAcceptPage } from './pages/InviteAcceptPage';
 import { DetectorCreatePage } from './pages/DetectorCreatePage';
 import { FileUploadPage } from './pages/FileUploadPage';
+import { MeasurementsPage } from './pages/MeasurementsPage';
+import { MeasurementDetailPage } from './pages/MeasurementDetailPage';
+import { AirportDetailPage } from './pages/AirportDetailPage';
 
 function App() {
   const { API_BASE, ORIGIN_BASE, isAuthed, login, signup, logout, getAuthHeader } = useAuth()
@@ -43,6 +46,9 @@ function App() {
           <Route path="/organization/:id" element={<OrganizationDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/invite/:token" element={<InviteAcceptPage apiBase={API_BASE} getAuthHeader={getAuthHeader} />} />
           <Route path="/files/upload" element={<FileUploadPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/measurements" element={<MeasurementsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/measurement/:id" element={<MeasurementDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/airport/:id" element={<AirportDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

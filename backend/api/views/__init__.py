@@ -31,6 +31,7 @@ from .organizations import (
 from .measurements import (
     MeasurementsGet,
     MeasurementsPost,
+    MeasurementDetail,
 )
 
 # File views
@@ -77,6 +78,7 @@ __all__ = [
     # Measurements
     "MeasurementsGet",
     "MeasurementsPost",
+    "MeasurementDetail",
     # Files
     "FileList",
     "FileDetail",
