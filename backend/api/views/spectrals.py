@@ -10,6 +10,8 @@ import pandas as pd
 from DOSPORTAL.models import File, OrganizationUser
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
 from .organizations import check_org_member_permission
+from ..serializers.organizations import UserSummarySerializer
+from ..serializers.measurements import FileSerializer
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -119,6 +121,105 @@ def check_spectral_record_permission(user, record):
         return user == record.author, None
     else:
         return check_org_member_permission(user, record.owner)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def SpectralRecordDetail(request, record_id):
+    """Get details of a single spectral record."""
+    try:
+        try:
+            record = SpectralRecord.objects.select_related('raw_file', 'author', 'owner').get(id=record_id)
+        except SpectralRecord.DoesNotExist:
+            return Response(
+                {'error': 'SpectralRecord not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        has_permission, _ = check_spectral_record_permission(request.user, record)
+        if not has_permission:
+            return Response(
+                {'error': 'You do not have permission to access this record'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        data = {
+            'id': str(record.id),
+            'name': record.name,
+            'processing_status': record.processing_status,
+            'created': record.created.isoformat(),
+            'author': UserSummarySerializer(record.author).data if record.author else None,
+            'owner': record.owner.name if record.owner else None,
+            'raw_file_id': str(record.raw_file.id) if record.raw_file else None,
+            'artifacts_count': record.artifacts.count(),
+            'description': record.description,
+        }
+        
+        return Response(data)
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to get spectral record: {str(e)}'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def SpectralRecordArtifactList(request):
+    try:
+        # Get query parameters
+        record_id = request.GET.get('record_id')
+        artifact_type = request.GET.get('artifact_type')
+        
+        if not record_id:
+            return Response(
+                {'error': 'record_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            record = SpectralRecord.objects.get(id=record_id)
+        except SpectralRecord.DoesNotExist:
+            return Response(
+                {'error': 'SpectralRecord not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        has_permission, _ = check_spectral_record_permission(request.user, record)
+        if not has_permission:
+            return Response(
+                {'error': 'You do not have permission to access this record'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Build queryset with filters
+        queryset = SpectralRecordArtifact.objects.filter(
+            spectral_record=record
+        ).select_related('artifact', 'artifact__author', 'artifact__owner')
+        
+        if artifact_type:
+            queryset = queryset.filter(artifact_type=artifact_type)
+        
+        queryset = queryset.order_by('created_at')
+        
+        data = []
+        for artifact in queryset:
+            artifact_data = {
+                'id': str(artifact.id),
+                'artifact_type': artifact.artifact_type,
+                'created_at': artifact.created_at.isoformat(),
+                'file': FileSerializer(artifact.artifact).data if artifact.artifact else None
+            }
+            data.append(artifact_data)
+        
+        return Response(data)
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to list spectral record artifacts: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['GET'])

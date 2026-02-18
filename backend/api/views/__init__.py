@@ -46,6 +46,7 @@ from .files import (
 from .spectrals import (
     SpectralRecordList,
     SpectralRecordCreate,
+    SpectralRecordDetail,
     SpectralRecordHistogram,
     SpectralRecordHistogramSimple,
 )
@@ -87,7 +88,8 @@ __all__ = [
     "FileUpload",
     # Spectrals
     "SpectralRecordList",
-    "SpectralRecordCreate", 
+    "SpectralRecordCreate",
+    "SpectralRecordDetail",
     "SpectralRecordHistogram",
     "SpectralRecordHistogramSimple",
 ]

@@ -87,8 +87,7 @@ export const FileUploadPage = ({
         }
 
         const recordData = await recordResponse.json();
-        // TODO: Redirect to spectral record detail page
-        // navigate(`/spectral-records/${recordData.id}`);
+        navigate(`/spectral-record-status/${recordData.id}`);
       } else {
         // navigate('/...');
       }
@@ -204,7 +203,7 @@ export const FileUploadPage = ({
           </label>
           <select
             value={fileType}
-            onChange={(e) => setFileType(e.target.value as any)}
+            onChange={(e) => setFileType(e.target.value as 'log' | 'trajectory' | 'document' | 'image' | 'other')}
             disabled={isUploading}
             style={{
               width: '100%',

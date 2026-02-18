@@ -24,8 +24,10 @@ urlpatterns = [
     # Spectral Record endpoints
     path("spectral-record/", spectrals.SpectralRecordList),
     path("spectral-record/create/", spectrals.SpectralRecordCreate),
+    path("spectral-record/<uuid:record_id>/", spectrals.SpectralRecordDetail),
     path("spectral-record/<uuid:record_id>/histogram/", spectrals.SpectralRecordHistogram),
     path("spectral-record/<uuid:record_id>/histogram/simple/", spectrals.SpectralRecordHistogramSimple),
+    path("spectral-record-artifact/", spectrals.SpectralRecordArtifactList),
     # Detectors
     path("detector/", views.DetectorGet),
     path("detector/<uuid:detector_id>/qr/", views.DetectorQRCode),

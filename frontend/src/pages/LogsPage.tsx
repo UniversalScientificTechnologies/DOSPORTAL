@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-// import { useNavigate } from 'react-router-dom' // TODO: Uncomment when detail page is ready
+import { useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { Section } from '../components/Section'
 import { EmptyState } from '../components/EmptyState'
+import { CreateEntryButton } from '../components/CreateEntryButton'
 import { SortableTable } from '../components/SortableTable'
 import type { TableColumn } from '../components/SortableTable'
 import { theme } from '../theme'
@@ -41,7 +42,7 @@ export const LogsPage = ({
   isAuthed: boolean
   getAuthHeader: () => { Authorization?: string }
 }) => {
-  // const navigate = useNavigate() // TODO: Uncomment when detail page is ready
+  const navigate = useNavigate()
   const [records, setRecords] = useState<SpectralRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -160,7 +161,16 @@ export const LogsPage = ({
 
   return (
     <PageLayout>
-      <Section title="Spectral Records">
+      <Section 
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <h2 style={{ margin: 0 }}>Spectral Records</h2>
+            <CreateEntryButton to="/files/upload" style={{ marginLeft: 'auto', minWidth: 160 }}>
+              Upload File
+            </CreateEntryButton>
+          </div>
+        }
+      >
         {error && (
           <div style={{
             color: theme.colors.danger,
@@ -184,8 +194,7 @@ export const LogsPage = ({
             columns={columns}
             data={records}
             onRowClick={(record) => {
-              // TODO: Navigate to spectral record detail page when implemented
-              console.log('Clicked record:', record.id)
+              navigate(`/spectral-record/${record.id}`)
             }}
             defaultSortField="created"
             defaultSortDirection="desc"

@@ -18,6 +18,8 @@ import { FileUploadPage } from './pages/FileUploadPage';
 import { MeasurementsPage } from './pages/MeasurementsPage';
 import { MeasurementDetailPage } from './pages/MeasurementDetailPage';
 import { LogsPage } from './pages/LogsPage';
+import { SpectralRecordStatusPage } from './pages/SpectralRecordStatusPage';
+import { SpectralRecordDetailPage } from './pages/SpectralRecordDetailPage';
 import { AirportDetailPage } from './pages/AirportDetailPage';
 import { UserDetailPage } from './pages/UserDetailPage';
 
@@ -52,6 +54,8 @@ function App() {
           <Route path="/measurements" element={<MeasurementsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/measurement/:id" element={<MeasurementDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/logs" element={<LogsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/spectral-record-status/:id" element={<SpectralRecordStatusPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/spectral-record/:id" element={<SpectralRecordDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/airport/:id" element={<AirportDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
