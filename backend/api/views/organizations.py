@@ -18,6 +18,7 @@ from DOSPORTAL.models import (
 )
 from ..serializers import (
     UserProfileSerializer,
+    UserSummarySerializer,
     OrganizationUserSerializer,
     OrganizationDetailSerializer,
     OrganizationSummarySerializer,
@@ -306,6 +307,25 @@ def UserProfile(request):
             request.user.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    responses={200: UserSummarySerializer},
+    description="Get public user information by ID",
+    tags=["Users"],
+)
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def UserDetail(request, user_id):
+    try:
+        user = DjangoUser.objects.get(id=user_id)
+        serializer = UserSummarySerializer(user)
+        return Response(serializer.data)
+    except DjangoUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 @extend_schema(

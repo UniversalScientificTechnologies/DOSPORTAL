@@ -42,6 +42,7 @@ urlpatterns = [
     path("logbook/<uuid:entry_id>/", views.DetectorLogbookPut),
     # organizations / users
     path("user/profile/", views.UserProfile),
+    path("user/<int:user_id>/", views.UserDetail),
     path("user/organizations/", views.UserOrganizations),
     path("user/organizations/owned/", views.UserOrganizationsOwned),
     path("organizations/", views.Organizations),

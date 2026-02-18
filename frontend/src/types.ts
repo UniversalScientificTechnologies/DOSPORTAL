@@ -45,6 +45,13 @@ export type Flight = {
   land: Airport
 }
 
+export type User = {
+  id: string
+  username: string
+  first_name: string
+  last_name: string
+}
+
 export type Measurement = {
   id: string
   name: string
@@ -54,7 +61,7 @@ export type Measurement = {
   time_end?: string
   time_created: string
   public: boolean
-  author: string
+  author: User
   owner?: Organization
   flight?: Flight
   base_location_lat?: number
