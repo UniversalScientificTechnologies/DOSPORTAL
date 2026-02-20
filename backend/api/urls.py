@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import spectrals
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -8,12 +9,26 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("version/", views.Version),
+    # auth
     path("login/", views.Login),
     path("signup/", views.Signup),
     path("logout/", views.Logout),
+    # measurements
     path("measurement/", views.MeasurementsGet),
     path("measurement/add/", views.MeasurementsPost),
-    path("record/", views.RecordGet),
+    path("measurement/<uuid:measurement_id>/", views.MeasurementDetail),
+    # File endpoints
+    path("file/", views.FileList),
+    path("file/<uuid:file_id>/", views.FileDetail),
+    path("file/upload/", views.FileUpload),
+    # Spectral Record endpoints
+    path("spectral-record/", spectrals.SpectralRecordList),
+    path("spectral-record/create/", spectrals.SpectralRecordCreate),
+    path("spectral-record/<uuid:record_id>/", spectrals.SpectralRecordDetail),
+    path("spectral-record/<uuid:record_id>/evolution/", spectrals.SpectralRecordEvolution),
+    path("spectral-record/<uuid:record_id>/spectrum/", spectrals.SpectralRecordSpectrum),
+    path("spectral-record-artifact/", spectrals.SpectralRecordArtifactList),
+    # Detectors
     path("detector/", views.DetectorGet),
     path("detector/<uuid:detector_id>/qr/", views.DetectorQRCode),
     path("detector-manufacturer/", views.detector_manufacturer_list),
@@ -23,10 +38,13 @@ urlpatterns = [
     ),
     path("detector-type/", views.DetectorTypeList),
     path("detector-type/<uuid:type_id>/", views.DetectorTypeDetail),
+    # Detector logbooks
     path("logbook/", views.DetectorLogbookGet),
     path("logbook/add/", views.DetectorLogbookPost),
     path("logbook/<uuid:entry_id>/", views.DetectorLogbookPut),
+    # organizations / users
     path("user/profile/", views.UserProfile),
+    path("user/<int:user_id>/", views.UserDetail),
     path("user/organizations/", views.UserOrganizations),
     path("user/organizations/owned/", views.UserOrganizationsOwned),
     path("organizations/", views.Organizations),

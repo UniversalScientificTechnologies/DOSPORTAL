@@ -18,6 +18,7 @@ from DOSPORTAL.models import (
 )
 from ..serializers import (
     UserProfileSerializer,
+    UserSummarySerializer,
     OrganizationUserSerializer,
     OrganizationDetailSerializer,
     OrganizationSummarySerializer,
@@ -40,6 +41,35 @@ def check_org_admin_permission(user, org):
     org_user = OrganizationUser.objects.filter(user=user, organization=org).first()
     has_permission = org_user and org_user.user_type in ["OW", "AD"]
     return has_permission, org_user
+
+def check_org_member_permission(user, org):
+    """
+    Check if user has permission of member (or higher).
+    Returns (has_permission: bool, org_user: OrganizationUser|None)
+    """
+    org_user = OrganizationUser.objects.filter(user=user, organization=org).first()
+    has_permission = org_user and org_user.user_type in ["OW", "AD", "ME"]
+    return has_permission, org_user
+
+
+def get_user_organizations(user, user_types=None):
+    """
+    Get list of organization IDs where user is a member.
+    
+    Args:
+        user: User instance
+        user_types: user types to filter by (default: ["OW", "AD", "ME"])
+    
+    Returns:
+        organization IDs
+    """
+    if user_types is None:
+        user_types = ["OW", "AD", "ME"]
+    
+    return OrganizationUser.objects.filter(
+        user=user,
+        user_type__in=user_types
+    ).values_list('organization_id', flat=True)
 
 
 @extend_schema(
@@ -277,6 +307,25 @@ def UserProfile(request):
             request.user.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    responses={200: UserSummarySerializer},
+    description="Get public user information by ID",
+    tags=["Users"],
+)
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def UserDetail(request, user_id):
+    try:
+        user = DjangoUser.objects.get(id=user_id)
+        serializer = UserSummarySerializer(user)
+        return Response(serializer.data)
+    except DjangoUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 @extend_schema(

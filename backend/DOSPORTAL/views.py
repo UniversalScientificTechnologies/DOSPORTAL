@@ -1,8 +1,6 @@
 from django import forms
 from django.http import HttpResponse, JsonResponse
-from django.views import generic
-from .models import (measurement, 
-                     Record, Detector)
+from .models import (Measurement, Detector, File)
 
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -23,17 +21,6 @@ FIRST_CHANNEL = 10
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 
-class MeasurementsListView(generic.ListView):
-    model = measurement
-    context_object_name = 'measurements_list' 
-    queryset = measurement.objects.filter()
-    template_name = 'measurements/measurements_list.html' 
-
-
-    def get_context_data(self, **kwargs):
-        context = super(MeasurementsListView, self).get_context_data(**kwargs)
-        context['some_data'] = 'This is just some data'
-        return context
 
 
 class NewMeasurementForm(forms.ModelForm):
@@ -55,9 +42,8 @@ class NewMeasurementForm(forms.ModelForm):
     )
 
     class Meta:
-        model = measurement
-        exclude = ("time_end", "measurement", 'author', 'time_start',
-                   "location_file", 'base_location_lat', 'base_location_lon', 'base_location_alt')
+        model = Measurement
+        exclude = ("time_end", "measurement", 'author', 'time_start', 'base_location_lat', 'base_location_lon', 'base_location_alt')
 
 
 def handle_uploaded_file(f, file):
@@ -125,7 +111,7 @@ def MeasurementRecordNewView(request, pk):
                     data.detector = detector_pk
                 data.metadata = metadata
                 data.record_duration = timedelta(seconds = metadata['record']['duration'])
-            data.measurement = measurement.objects.get(pk=pk)
+            data.measurement = Measurement.objects.get(pk=pk)
 
             print(data)
             data.save()
@@ -141,7 +127,7 @@ def MeasurementRecordNewView(request, pk):
 
 def MeasurementDetailView(request, pk):
     #model = measurement
-    ms = get_object_or_404(measurement, pk=pk)
+    ms = get_object_or_404(Measurement, pk=pk)
     record_form = RecordForm()
     return render(request, 'measurements/measurement_detail.html', context={'measurement': ms, 'record_form': record_form})
 
@@ -169,9 +155,9 @@ def MeasurementDataView(request, pk):
         print(pk)
         print("MAM GET... ")
 
-        a=measurement.objects.get(pk=pk)
-        Record.objects.filter(measurement=pk, record_type="S")
-        Record.objects.filter(measurement=pk, record_type="L")
+        a=Measurement.objects.get(pk=pk)
+        File.objects.filter(measurement=pk, record_type="S")
+        File.objects.filter(measurement=pk, record_type="L")
 
 
         #return HttpResponse(a)
@@ -188,9 +174,9 @@ def measuredDataGet(request, pk):
         #headers={"Content-Disposition": 'attachment; filename="data.csv"'},
     )
 
-    measurement.objects.get(pk=pk)
-    rec=Record.objects.filter(measurement=pk, record_type="S")
-    Record.objects.filter(measurement=pk, record_type="L")
+    Measurement.objects.get(pk=pk)
+    rec=File.objects.filter(measurement=pk, record_type="S")
+    File.objects.filter(measurement=pk, record_type="L")
 
 
     b = rec[0]
@@ -361,13 +347,13 @@ def measuredDataGet(request, pk):
 
 def measuredSpectraGet(request, pk):
 
-    measurement.objects.get(pk=pk)
+    Measurement.objects.get(pk=pk)
 
     part_from = int(float(request.GET.get('start', 0)))  
     part_to = int(float(request.GET.get('end', 0)))    
 
-    rec=Record.objects.filter(measurement=pk, record_type="S")
-    #loc=record.objects.filter(measurement=pk, record_type="L")
+    rec=File.objects.filter(measurement=pk, record_type="S")
+    #loc=File.objects.filter(measurement=pk, record_type="L")
 
     #l=[]
     #l.extend(range(0,2000))
@@ -432,7 +418,7 @@ def measuredSpectraGet(request, pk):
 
 def measurementGetData(request, pk):
 
-    measurement.objects.get(pk=pk)
-    Record.objects.filter(measurement=pk, record_type="S")
-    Record.objects.filter(measurement=pk, record_type="L")
+    Measurement.objects.get(pk=pk)
+    File.objects.filter(measurement=pk, record_type="S")
+    File.objects.filter(measurement=pk, record_type="L")
 

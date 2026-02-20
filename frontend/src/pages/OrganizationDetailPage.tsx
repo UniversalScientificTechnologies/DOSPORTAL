@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/PageLayout';
 import { theme } from '../theme';
 import profileBg from '../assets/img/SPACEDOS01.jpg';
 import { FormField } from '../components/FormField';
 import { AddOrganizationMemberPopup } from '../components/AddOrganizationMemberPopup';
+import { SortableTable } from '../components/SortableTable';
+import type { TableColumn } from '../components/SortableTable';
 
 type Member = {
   id: number;
@@ -12,6 +14,22 @@ type Member = {
   first_name: string;
   last_name: string;
   user_type: 'OW' | 'AD' | 'ME';
+};
+
+type Detector = {
+  id: string;
+  name: string;
+  sn: string;
+  type: {
+    name: string;
+    manufacturer: {
+      name: string;
+    };
+  };
+  owner: {
+    id: string;
+    name: string;
+  } | null;
 };
 
 export const OrganizationDetailPage = ({
@@ -24,6 +42,7 @@ export const OrganizationDetailPage = ({
   getAuthHeader: () => { Authorization?: string };
 }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [org, setOrg] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,8 +52,10 @@ export const OrganizationDetailPage = ({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [detectors, setDetectors] = useState<Detector[]>([]);
+  const [detectorsLoading, setDetectorsLoading] = useState(false);
 
-  const fetchOrg = async () => {
+  const fetchOrg = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${apiBase}/organizations/${id}/`, {
@@ -48,7 +69,7 @@ export const OrganizationDetailPage = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiBase, id, getAuthHeader]);
 
   type MemberManageState = {
   editingId: number | null;
@@ -106,7 +127,25 @@ export const OrganizationDetailPage = ({
   useEffect(() => {
     if (!isAuthed) return;
     fetchOrg();
-  }, [id, apiBase, isAuthed, getAuthHeader]);
+    
+    // Fetch detectors for this organization
+    const fetchDetectors = async () => {
+      setDetectorsLoading(true);
+      try {
+        const res = await fetch(`${apiBase}/detector/?owner=${id}`, {
+          headers: { ...getAuthHeader() },
+        });
+        if (!res.ok) throw new Error('Failed to fetch detectors');
+        const data = await res.json();
+        setDetectors(data);
+      } catch (e: unknown) {
+        console.error('Failed to load detectors:', e);
+      } finally {
+        setDetectorsLoading(false);
+      }
+    };
+    fetchDetectors();
+  }, [id, apiBase, isAuthed, getAuthHeader, fetchOrg]);
 
   useEffect(() => {
     if (!isAuthed) return;
@@ -149,6 +188,46 @@ export const OrganizationDetailPage = ({
 
   // Determine if user is owner/admin of this org
   const readOnly = !userOrgs.some((o) => String(o.id) === String(id) && (o.user_type === 'OW' || o.user_type === 'AD'));
+
+  const detectorColumns: TableColumn<Detector>[] = [
+    {
+      id: 'name',
+      key: 'name',
+      label: 'Name',
+      render: (value) => (
+        <span style={{
+          color: theme.colors.primary,
+          fontWeight: theme.typography.fontWeight.medium,
+        }}>
+          {String(value)}
+        </span>
+      ),
+    },
+    {
+      id: 'sn',
+      key: 'sn',
+      label: 'Serial Number',
+    },
+    {
+      id: 'type',
+      key: 'type',
+      label: 'Type',
+      render: (value) => {
+        const type = value as { name: string };
+        return type.name;
+      },
+    },
+    {
+      id: 'manufacturer',
+      key: 'type',
+      label: 'Manufacturer',
+      sortable: false,
+      render: (value) => {
+        const type = value as { manufacturer: { name: string } };
+        return type.manufacturer.name;
+      },
+    },
+  ];
 
   if (!isAuthed) {
     return (
@@ -424,6 +503,30 @@ export const OrganizationDetailPage = ({
                   />
                 </section>
               )}
+
+              {/* Detectors Section */}
+              <section className="panel" style={{ marginTop: theme.spacing['2xl'], padding: theme.spacing.md }}>
+                <header className="panel-header">
+                  <h3 style={{ margin: 0 }}>Detectors</h3>
+                </header>
+                <div style={{ marginTop: theme.spacing.md }}>
+                  {detectorsLoading ? (
+                    <div style={{ color: theme.colors.muted, fontStyle: 'italic' }}>Loading detectors...</div>
+                  ) : detectors.length === 0 ? (
+                    <div style={{ color: theme.colors.muted, fontStyle: 'italic' }}>No detectors in this organization.</div>
+                  ) : (
+                    <SortableTable
+                      columns={detectorColumns}
+                      data={detectors}
+                      onRowClick={(detector) => navigate(`/logbook/${detector.id}`)}
+                      defaultSortField="name"
+                      defaultSortDirection="asc"
+                      getRowKey={(detector) => detector.id}
+                    />
+                  )}
+                </div>
+              </section>
+
               <div style={{ marginBottom: theme.spacing['2xl'] }}>
                 <strong>Organization Created:</strong> {org.created_at ? new Date(org.created_at).toLocaleString() : ''}
               </div>
