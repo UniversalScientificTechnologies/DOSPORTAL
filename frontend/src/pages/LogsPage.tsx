@@ -165,7 +165,7 @@ export const LogsPage = ({
         title={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <h2 style={{ margin: 0 }}>Spectral Records</h2>
-            <CreateEntryButton to="/files/upload" style={{ marginLeft: 'auto', minWidth: 160 }}>
+            <CreateEntryButton to="/logs/upload" style={{ marginLeft: 'auto', minWidth: 160 }}>
               Upload File
             </CreateEntryButton>
           </div>

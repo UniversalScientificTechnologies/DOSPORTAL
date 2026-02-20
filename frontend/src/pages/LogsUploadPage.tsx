@@ -5,7 +5,7 @@ import { FileDropzone } from '../components/FileDropzone';
 import { LabeledInput } from '../components/LabeledInput';
 import { theme } from '../theme';
 
-export const FileUploadPage = ({
+export const LogsUploadPage = ({
   apiBase,
   isAuthed,
   getAuthHeader,
