@@ -236,8 +236,9 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
             record.metadata = record.metadata or {}
             record.metadata['processing_error'] = str(e)
             record.save(update_fields=['processing_status', 'metadata'])
-        except:
-            pass  # Record might not exist; me atm: *_*
+        except Exception as e:
+            print(f"Error processing SpectralRecord {spectral_record_id}: Record might not exist. Details: {str(e)}")
+
         
         raise
 

@@ -80,7 +80,7 @@ def sample_candy_log():
     spectrum3 = [6078, 14063, 278] + [0] * 253
     
     lines = [
-        f"$AIRDOS,F4,256,f157c1d,1290c00806a200925057a000a000006a",
+        "$AIRDOS,F4,256,f157c1d,1290c00806a200925057a000a000006a",
         f"$CANDY,0,10,25583,1,256,0,{','.join(map(str, spectrum1))}",
         f"$CANDY,1,21,25606,9,256,0,{','.join(map(str, spectrum2))}",
         f"$CANDY,2,33,25580,1,256,0,{','.join(map(str, spectrum3))}"
@@ -371,110 +371,92 @@ class TestSpectralRecordCreateEndpoint:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@pytest.mark.django_db  
-class TestSpectralRecordHistogramEndpoints:
-    
-    def test_histogram_requires_authentication(self, api_client, completed_spectral_record_with_artifact):
+
+
+
+@pytest.mark.django_db
+class TestSpectralRecordEvolutionEndpoint:
+
+    def test_evolution_requires_authentication(self, api_client, completed_spectral_record_with_artifact):
         record = completed_spectral_record_with_artifact
-        response = api_client.get(f'/api/spectral-record/{record.id}/histogram/')
+        response = api_client.get(f'/api/spectral-record/{record.id}/evolution/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    
-    def test_histogram_outsider_forbidden(self, api_client, outsider_user, completed_spectral_record_with_artifact):
+
+    def test_evolution_success(self, api_client, completed_spectral_record_with_artifact, user_with_org):
+        record = completed_spectral_record_with_artifact
+        api_client.force_authenticate(user=user_with_org)
+
+        response = api_client.get(f'/api/spectral-record/{record.id}/evolution/')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'evolution_values' in response.data
+        assert 'total_time' in response.data
+
+        evolution = response.data['evolution_values']
+        assert len(evolution) == 3
+        for point in evolution:
+            assert len(point) == 2
+            assert isinstance(point[0], float)
+            assert isinstance(point[1], float)
+
+    def test_evolution_record_not_found(self, api_client, user_with_org):
+        from uuid import uuid4
+        api_client.force_authenticate(user=user_with_org)
+        response = api_client.get(f'/api/spectral-record/{uuid4()}/evolution/')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_evolution_processing_not_completed(self, api_client, spectral_record, user_with_org):
+        api_client.force_authenticate(user=user_with_org)
+        response = api_client.get(f'/api/spectral-record/{spectral_record.id}/evolution/')
+        assert response.status_code == status.HTTP_425_TOO_EARLY
+
+    def test_evolution_permission_denied(self, api_client, completed_spectral_record_with_artifact, outsider_user):
         record = completed_spectral_record_with_artifact
         api_client.force_authenticate(user=outsider_user)
-        response = api_client.get(f'/api/spectral-record/{record.id}/histogram/')
+        response = api_client.get(f'/api/spectral-record/{record.id}/evolution/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert 'permission' in response.data['error'].lower()
-    
-    def test_histogram_member_can_access(self, api_client, member_user, completed_spectral_record_with_artifact, org_with_members):
+
+
+@pytest.mark.django_db
+class TestSpectralRecordSpectrumEndpoint:
+
+    def test_spectrum_requires_authentication(self, api_client, completed_spectral_record_with_artifact):
         record = completed_spectral_record_with_artifact
-        api_client.force_authenticate(user=member_user)
-        response = api_client.get(f'/api/spectral-record/{record.id}/histogram/')
-        assert response.status_code == status.HTTP_200_OK
-    
-    def test_histogram_simple_success(self, api_client, completed_spectral_record_with_artifact, user_with_org):
-        record = completed_spectral_record_with_artifact
-        api_client.force_authenticate(user=user_with_org)
-        
-        response = api_client.get(f'/api/spectral-record/{record.id}/histogram/simple/')
-        
-        assert response.status_code == status.HTTP_200_OK
-        assert 'histogram_values' in response.data
-        
-        histogram = response.data['histogram_values']
-        assert len(histogram) > 0
-        
-        for point in histogram:
-            assert len(point) == 3
-            assert isinstance(point[0], int)
-            assert isinstance(point[1], int)
-            assert isinstance(point[2], int)
-            assert point[2] > 0
-    
-    def test_histogram_advanced_success(self, api_client, completed_spectral_record_with_artifact, user_with_org):
+        response = api_client.get(f'/api/spectral-record/{record.id}/spectrum/')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_spectrum_success(self, api_client, completed_spectral_record_with_artifact, user_with_org):
         record = completed_spectral_record_with_artifact
         api_client.force_authenticate(user=user_with_org)
-        
-        response = api_client.get(f'/api/spectral-record/{record.id}/histogram/')
-        
+
+        response = api_client.get(f'/api/spectral-record/{record.id}/spectrum/')
+
         assert response.status_code == status.HTTP_200_OK
-        assert 'histogram_values' in response.data
-        assert 'metadata' in response.data
-        
-        histogram = response.data['histogram_values']
-        metadata = response.data['metadata']
-        
-        assert 'filtered_records' in metadata
-        assert 'time_range' in metadata
-        assert 'time_bins' in metadata
-        assert 'channels' in metadata
-        assert 'non_zero_points' in metadata
-        
-        for point in histogram:
-            assert len(point) == 3
-            assert isinstance(point[0], int)
+        assert 'spectrum_values' in response.data
+        assert 'total_time' in response.data
+        assert 'calib' in response.data
+        assert response.data['calib'] is False
+
+        spectrum = response.data['spectrum_values']
+        assert len(spectrum) == 10
+        for point in spectrum:
+            assert len(point) == 2
+            assert isinstance(point[0], (int, float))
             assert isinstance(point[1], float)
-            assert isinstance(point[2], int)
-    
-    def test_histogram_with_time_filtering(self, api_client, completed_spectral_record_with_artifact, user_with_org):
-        record = completed_spectral_record_with_artifact
-        api_client.force_authenticate(user=user_with_org)
-        
-        response = api_client.get(
-            f'/api/spectral-record/{record.id}/histogram/?time_start=15&time_end=30&time_bins=5'
-        )
-        
-        assert response.status_code == status.HTTP_200_OK
-        assert 'metadata' in response.data
-        
-        metadata = response.data['metadata']
-        assert metadata['time_bins'] <= 5
-    
-    def test_histogram_record_not_found(self, api_client, user_with_org):
+
+    def test_spectrum_record_not_found(self, api_client, user_with_org):
         from uuid import uuid4
-        fake_id = uuid4()
         api_client.force_authenticate(user=user_with_org)
-        
-        response = api_client.get(f'/api/spectral-record/{fake_id}/histogram/simple/')
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        
-        response = api_client.get(f'/api/spectral-record/{fake_id}/histogram/')
+        response = api_client.get(f'/api/spectral-record/{uuid4()}/spectrum/')
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert 'SpectralRecord not found' in response.data['error']
-    
-    def test_histogram_processing_not_completed(self, api_client, spectral_record, user_with_org):
+
+    def test_spectrum_processing_not_completed(self, api_client, spectral_record, user_with_org):
         api_client.force_authenticate(user=user_with_org)
-        response = api_client.get(f'/api/spectral-record/{spectral_record.id}/histogram/')
-        
+        response = api_client.get(f'/api/spectral-record/{spectral_record.id}/spectrum/')
         assert response.status_code == status.HTTP_425_TOO_EARLY
-        assert 'Processing not completed' in response.data['error']
-    
-    def test_histogram_no_artifact(self, api_client, spectral_record, user_with_org):
-        spectral_record.processing_status = SpectralRecord.PROCESSING_COMPLETED
-        spectral_record.save()
-        
-        api_client.force_authenticate(user=user_with_org)
-        response = api_client.get(f'/api/spectral-record/{spectral_record.id}/histogram/')
-        
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert 'Parquet artifact not found' in response.data['error']
+
+    def test_spectrum_permission_denied(self, api_client, completed_spectral_record_with_artifact, outsider_user):
+        record = completed_spectral_record_with_artifact
+        api_client.force_authenticate(user=outsider_user)
+        response = api_client.get(f'/api/spectral-record/{record.id}/spectrum/')
+        assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -47,8 +47,8 @@ from .spectrals import (
     SpectralRecordList,
     SpectralRecordCreate,
     SpectralRecordDetail,
-    SpectralRecordHistogram,
-    SpectralRecordHistogramSimple,
+    SpectralRecordEvolution,
+    SpectralRecordSpectrum,
 )
 
 __all__ = [
@@ -90,6 +90,6 @@ __all__ = [
     "SpectralRecordList",
     "SpectralRecordCreate",
     "SpectralRecordDetail",
-    "SpectralRecordHistogram",
-    "SpectralRecordHistogramSimple",
+    "SpectralRecordEvolution",
+    "SpectralRecordSpectrum",
 ]

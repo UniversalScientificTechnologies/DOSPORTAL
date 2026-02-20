@@ -184,8 +184,8 @@ def FileUpload(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     except Exception as e:
-        logger.exception("File upload failed")
+        logger.exception(f"File upload failed: {str(e)}")
         return Response(
-            {'error': f'Upload failed: {str(e)}'}, 
+            {'error': 'Upload failed.'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

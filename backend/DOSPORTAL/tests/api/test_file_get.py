@@ -156,7 +156,7 @@ class TestFileList:
         )
         other_org = Organization.objects.create(name='Other Org', slug='other')
         OrganizationUser.objects.create(user=owner_user, organization=other_org, user_type='OW')
-        file2 = File.objects.create(
+        File.objects.create(
             filename='other_file.txt',
             file_type='log',
             file=SimpleUploadedFile("other.txt", b"other", content_type="text/plain"),

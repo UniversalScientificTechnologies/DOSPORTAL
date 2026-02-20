@@ -6,12 +6,16 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 import pandas as pd
+import numpy as np
 
+import logging
 from DOSPORTAL.models import File, OrganizationUser
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
 from .organizations import check_org_member_permission
 from ..serializers.organizations import UserSummarySerializer
 from ..serializers.measurements import FileSerializer
+
+logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -45,8 +49,9 @@ def SpectralRecordList(request):
         return Response(data)
         
     except Exception as e:
+        logger.exception(f"Failed to list spectral records: {str(e)}")
         return Response(
-            {'error': f'Failed to list spectral records: {str(e)}'}, 
+            {'error': 'Failed to list spectral records'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -110,8 +115,9 @@ def SpectralRecordCreate(request):
         }, status=status.HTTP_201_CREATED)
         
     except Exception as e:
+        logger.exception(f'Failed to create spectral record: {str(e)}')
         return Response(
-            {'error': f'Failed to create spectral record: {str(e)}'}, 
+            {'error': 'Failed to create spectral record.'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -158,8 +164,9 @@ def SpectralRecordDetail(request, record_id):
         return Response(data)
         
     except Exception as e:
+        logger.exception(f'Failed to get spectral record: {str(e)}')
         return Response(
-            {'error': f'Failed to get spectral record: {str(e)}'}, 
+            {'error': 'Failed to get spectral record.'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -222,151 +229,131 @@ def SpectralRecordArtifactList(request):
         )
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def SpectralRecordHistogramSimple(request, record_id):
-    """Simple histogram - similar to GetHistogram but for Parquet."""
+def _load_spectral_parquet(record):
+    """Load Parquet DataFrame from a completed SpectralRecord's artifact.
+    Returns (df, error_response). If error_response is not None, return it directly.
+    """
+    if record.processing_status != SpectralRecord.PROCESSING_COMPLETED:
+        return None, Response(
+            {'error': f'Processing not completed. Status: {record.processing_status}'},
+            status=status.HTTP_425_TOO_EARLY
+        )
+
     try:
-        record = SpectralRecord.objects.get(id=record_id)
-        
-        has_permission, _ = check_spectral_record_permission(request.user, record)
-        if not has_permission:
-            return Response(
-                {'error': 'You do not have permission to access this record'},
-                status=status.HTTP_403_FORBIDDEN
-            )
         artifact = SpectralRecordArtifact.objects.get(
             spectral_record=record,
             artifact_type=SpectralRecordArtifact.SPECTRAL_FILE
         )
-        
-        # Read Parquet from S3 (similar to original endpoint)
-        artifact.artifact.file.open('rb')
-        df = pd.read_parquet(artifact.artifact.file, engine='fastparquet')
-        artifact.artifact.file.close()
-
-        channel_columns = [col for col in df.columns if col.startswith("channel_")]
-
-        # wide → long format
-        df_long = df[channel_columns].reset_index().melt(
-            id_vars="index",
-            var_name="channel",
-            value_name="count"
+    except SpectralRecordArtifact.DoesNotExist:
+        return None, Response(
+            {'error': 'Parquet artifact not found'},
+            status=status.HTTP_404_NOT_FOUND
         )
 
-        df_long = df_long[df_long["count"] > 0] # remove zeros
-        df_long["channel"] = df_long["channel"].str.replace("channel_", "").astype(int)
-
-        histogram_data = df_long[["channel", "index", "count"]].values.tolist()
-
-        return Response({"histogram_values": histogram_data})
+    artifact.artifact.file.open('rb')
+    df = pd.read_parquet(artifact.artifact.file, engine='fastparquet')
+    artifact.artifact.file.close()
     
-        
-        
-    except Exception as e:
-        print(f'Failed to generate histogram. {str(e)}')
-        return Response({'error': "Failed to generate histogram."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    channel_cols = [col for col in df.columns if col.startswith('channel_')]
+    df[channel_cols] = df[channel_cols].fillna(0)
+    return df, None
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def SpectralRecordHistogram(request, record_id):
-    """Get histogram data from Parquet artifact."""
+def SpectralRecordEvolution(request, record_id):
+    """Get counts-per-second evolution over time from Parquet artifact.
+
+    Returns {evolution_values: [[time_ms, cps], ...], total_time: float}
+    """
     try:
+
         try:
-            record = SpectralRecord.objects.get(id=record_id)
+            record = SpectralRecord.objects.select_related('calib').get(id=record_id)
         except SpectralRecord.DoesNotExist:
-            return Response(
-                {'error': 'SpectralRecord not found'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
+            return Response({'error': 'SpectralRecord not found'}, status=status.HTTP_404_NOT_FOUND)
+
         has_permission, _ = check_spectral_record_permission(request.user, record)
         if not has_permission:
-            return Response(
-                {'error': 'You do not have permission to access this record'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # Check processing status
-        if record.processing_status != SpectralRecord.PROCESSING_COMPLETED:
-            return Response({
-                'error': f'Processing not completed. Status: {record.processing_status}'
-            }, status=status.HTTP_425_TOO_EARLY)
-        
-        # Get Parquet artifact
-        try:
-            artifact = SpectralRecordArtifact.objects.get(
-                spectral_record=record,
-                artifact_type=SpectralRecordArtifact.SPECTRAL_FILE
-            )
-        except SpectralRecordArtifact.DoesNotExist:
-            return Response(
-                {'error': 'Parquet artifact not found'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Load Parquet from S3 (wide format)
-        artifact.artifact.file.open('rb')
-        df = pd.read_parquet(artifact.artifact.file, engine='fastparquet')
-        artifact.artifact.file.close()
-        
-        # Parse query parameters for filtering
-        time_start = request.GET.get('time_start')
-        time_end = request.GET.get('time_end')
-        time_bins = int(request.GET.get('time_bins', 100))  # Default 100 bins
-        
-        # Apply time filtering
-        if time_start is not None:
-            df = df[df['time_ms'] >= float(time_start)]
-        if time_end is not None:
-            df = df[df['time_ms'] <= float(time_end)]
-        
-        if len(df) == 0:
-            return Response({'histogram_values': []})
-        
-        # Get channel columns (all columns starting with 'channel_')
+            return Response({'error': 'You do not have permission to access this record'}, status=status.HTTP_403_FORBIDDEN)
+
+        df, err = _load_spectral_parquet(record)
+        if err:
+            return err
+
         channel_columns = [col for col in df.columns if col.startswith('channel_')]
-        
-        # Create time bins for aggregation
-        time_min, time_max = df['time_ms'].min(), df['time_ms'].max()
-        time_bin_edges = pd.cut(df['time_ms'], bins=time_bins, retbins=True)[1]
-        df['time_bin'] = pd.cut(df['time_ms'], bins=time_bin_edges, labels=False)
-        
-        # Aggregate by time bins (sum counts per bin per channel)
-        grouped = df.groupby('time_bin')[channel_columns].sum()
-        
-        # Convert to histogram format: [channel, time_bin, count]
-        histogram_data = []
-        for time_bin_idx, row in grouped.iterrows():
-            # Calculate center time for this bin
-            if time_bin_idx is not None and time_bin_idx < len(time_bin_edges) - 1:
-                bin_center = (time_bin_edges[time_bin_idx] + time_bin_edges[time_bin_idx + 1]) / 2
-            else:
-                continue
-                
-            for channel_col in channel_columns:
-                count = row[channel_col]
-                if count > 0:  # Only include non-zero values
-                    # Extract channel number from column name
-                    channel_num = int(channel_col.replace('channel_', ''))
-                    histogram_data.append([channel_num, float(bin_center), int(count)])
-        
+
+        total_time = float(df['time_ms'].max() - df['time_ms'].min())
+        if total_time == 0 or np.isnan(total_time) or np.isinf(total_time):
+            total_time = 1.0  # avoid division by zero for single-row data
+
+        row_sums = df[channel_columns].sum(axis=1)
+        counts_per_second = row_sums / total_time 
+
+        # Replace any NaN/inf with 0 to ensure JSON serialization
+        counts_per_second = counts_per_second.replace([np.inf, -np.inf], 0).fillna(0)
+        time_series = df['time_ms'].replace([np.inf, -np.inf], 0).fillna(0)
+
+        evolution_values = list(zip(time_series.astype(float).tolist(), counts_per_second.tolist()))
+
         return Response({
-            'histogram_values': histogram_data,
-            'metadata': {
-                'total_records': len(df) if time_start is None and time_end is None else None,
-                'filtered_records': len(df),
-                'time_range': [float(time_min), float(time_max)],
-                'time_bins': len(grouped),
-                'channels': len(channel_columns),
-                'non_zero_points': len(histogram_data)
-            }
+            'evolution_values': evolution_values,
+            'total_time': total_time,
         })
-        
+
     except Exception as e:
-        print(f'Failed to generate histogram. {str(e)}')
-        return Response(
-            {'error': f'Failed to generate histogram.'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        print(f'Failed to generate evolution. {str(e)}')
+        return Response({'error': 'Failed to generate evolution data.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def SpectralRecordSpectrum(request, record_id):
+    """Get energy/channel spectrum (sum over all exposures) from Parquet artifact.
+
+    Returns {spectrum_values: [[channel_or_keV, cps], ...], total_time: float, calib: bool}
+    """
+    try:
+        try:
+            record = SpectralRecord.objects.select_related('calib').get(id=record_id)
+        except SpectralRecord.DoesNotExist:
+            return Response({'error': 'SpectralRecord not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        has_permission, _ = check_spectral_record_permission(request.user, record)
+        if not has_permission:
+            return Response({'error': 'You do not have permission to access this record'}, status=status.HTTP_403_FORBIDDEN)
+
+        df, err = _load_spectral_parquet(record)
+        if err:
+            return err
+
+        channel_columns = [col for col in df.columns if col.startswith('channel_')]
+
+        total_time = float(df['time_ms'].max() - df['time_ms'].min())
+        if total_time == 0:
+            total_time = 1.0
+
+        # Sum all rows per channel → total counts, then divide by time → cps
+        channel_sums = df[channel_columns].sum(axis=0) / total_time
+        channel_sums = channel_sums.fillna(0)
+
+        has_calib = record.calib is not None
+        spectrum_values = []
+        for col in channel_columns:
+            channel_num = int(col.replace('channel_', ''))
+            cps = float(channel_sums[col])
+            if has_calib:
+                x_val = (record.calib.coef0 + channel_num * record.calib.coef1) / 1000  # keV
+            else:
+                x_val = channel_num
+            spectrum_values.append([x_val, cps])
+
+        return Response({
+            'spectrum_values': spectrum_values,
+            'total_time': total_time,
+            'calib': has_calib,
+        })
+
+    except Exception as e:
+        print(f'Failed to generate spectrum. {str(e)}')
+        return Response({'error': 'Failed to generate spectrum data.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

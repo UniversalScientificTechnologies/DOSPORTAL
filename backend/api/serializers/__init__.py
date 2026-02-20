@@ -39,12 +39,6 @@ from .measurements import (
     SpectralRecordArtifactSerializer,
 )
 
-# Measurements & Records
-from .measurements import (
-    MeasurementsSerializer,
-    FileSerializer,
-)
-
 __all__ = [
     # Base/Auth
     "LoginRequestSerializer",

@@ -4,6 +4,7 @@ import { PageLayout } from '../components/PageLayout'
 import { Section } from '../components/Section'
 import { EmptyState } from '../components/EmptyState'
 import { FormField } from '../components/FormField'
+import { SpectralCharts } from '../components/SpectralCharts'
 import { theme } from '../theme'
 import ReactMarkdown from 'react-markdown'
 
@@ -452,6 +453,17 @@ export const SpectralRecordDetailPage = ({
               </>
             )
           })()}
+
+          {/* Charts - only show when processing is completed */}
+          {record.processing_status === 'completed' && (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <SpectralCharts
+                apiBase={apiBase}
+                recordId={id!}
+                getAuthHeader={getAuthHeader}
+              />
+            </div>
+          )}
         </div>
       </Section>
     </PageLayout>
