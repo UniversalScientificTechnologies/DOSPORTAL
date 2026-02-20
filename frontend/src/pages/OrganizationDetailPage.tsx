@@ -5,6 +5,7 @@ import { theme } from '../theme';
 import profileBg from '../assets/img/SPACEDOS01.jpg';
 import { FormField } from '../components/FormField';
 import { AddOrganizationMemberPopup } from '../components/AddOrganizationMemberPopup';
+import { useAuthContext } from '../context/AuthContext';
 
 type Member = {
   id: number;
@@ -14,15 +15,8 @@ type Member = {
   user_type: 'OW' | 'AD' | 'ME';
 };
 
-export const OrganizationDetailPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string;
-  isAuthed: boolean;
-  getAuthHeader: () => { Authorization?: string };
-}) => {
+export const OrganizationDetailPage = () => {
+  const { API_BASE, getAuthHeader } = useAuthContext();
   const { id } = useParams();
   const [org, setOrg] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +31,7 @@ export const OrganizationDetailPage = ({
   const fetchOrg = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/organizations/${id}/`, {
+      const res = await fetch(`${API_BASE}/organizations/${id}/`, {
         headers: { ...getAuthHeader() },
       });
       if (!res.ok) throw new Error((await res.json()).detail || 'Error');
@@ -63,7 +57,7 @@ export const OrganizationDetailPage = ({
     try {
       const member = org.members.find((m: Member) => m.id === memberId);
       if (!member) throw new Error('Member not found');
-      const res = await fetch(`${apiBase}/organizations/${id}/member/`, {
+      const res = await fetch(`${API_BASE}/organizations/${id}/member/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ username: member.username, user_type: newRole }),
@@ -86,7 +80,7 @@ export const OrganizationDetailPage = ({
     try {
       const member = org.members.find((m: Member) => m.id === memberId);
       if (!member) throw new Error('Member not found');
-      const res = await fetch(`${apiBase}/organizations/${id}/member/`, {
+      const res = await fetch(`${API_BASE}/organizations/${id}/member/`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ username: member.username }),
@@ -104,13 +98,11 @@ export const OrganizationDetailPage = ({
   };
 
   useEffect(() => {
-    if (!isAuthed) return;
     fetchOrg();
-  }, [id, apiBase, isAuthed, getAuthHeader]);
+  }, [id, API_BASE]);
 
   useEffect(() => {
-    if (!isAuthed) return;
-    fetch(`${apiBase}/user/organizations/`, {
+    fetch(`${API_BASE}/user/organizations/`, {
       headers: { ...getAuthHeader() },
     })
       .then(async (res) => {
@@ -119,7 +111,7 @@ export const OrganizationDetailPage = ({
       })
       .then(setUserOrgs)
       .catch(() => {});
-  }, [apiBase, isAuthed, getAuthHeader]);
+  }, [API_BASE]);
 
 
 
@@ -128,7 +120,7 @@ export const OrganizationDetailPage = ({
     setSaveError(null);
     setSuccessMsg(null);
     try {
-      const res = await fetch(`${apiBase}/organizations/${id}/`, {
+      const res = await fetch(`${API_BASE}/organizations/${id}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ [field]: value }),
@@ -149,18 +141,6 @@ export const OrganizationDetailPage = ({
 
   // Determine if user is owner/admin of this org
   const readOnly = !userOrgs.some((o) => String(o.id) === String(id) && (o.user_type === 'OW' || o.user_type === 'AD'));
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view organization.
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
@@ -413,8 +393,6 @@ export const OrganizationDetailPage = ({
                   <AddOrganizationMemberPopup
                     open={showAddMember}
                     orgId={org.id}
-                    apiBase={apiBase}
-                    getAuthHeader={getAuthHeader}
                     onClose={() => setShowAddMember(false)}
                     onMemberAdded={async (username: string) => {
                       setSuccessMsg(`Member ${username} added successfully!`);

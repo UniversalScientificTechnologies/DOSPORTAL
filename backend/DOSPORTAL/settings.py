@@ -26,9 +26,11 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "0.0.0.0", "backend"]
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,backend"
+).split(",")
 
 # Site URL configuration
 SITE_URL = os.getenv("SITE_URL", "http://localhost:8080")

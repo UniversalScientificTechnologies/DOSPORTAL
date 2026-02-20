@@ -6,6 +6,8 @@ import { Section } from '../components/Section'
 import { CardGrid } from '../components/CardGrid'
 import { EmptyState } from '../components/EmptyState'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
+import type { Detector } from '../types'
 import profileBg from '../assets/img/SPACEDOS01.jpg'
 
 interface UserProfile {
@@ -23,28 +25,8 @@ interface Organization {
   data_policy: string
 }
 
-interface Detector {
-  id: string
-  name: string
-  sn: string
-  type: {
-    name: string
-    manufacturer: {
-      name: string
-    }
-  }
-}
-
-export const ProfilePage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  originBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const ProfilePage = () => {
+  const { API_BASE, getAuthHeader } = useAuthContext()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [detectors, setDetectors] = useState<Detector[]>([])
@@ -55,12 +37,10 @@ export const ProfilePage = ({
 
   // Fetch user profile and related data
   useEffect(() => {
-    if (!isAuthed) return
-
     const fetchData = async () => {
       try {
         // Fetch user profile
-        const profileRes = await fetch(`${apiBase}/user/profile/`, {
+        const profileRes = await fetch(`${API_BASE}/user/profile/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +52,7 @@ export const ProfilePage = ({
         setProfile(profileData)
 
         // Fetch organizations
-        const orgsRes = await fetch(`${apiBase}/user/organizations/`, {
+        const orgsRes = await fetch(`${API_BASE}/user/organizations/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -85,7 +65,7 @@ export const ProfilePage = ({
         }
 
         // Fetch detectors
-        const detectorsRes = await fetch(`${apiBase}/detector/`, {
+        const detectorsRes = await fetch(`${API_BASE}/detector/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -98,7 +78,7 @@ export const ProfilePage = ({
         }
 
         // Fetch measurements count
-        const measurementsRes = await fetch(`${apiBase}/measurement/`, {
+        const measurementsRes = await fetch(`${API_BASE}/measurement/`, {
           method: 'GET',
           credentials: 'include',
         })
@@ -112,7 +92,7 @@ export const ProfilePage = ({
     }
 
     fetchData()
-  }, [apiBase, isAuthed])
+  }, [API_BASE])
 
   const handleSaveField = async (field: 'email' | 'first_name' | 'last_name', value: string) => {
     setIsSaving(true)
@@ -130,7 +110,7 @@ export const ProfilePage = ({
     }
 
     try {
-      const res = await fetch(`${apiBase}/user/profile/`, {
+      const res = await fetch(`${API_BASE}/user/profile/`, {
         method: 'PUT',
         
         headers: {
@@ -159,18 +139,6 @@ export const ProfilePage = ({
     } finally {
       setIsSaving(false)
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view profile.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   if (!profile) {
