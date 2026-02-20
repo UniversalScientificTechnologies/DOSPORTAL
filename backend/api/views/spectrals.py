@@ -10,6 +10,7 @@ import numpy as np
 
 import logging
 from DOSPORTAL.models import File, OrganizationUser
+from DOSPORTAL.models.detectors import Detector
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
 from .organizations import check_org_member_permission
 from ..serializers.organizations import UserSummarySerializer
@@ -107,6 +108,16 @@ def SpectralRecordCreate(request):
             processing_status=SpectralRecord.PROCESSING_PENDING
         )
         
+        # Optionally attach a detector
+        detector_id = data.get('detector')
+        if detector_id:
+            try:
+                detector = Detector.objects.get(id=detector_id)
+                record.detector = detector
+                record.save(update_fields=['detector'])
+            except Detector.DoesNotExist as e:
+                logger.info(f"detector was not attached to spectral record {str(record.id)}: {str(e)}")
+        
         return Response({
             'id': str(record.id),
             'name': record.name,
@@ -135,7 +146,7 @@ def SpectralRecordDetail(request, record_id):
     """Get details of a single spectral record."""
     try:
         try:
-            record = SpectralRecord.objects.select_related('raw_file', 'author', 'owner').get(id=record_id)
+            record = SpectralRecord.objects.select_related('raw_file', 'author', 'owner', 'detector').get(id=record_id)
         except SpectralRecord.DoesNotExist:
             return Response(
                 {'error': 'SpectralRecord not found'}, 
@@ -159,6 +170,7 @@ def SpectralRecordDetail(request, record_id):
             'raw_file_id': str(record.raw_file.id) if record.raw_file else None,
             'artifacts_count': record.artifacts.count(),
             'description': record.description,
+            'detector': {'id': str(record.detector.id), 'name': record.detector.name} if record.detector else None,
         }
         
         return Response(data)

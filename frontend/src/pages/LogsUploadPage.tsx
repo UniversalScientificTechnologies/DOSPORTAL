@@ -1,9 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/PageLayout';
 import { FileDropzone } from '../components/FileDropzone';
 import { LabeledInput } from '../components/LabeledInput';
 import { theme } from '../theme';
+
+type Organization = {
+  id: string;
+  name: string;
+  user_type: string;
+};
+
+type Detector = {
+  id: string;
+  name: string;
+  sn: string;
+};
 
 export const LogsUploadPage = ({
   apiBase,
@@ -21,6 +33,22 @@ export const LogsUploadPage = ({
   const [fileType, setFileType] = useState<'log' | 'trajectory' | 'document' | 'image' | 'other'>('log');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [detectors, setDetectors] = useState<Detector[]>([]);
+  const [selectedOwner, setSelectedOwner] = useState<string>('');
+  const [selectedDetector, setSelectedDetector] = useState<string>('');
+
+  useEffect(() => {
+    if (!isAuthed) return;
+    const headers = { 'Content-Type': 'application/json', ...getAuthHeader() };
+    Promise.all([
+      fetch(`${apiBase}/user/organizations/`, { headers }).then((r) => r.ok ? r.json() : []),
+      fetch(`${apiBase}/detector/`, { headers }).then((r) => r.ok ? r.json() : []),
+    ]).then(([orgs, dets]) => {
+      setOrganizations(orgs);
+      setDetectors(dets);
+    });
+  }, [apiBase, isAuthed, getAuthHeader]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -42,6 +70,11 @@ export const LogsUploadPage = ({
       return;
     }
 
+    if (fileType === 'log' && !selectedOwner) {
+      setUploadError('Please select an owner organization for log files');
+      return;
+    }
+
     setIsUploading(true);
     setUploadError(null);
 
@@ -50,6 +83,9 @@ export const LogsUploadPage = ({
       fileFormData.append('file', selectedFile);
       fileFormData.append('filename', fileName);
       fileFormData.append('file_type', fileType);
+      if (fileType === 'log' && selectedOwner) {
+        fileFormData.append('owner', selectedOwner);
+      }
 
       const fileResponse = await fetch(`${apiBase}/file/upload/`, {
         method: 'POST',
@@ -78,6 +114,8 @@ export const LogsUploadPage = ({
             raw_file_id: fileData.id,
             name: fileName,
             description: description,
+            ...(selectedOwner ? { owner: selectedOwner } : {}),
+            ...(selectedDetector ? { detector: selectedDetector } : {}),
           }),
         });
 
@@ -189,6 +227,72 @@ export const LogsUploadPage = ({
                 boxSizing: 'border-box',
               }}
             />
+          </div>
+        )}
+
+        {fileType === 'log' && (
+          <div style={{ marginBottom: theme.spacing.xl }}>
+            <label style={{
+              display: 'block',
+              marginBottom: theme.spacing.sm,
+              fontWeight: theme.typography.fontWeight.medium,
+              color: theme.colors.textSecondary,
+            }}>
+              Owner Organization <span style={{ color: theme.colors.danger }}>*</span>
+            </label>
+            <select
+              value={selectedOwner}
+              onChange={(e) => setSelectedOwner(e.target.value)}
+              disabled={isUploading}
+              style={{
+                width: '100%',
+                padding: theme.spacing.md,
+                border: `${theme.borders.width} solid ${theme.colors.border}`,
+                borderRadius: theme.borders.radius.sm,
+                backgroundColor: theme.colors.bg,
+                color: selectedOwner ? theme.colors.textDark : theme.colors.muted,
+                fontSize: theme.typography.fontSize.base,
+                cursor: isUploading ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <option value="">— Select organization —</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>{org.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {fileType === 'log' && (
+          <div style={{ marginBottom: theme.spacing.xl }}>
+            <label style={{
+              display: 'block',
+              marginBottom: theme.spacing.sm,
+              fontWeight: theme.typography.fontWeight.medium,
+              color: theme.colors.textSecondary,
+            }}>
+              Detector (optional)
+            </label>
+            <select
+              value={selectedDetector}
+              onChange={(e) => setSelectedDetector(e.target.value)}
+              disabled={isUploading}
+              style={{
+                width: '100%',
+                padding: theme.spacing.md,
+                border: `${theme.borders.width} solid ${theme.colors.border}`,
+                borderRadius: theme.borders.radius.sm,
+                backgroundColor: theme.colors.bg,
+                color: selectedDetector ? theme.colors.textDark : theme.colors.muted,
+                fontSize: theme.typography.fontSize.base,
+                cursor: isUploading ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <option value="">— None —</option>
+              {detectors.map((det) => (
+                <option key={det.id} value={det.id}>{det.name} ({det.sn})</option>
+              ))}
+            </select>
           </div>
         )}
 

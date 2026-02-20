@@ -43,6 +43,7 @@ type SpectralRecord = {
   raw_file_id: string | null
   artifacts_count: number
   description?: string
+  detector: { id: string; name: string } | null
 }
 
 const PROCESSING_STATUS_LABELS: Record<string, string> = {
@@ -335,6 +336,22 @@ export const SpectralRecordDetailPage = ({
               value={record.owner || '—'}
               isReadOnly={true}
             />
+            
+            {record.detector ? (
+              <div style={{ marginBottom: theme.spacing['2xl'], paddingBottom: theme.spacing.lg, borderBottom: `${theme.borders.width} solid ${theme.colors.border}` }}>
+                <label style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textSecondary }}>
+                  Detector
+                </label>
+                <Link
+                  to={`/logbook/${record.detector.id}`}
+                  style={{ color: theme.colors.primary, textDecoration: 'none' }}
+                >
+                  {record.detector.name}
+                </Link>
+              </div>
+            ) : (
+              <FormField label="Detector" value="—" isReadOnly={true} />
+            )}
             
             <FormField
               label="Artifacts"

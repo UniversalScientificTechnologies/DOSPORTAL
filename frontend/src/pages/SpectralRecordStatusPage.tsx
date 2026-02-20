@@ -332,14 +332,14 @@ export const SpectralRecordStatusPage = ({
             Show Log
           </button>
           <button
-            onClick={() => navigate('/files/upload')}
+            onClick={() => navigate('/logs/upload')}
             title="Upload next file"
             style={{
               padding: `${theme.spacing.md} ${theme.spacing.xl}`,
-              border: 'none',
+              border: `${theme.borders.width} solid ${theme.colors.border}`,
               borderRadius: theme.borders.radius.sm,
-              backgroundColor: theme.colors.primary,
-              color: theme.colors.bg,
+              backgroundColor: theme.colors.bg,
+              color: theme.colors.textDark,
               fontSize: theme.typography.fontSize.base,
               fontWeight: theme.typography.fontWeight.medium,
               cursor: 'pointer',
