@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { Section } from '../components/Section'
 import { FormField } from '../components/FormField'
@@ -10,7 +10,7 @@ type SpectralRecord = {
   name: string
   processing_status: string
   created: string
-  author: string | null
+  author: { id: number; username: string } | null
   owner: string | null
   raw_file_id: string | null
   artifacts_count: number
@@ -265,11 +265,17 @@ export const SpectralRecordStatusPage = ({
           />
           
           {record.author && (
-            <FormField
-              label="Author"
-              value={`@${record.author}`}
-              isReadOnly={true}
-            />
+            <div style={{ marginBottom: theme.spacing['2xl'], paddingBottom: theme.spacing.lg, borderBottom: `${theme.borders.width} solid ${theme.colors.border}` }}>
+              <label style={{ display: 'block', marginBottom: theme.spacing.sm, fontWeight: theme.typography.fontWeight.medium, color: theme.colors.textSecondary }}>
+                Author
+              </label>
+              <Link
+                to={`/user/${record.author.id}`}
+                style={{ color: theme.colors.primary, textDecoration: 'none' }}
+              >
+                @{record.author.username}
+              </Link>
+            </div>
           )}
           
           <FormField
