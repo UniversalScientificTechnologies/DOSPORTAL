@@ -99,7 +99,8 @@ export const OrganizationDetailPage = () => {
 
   useEffect(() => {
     fetchOrg();
-  }, [id, API_BASE]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, API_BASE, getAuthHeader]);
 
   useEffect(() => {
     fetch(`${API_BASE}/user/organizations/`, {
@@ -111,7 +112,7 @@ export const OrganizationDetailPage = () => {
       })
       .then(setUserOrgs)
       .catch(() => {});
-  }, [API_BASE]);
+  }, [API_BASE, getAuthHeader]);
 
 
 

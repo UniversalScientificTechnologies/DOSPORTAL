@@ -35,7 +35,7 @@ export const AddOrganizationMemberPopup = ({
       })
       .then((data) => setOrgName(data.name || ''))
       .catch(() => setOrgName(''));
-  }, [open, orgId, API_BASE]);
+  }, [open, orgId, API_BASE, getAuthHeader]);
 
   const handleAdd = async () => {
     if (!username.trim()) return;

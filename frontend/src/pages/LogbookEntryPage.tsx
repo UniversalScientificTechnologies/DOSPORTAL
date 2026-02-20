@@ -87,7 +87,7 @@ export const LogbookEntryPage = () => {
     }
 
     fetchData()
-  }, [id, entryId, isEditMode, API_BASE])
+  }, [id, entryId, isEditMode, API_BASE, getAuthHeader])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

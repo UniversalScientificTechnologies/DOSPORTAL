@@ -92,7 +92,7 @@ export const ProfilePage = () => {
     }
 
     fetchData()
-  }, [API_BASE])
+  }, [API_BASE, getAuthHeader])
 
   const handleSaveField = async (field: 'email' | 'first_name' | 'last_name', value: string) => {
     setIsSaving(true)

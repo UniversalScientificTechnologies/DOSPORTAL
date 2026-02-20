@@ -33,7 +33,7 @@ export const LogbooksPage = () => {
       }
     }
     fetchDetectors()
-  }, [API_BASE])
+  }, [API_BASE, getAuthHeader])
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>

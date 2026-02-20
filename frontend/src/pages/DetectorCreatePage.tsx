@@ -21,8 +21,6 @@ export const DetectorCreatePage = () => {
 
   // Fetch detector type info when type changes
   useEffect(() => {
-    
-
     if (!type) {
       setTypeInfo(null);
       return;
@@ -48,8 +46,6 @@ export const DetectorCreatePage = () => {
   }, [type, API_BASE]);
 
   useEffect(() => {
-    
-
     // Fetch organizations where user is owner/admin
     const fetchOwnedOrgs = async () => {
       try {
