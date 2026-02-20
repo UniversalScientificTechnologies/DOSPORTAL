@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react';
 import { theme } from '../theme';
+import { useAuthContext } from '../context/AuthContext';
 
 export const AddOrganizationMemberPopup = ({
   open,
   onClose,
   orgId,
-  apiBase,
-  getAuthHeader,
   onMemberAdded,
 }: {
   open: boolean;
   onClose: () => void;
   orgId: string;
-  apiBase: string;
-  getAuthHeader: () => { Authorization?: string };
   onMemberAdded?: (username: string) => void;
 }) => {
+  const { API_BASE, getAuthHeader } = useAuthContext();
   const [username, setUsername] = useState('');
   const [userType, setUserType] = useState('ME');
   const [inviteLink, setInviteLink] = useState<string | null>(null);
@@ -28,7 +26,7 @@ export const AddOrganizationMemberPopup = ({
   useEffect(() => {
     if (!open) return;
     setOrgName('');
-    fetch(`${apiBase}/organizations/${orgId}/`, {
+    fetch(`${API_BASE}/organizations/${orgId}/`, {
       headers: { ...getAuthHeader() },
     })
       .then(async (res) => {
@@ -37,14 +35,14 @@ export const AddOrganizationMemberPopup = ({
       })
       .then((data) => setOrgName(data.name || ''))
       .catch(() => setOrgName(''));
-  }, [open, orgId, apiBase, getAuthHeader]);
+  }, [open, orgId, API_BASE, getAuthHeader]);
 
   const handleAdd = async () => {
     if (!username.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/organizations/${orgId}/member/`, {
+      const res = await fetch(`${API_BASE}/organizations/${orgId}/member/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ username: username.trim(), user_type: userType }),
@@ -66,7 +64,7 @@ export const AddOrganizationMemberPopup = ({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/organizations/${orgId}/invites/`, {
+      const res = await fetch(`${API_BASE}/organizations/${orgId}/invites/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ user_type: userType }),
