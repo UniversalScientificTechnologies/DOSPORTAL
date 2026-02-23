@@ -153,6 +153,12 @@ def DetectorGet(request):
     )
     if request.method == "GET":
         items = Detector.objects.select_related("type__manufacturer", "owner").all()
+        
+        # Filter by owner organization if provided
+        owner_id = request.GET.get('owner')
+        if owner_id:
+            items = items.filter(owner_id=owner_id)
+        
         serializer = DetectorSerializer(items, many=True)
         return Response(serializer.data)
     elif request.method == "POST":

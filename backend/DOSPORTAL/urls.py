@@ -6,7 +6,6 @@ from django.views.generic.base import TemplateView
 
 
 from .views import (
-    MeasurementsListView,
     MeasurementDetailView,
     MeasurementNewView,
     MeasurementDataView,
@@ -15,11 +14,6 @@ from .views import (
     MeasurementRecordNewView,
 )
 from .views_detectors import (
-    DetectorView,
-    DetectorEditView,
-    DetectorOverview,
-    DetectorNewLogbookRecord,
-    DetectorTypeView,
     DetectorCalibDetailView,
 )
 from .views_flights import FlightView
@@ -47,7 +41,6 @@ urlpatterns = [
     # path('user/<str:username>', user_profile, name='user_profile'),
     path("organization/", include("DOSPORTAL.PART_organizations.urls")),
     # path('account/', include('DOSPORTAL.users.urls')),
-    path("measurements/", MeasurementsListView.as_view(), name="measurements"),
     path("measurement/new/", MeasurementNewView, name="measurement-new"),
     path("measurement/<uuid:pk>/new/", MeasurementRecordNewView, name="record-upload"),
     path(
@@ -86,12 +79,6 @@ urlpatterns = [
     path("record/<uuid:pk>/get_telemetry/", GetTelemetry, name="record-GetTelemetry"),
     path("record/<uuid:pk>/calc_dsi/", CalcDSI, name="record-CalcDSI"),
     path("flight/<uuid:pk>/", FlightView, name="flight-detail"),
-    path("detector/<uuid:pk>/new_logbook_record", DetectorNewLogbookRecord),
-    path("detector/new/", DetectorEditView, name="detector-new"),
-    path("detectors/", DetectorOverview.as_view(), name="detector-overview"),
-    path("detector/<uuid:pk>/edit/", DetectorEditView, name="detector-edit"),
-    path("detector/<uuid:pk>/", DetectorView, name="detector-view"),
-    path("detector_type/<uuid:pk>/", DetectorTypeView, name="detector-type-view"),
     path("select2/", include("django_select2.urls")),
     path("martor/", include("martor.urls")),
     path("analysis/", TemplateView.as_view(template_name="home.html"), name="analysis"),

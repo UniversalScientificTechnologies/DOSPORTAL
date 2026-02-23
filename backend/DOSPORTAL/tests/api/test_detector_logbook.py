@@ -1,5 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
+from django.contrib.auth.models import User
+
 from DOSPORTAL.models import (
     Detector,
     DetectorType,
@@ -7,7 +9,6 @@ from DOSPORTAL.models import (
     DetectorLogbook,
     Organization,
     OrganizationUser,
-    User,
 )
 
 

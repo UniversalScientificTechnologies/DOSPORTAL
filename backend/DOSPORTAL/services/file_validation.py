@@ -23,7 +23,3 @@ def validate_uploaded_file(uploaded_file, allowed_extensions=None, max_size_mb=N
                 f"File too large. Max size of filetype {ext} is {max_size_mb} MB."
             )
 
-
-def parse_record_file_placeholder(uploaded_file):
-    # TODO: implement specific parsing/validation ?
-    return None

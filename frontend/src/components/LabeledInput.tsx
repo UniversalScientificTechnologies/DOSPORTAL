@@ -9,6 +9,7 @@ interface LabeledInputProps {
   placeholder?: string;
   required?: boolean;
   type?: string;
+  disabled?: boolean;
   style?: React.CSSProperties;
 }
 
@@ -20,6 +21,7 @@ export const LabeledInput: React.FC<LabeledInputProps> = ({
   placeholder,
   required = false,
   type = "text",
+  disabled = false,
   style = {},
 }) => (
   <div style={{ marginBottom: theme.spacing["2xl"], ...style }}>
@@ -41,6 +43,7 @@ export const LabeledInput: React.FC<LabeledInputProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       required={required}
+      disabled={disabled}
       style={{
         width: "100%",
         padding: theme.spacing.sm,

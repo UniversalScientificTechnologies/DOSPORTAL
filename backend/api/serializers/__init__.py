@@ -28,10 +28,15 @@ from .detectors import (
     DetectorLogbookSerializer,
 )
 
-# Measurements & Records
+# Measurements & Files
 from .measurements import (
+    FileSerializer,
+    FileUploadSerializer,
+    SpectrumDataSerializer,
     MeasurementsSerializer,
-    RecordSerializer,
+    SpectralRecordSerializer,
+    SpectralRecordCreateSerializer,
+    SpectralRecordArtifactSerializer,
 )
 
 __all__ = [
@@ -58,5 +63,10 @@ __all__ = [
     "DetectorLogbookSerializer",
     # Measurements
     "MeasurementsSerializer",
-    "RecordSerializer",
+    "FileSerializer",
+    "FileUploadSerializer", 
+    "SpectrumDataSerializer",
+    "SpectralRecordSerializer",
+    "SpectralRecordCreateSerializer",
+    "SpectralRecordArtifactSerializer",
 ]

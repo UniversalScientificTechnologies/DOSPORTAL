@@ -39,6 +39,8 @@ services:
     entrypoint: python3 manage.py qcluster
     env_file:
       - .env
+    volumes:
+      - ./backend:/DOSPORTAL
     depends_on:
       - backend
       - db_dosportal

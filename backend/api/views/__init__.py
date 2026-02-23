@@ -19,6 +19,7 @@ from .organizations import (
     Organizations,
     OrganizationDetail,
     OrganizationMember,
+    UserDetail,
     UserProfile,
     UserOrganizations,
     UserOrganizationsOwned,
@@ -31,7 +32,23 @@ from .organizations import (
 from .measurements import (
     MeasurementsGet,
     MeasurementsPost,
-    RecordGet,
+    MeasurementDetail,
+)
+
+# File views
+from .files import (
+    FileList,
+    FileDetail,
+    FileUpload,
+)
+
+# Spectral views
+from .spectrals import (
+    SpectralRecordList,
+    SpectralRecordCreate,
+    SpectralRecordDetail,
+    SpectralRecordEvolution,
+    SpectralRecordSpectrum,
 )
 
 __all__ = [
@@ -55,6 +72,7 @@ __all__ = [
     "OrganizationDetail",
     "OrganizationMember",
     "UserProfile",
+    "UserDetail",
     "UserOrganizations",
     "UserOrganizationsOwned",
     "CreateOrganizationInvite",
@@ -63,5 +81,15 @@ __all__ = [
     # Measurements
     "MeasurementsGet",
     "MeasurementsPost",
-    "RecordGet",
+    "MeasurementDetail",
+    # Files
+    "FileList",
+    "FileDetail",
+    "FileUpload",
+    # Spectrals
+    "SpectralRecordList",
+    "SpectralRecordCreate",
+    "SpectralRecordDetail",
+    "SpectralRecordEvolution",
+    "SpectralRecordSpectrum",
 ]
