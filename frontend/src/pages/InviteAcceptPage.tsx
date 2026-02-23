@@ -2,20 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/PageLayout';
 import { theme } from '../theme';
+import { useAuthContext } from '../context/AuthContext';
 
-
-import { useAuth } from '../hooks/useAuth';
-
-export const InviteAcceptPage = ({
-  apiBase,
-  getAuthHeader,
-}: {
-  apiBase: string;
-  getAuthHeader: () => { Authorization?: string };
-}) => {
+export const InviteAcceptPage = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { isAuthed, isLoading } = useAuth();
+  const { API_BASE, isAuthed, isLoading, getAuthHeader } = useAuthContext();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -26,7 +18,7 @@ export const InviteAcceptPage = ({
   useEffect(() => {
     if (!token) return;
     setInviteLoading(true);
-    fetch(`${apiBase}/invites/${token}/`)
+    fetch(`${API_BASE}/invites/${token}/`)
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Invalid invite');
@@ -37,7 +29,7 @@ export const InviteAcceptPage = ({
         setError(e.message);
         setInviteLoading(false);
       });
-  }, [apiBase, token]);
+  }, [API_BASE, token]);
 
   useEffect(() => {
     if (isLoading) return; // Wait until auth state is known
@@ -52,7 +44,7 @@ export const InviteAcceptPage = ({
     setStatus('loading');
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/invites/${token}/accept/`, {
+      const res = await fetch(`${API_BASE}/invites/${token}/accept/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       });

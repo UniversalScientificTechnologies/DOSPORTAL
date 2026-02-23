@@ -174,3 +174,40 @@ def test_get_detectors_with_data():
     assert response.status_code == 200
     assert len(response.data) == 2
     assert response.data[0]["name"] in ["Detector 1", "Detector 2"]
+
+
+@pytest.mark.django_db
+def test_get_detector_detail_success():
+    """GET /detector/<id>/ - returns single detector"""
+    user = User.objects.create_user(username="detailuser", password="pass123")
+    manuf = DetectorManufacturer.objects.create(name="Manuf", url="http://manuf.com")
+    dtype = DetectorType.objects.create(name="TypeA", manufacturer=manuf)
+    org = Organization.objects.create(name="OrgA")
+    detector = Detector.objects.create(name="Det1", type=dtype, owner=org, sn="SN-DETAIL")
+
+    client = APIClient()
+    client.force_authenticate(user=user)
+    response = client.get(f"/api/detector/{detector.id}/")
+    assert response.status_code == 200
+    assert response.data["id"] == str(detector.id)
+    assert response.data["name"] == "Det1"
+    assert response.data["sn"] == "SN-DETAIL"
+
+
+@pytest.mark.django_db
+def test_get_detector_detail_not_found():
+    """GET /detector/<id>/ - non-existent detector returns 404"""
+    user = User.objects.create_user(username="detailuser2", password="pass123")
+    client = APIClient()
+    client.force_authenticate(user=user)
+    response = client.get("/api/detector/00000000-0000-0000-0000-000000000000/")
+    assert response.status_code == 404
+    assert "not found" in response.data["detail"].lower()
+
+
+@pytest.mark.django_db
+def test_get_detector_detail_unauthenticated():
+    """GET /detector/<id>/ - requires authentication"""
+    client = APIClient()
+    response = client.get("/api/detector/00000000-0000-0000-0000-000000000000/")
+    assert response.status_code in [401, 403]

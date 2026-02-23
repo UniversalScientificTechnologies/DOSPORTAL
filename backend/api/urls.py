@@ -15,6 +15,7 @@ urlpatterns = [
     path("measurement/add/", views.MeasurementsPost),
     path("record/", views.RecordGet),
     path("detector/", views.DetectorGet),
+    path("detector/<uuid:detector_id>/", views.DetectorDetail),
     path("detector/<uuid:detector_id>/qr/", views.DetectorQRCode),
     path("detector-manufacturer/", views.detector_manufacturer_list),
     path(

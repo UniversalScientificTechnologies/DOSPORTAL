@@ -3,17 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { theme } from '../theme'
 import { LabeledInput } from '../components/LabeledInput'
+import { useAuthContext } from '../context/AuthContext'
 import profileBg from '../assets/img/SPACEDOS01.jpg'
 
-export const CreateOrganizationPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const CreateOrganizationPage = () => {
+  const { API_BASE, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [dataPolicy, setDataPolicy] = useState('PU')
@@ -41,7 +35,7 @@ export const CreateOrganizationPage = ({
     }
 
     try {
-      const res = await fetch(`${apiBase}/organizations/`, {
+      const res = await fetch(`${API_BASE}/organizations/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,18 +68,6 @@ export const CreateOrganizationPage = ({
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to create organization.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   return (

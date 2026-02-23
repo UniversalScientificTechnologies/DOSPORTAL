@@ -22,3 +22,31 @@ export type LogbookItem = {
   longitude?: number
   location_text?: string
 }
+
+export type DetectorManufacturer = {
+  id: string
+  name: string
+  url?: string
+}
+
+export type DetectorType = {
+  id: string
+  name: string
+  manufacturer: DetectorManufacturer
+  url?: string
+  description?: string
+}
+
+export type Detector = {
+  id: string
+  name: string
+  sn: string
+  type: DetectorType
+  owner?: {
+    id: string
+    name: string
+    slug: string
+  }
+  manufactured_date?: string
+  data?: Record<string, unknown>
+}

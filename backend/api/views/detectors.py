@@ -24,20 +24,9 @@ from ..serializers import (
     DetectorLogbookSerializer,
 )
 from ..qr_utils import generate_qr_code, generate_qr_detector_with_label
+from ..permissions import check_org_admin_permission
 
 logger = logging.getLogger("api.detectors")
-
-
-def check_org_admin_permission(user, org):
-    """
-    Check if user is admin or owner of the organization.
-    Returns (has_permission: bool, org_user: OrganizationUser|None)
-    """
-    from DOSPORTAL.models import OrganizationUser
-
-    org_user = OrganizationUser.objects.filter(user=user, organization=org).first()
-    has_permission = org_user and org_user.user_type in ["OW", "AD"]
-    return has_permission, org_user
 
 
 @extend_schema(
@@ -201,6 +190,33 @@ def DetectorGet(request):
 
 
 @extend_schema(
+    responses={200: DetectorSerializer},
+    description="Get a single detector by ID",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="detector_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Detector ID",
+        )
+    ],
+)
+@api_view(["GET"])
+@permission_classes((IsAuthenticated,))
+def DetectorDetail(request, detector_id):
+    """Get a single detector by ID."""
+    try:
+        detector = Detector.objects.select_related("type__manufacturer", "owner").get(
+            id=detector_id
+        )
+    except Detector.DoesNotExist:
+        return Response({"detail": "Detector not found."}, status=status.HTTP_404_NOT_FOUND)
+    serializer = DetectorSerializer(detector)
+    return Response(serializer.data)
+
+
+@extend_schema(
     responses={200: DetectorLogbookSerializer(many=True)},
     description="Get detector logbook entries with optional filters by detector, type, or date range",
     tags=["Detectors"],
@@ -285,7 +301,7 @@ def DetectorLogbookPost(request):
                 )
         except Detector.DoesNotExist:
             return Response(
-                {"detail": "Detektor not found."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "Detector not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
     serializer = DetectorLogbookSerializer(data=request.data)

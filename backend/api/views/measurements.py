@@ -25,6 +25,7 @@ def MeasurementsPost(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
+    return Response(serializer.errors, status=400)
 
 
 @extend_schema(tags=["Measurements"])

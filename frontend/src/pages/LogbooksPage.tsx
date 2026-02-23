@@ -6,37 +6,19 @@ import { Section } from '../components/Section'
 import { CardGrid } from '../components/CardGrid'
 import { EmptyState } from '../components/EmptyState'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
+import type { Detector } from '../types'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
 
-interface Detector {
-  id: string
-  name: string
-  sn: string
-  type: {
-    name: string
-    manufacturer: {
-      name: string
-    }
-  }
-}
-
-export const LogbooksPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const LogbooksPage = () => {
+  const { API_BASE, getAuthHeader } = useAuthContext()
   const [detectors, setDetectors] = useState<Detector[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthed) return
     const fetchDetectors = async () => {
       try {
-        const res = await fetch(`${apiBase}/detector/`, {
+        const res = await fetch(`${API_BASE}/detector/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -51,19 +33,7 @@ export const LogbooksPage = ({
       }
     }
     fetchDetectors()
-  }, [apiBase, isAuthed])
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view logbooks.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+  }, [API_BASE, getAuthHeader])
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>

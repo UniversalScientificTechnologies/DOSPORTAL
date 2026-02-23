@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 
 export const useAuth = () => {
 	const { API_BASE, ORIGIN_BASE } = useMemo(() => {
@@ -97,9 +97,9 @@ export const useAuth = () => {
 	}
 
 	// Helper to get Authorization header for authenticated requests
-	const getAuthHeader = (): { Authorization?: string } => {
+	const getAuthHeader = useCallback((): { Authorization?: string } => {
 		return token ? { Authorization: `Token ${token}` } : {}
-	}
+	}, [token])
 
 	return {
 		API_BASE,
