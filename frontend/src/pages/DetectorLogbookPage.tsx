@@ -6,6 +6,7 @@ import { PageLayout } from '../components/PageLayout'
 import { theme } from '../theme'
 import type { LogbookItem } from '../types'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
+import { useAuthContext } from '../context/AuthContext'
 
 interface Detector {
   id: string
@@ -29,15 +30,8 @@ interface Detector {
   data?: any
 }
 
-export const DetectorLogbookPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const DetectorLogbookPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [detector, setDetector] = useState<Detector | null>(null)
@@ -46,14 +40,14 @@ export const DetectorLogbookPage = ({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!id || !isAuthed) return
+    if (!id) return
 
     const fetchDetectorAndLogbook = async () => {
       setLoading(true)
       setError(null)
       try {
         // Fetch detector details
-        const detectorRes = await fetch(`${apiBase}/detector/`, {
+        const detectorRes = await fetch(`${apiBase}/detector/${id}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -61,12 +55,7 @@ export const DetectorLogbookPage = ({
           },
         })
         if (!detectorRes.ok) throw new Error(`HTTP ${detectorRes.status}`)
-        const detectors = await detectorRes.json()
-        const foundDetector = detectors.find((d: Detector) => d.id === id)
-        
-        if (!foundDetector) {
-          throw new Error('Detector not found')
-        }
+        const foundDetector = await detectorRes.json()
         setDetector(foundDetector)
 
         // Fetch logbook entries
@@ -88,19 +77,7 @@ export const DetectorLogbookPage = ({
     }
 
     fetchDetectorAndLogbook()
-  }, [id, apiBase, isAuthed])
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view logbook.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+  }, [id, apiBase, getAuthHeader])
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { WidePageLayout } from '../components/WidePageLayout'
-import { PageLayout } from '../components/PageLayout'
 import { EmptyState } from '../components/EmptyState'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
 
 type SpectralRecord = {
   id: string
@@ -257,15 +257,8 @@ function ColHeaders({ sortField, sortDir, onSort, showCheckbox, allChecked, some
 
 // --- Main Page ---
 
-export const RecordSelectorPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const RecordSelectorPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
 
   const [allRecords, setAllRecords] = useState<SpectralRecord[]>([])
@@ -293,7 +286,6 @@ export const RecordSelectorPage = ({
   const [showUploadTooltip, setShowUploadTooltip] = useState(false)
 
   useEffect(() => {
-    if (!isAuthed) { setLoading(false); return }
     const fetch_ = async () => {
       try {
         const res = await fetch(`${apiBase}/spectral-record/?processing_status=completed`, {
@@ -309,7 +301,7 @@ export const RecordSelectorPage = ({
       }
     }
     fetch_()
-  }, [apiBase, isAuthed, getAuthHeader])
+  }, [apiBase, getAuthHeader])
 
   // Records visible on the left (all minus already selected)
   const selectedIds = new Set(selected.map((r) => r.id))
@@ -408,18 +400,6 @@ export const RecordSelectorPage = ({
 
   const handleContinue = () => {
     navigate('/measurement/create/details', { state: { selectedRecords: selected } })
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   return (

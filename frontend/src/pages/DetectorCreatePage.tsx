@@ -5,16 +5,10 @@ import { theme } from "../theme";
 import { LabeledInput } from "../components/LabeledInput";
 import logbookBg from "../assets/img/SPACEDOS01.jpg";
 import { DetectorTypeInfo } from "../components/DetectorTypeInfo";
+import { useAuthContext } from "../context/AuthContext";
 
-export const DetectorCreatePage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string;
-  isAuthed: boolean;
-  getAuthHeader: () => { Authorization?: string };
-}) => {
+export const DetectorCreatePage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext();
   const navigate = useNavigate();
   const [sn, setSn] = useState("");
   const [name, setName] = useState("");
@@ -27,8 +21,6 @@ export const DetectorCreatePage = ({
 
   // Fetch detector type info when type changes
   useEffect(() => {
-    if (!isAuthed) return; // waiting for creadentials
-
     if (!type) {
       setTypeInfo(null);
       return;
@@ -51,11 +43,9 @@ export const DetectorCreatePage = ({
     };
     fetchTypeInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, apiBase, isAuthed]);
+  }, [type, apiBase]);
 
   useEffect(() => {
-    if (!isAuthed) return; // waiting for creadentials
-
     // Fetch organizations where user is owner/admin
     const fetchOwnedOrgs = async () => {
       try {
@@ -110,7 +100,7 @@ export const DetectorCreatePage = ({
     fetchDetectorTypes();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, isAuthed]);
+  }, [apiBase, getAuthHeader]);
 
   const [selectedAccess, setSelectedAccess] = useState<
     { value: string; label: string }[]
@@ -159,26 +149,6 @@ export const DetectorCreatePage = ({
       setSubmitting(false);
     }
   };
-
-  if (!isAuthed) {
-    return (
-      <PageLayout
-        backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}
-      >
-        <div className="panel">
-          <div
-            style={{
-              color: theme.colors.danger,
-              padding: theme.spacing["3xl"],
-            }}
-          >
-            Login required to add detector.
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
-
 
   return (
     <PageLayout

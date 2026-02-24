@@ -2,30 +2,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { PageLayout } from '../components/PageLayout'
 import { Section } from '../components/Section'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
 
-export const AirportDetailPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const AirportDetailPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view airport details.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
 
   return (
     <PageLayout>

@@ -4,6 +4,7 @@ import { PageLayout } from '../components/PageLayout';
 import { FileDropzone } from '../components/FileDropzone';
 import { LabeledInput } from '../components/LabeledInput';
 import { theme } from '../theme';
+import { useAuthContext } from '../context/AuthContext';
 
 type Organization = {
   id: string;
@@ -17,15 +18,8 @@ type Detector = {
   sn: string;
 };
 
-export const LogsUploadPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string;
-  isAuthed: boolean;
-  getAuthHeader: () => { Authorization?: string };
-}) => {
+export const LogsUploadPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext();
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
@@ -39,7 +33,6 @@ export const LogsUploadPage = ({
   const [selectedDetector, setSelectedDetector] = useState<string>('');
 
   useEffect(() => {
-    if (!isAuthed) return;
     const headers = { 'Content-Type': 'application/json', ...getAuthHeader() };
     Promise.all([
       fetch(`${apiBase}/user/organizations/`, { headers }).then((r) => r.ok ? r.json() : []),
@@ -48,7 +41,7 @@ export const LogsUploadPage = ({
       setOrganizations(orgs);
       setDetectors(dets);
     });
-  }, [apiBase, isAuthed, getAuthHeader]);
+  }, [apiBase, getAuthHeader]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -139,16 +132,6 @@ export const LogsUploadPage = ({
   const handleCancel = () => {
     navigate('/files');
   };
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <p style={{ color: theme.colors.textSecondary }}>
-          Please log in to upload files.
-        </p>
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout>

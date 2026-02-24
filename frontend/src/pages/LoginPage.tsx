@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import loginBg from '../assets/img/login_background.jpg'
+import { useAuthContext } from '../context/AuthContext'
 
-export const LoginPage = ({
-  onLogin,
-}: {
-  originBase: string
-  onLogin: (username: string, password: string) => Promise<void>
-}) => {
+export const LoginPage = () => {
+  const { login } = useAuthContext()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle')
@@ -17,7 +14,7 @@ export const LoginPage = ({
     setStatus('loading')
     setError(null)
     try {
-      await onLogin(username, password)
+      await login(username, password)
       setStatus('success')
     } catch (err: any) {
       setStatus('error')

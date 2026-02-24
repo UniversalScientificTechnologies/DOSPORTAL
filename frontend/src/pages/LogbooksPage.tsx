@@ -10,6 +10,7 @@ import { SortableTable } from '../components/SortableTable'
 import type { TableColumn } from '../components/SortableTable'
 import { theme } from '../theme'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
+import { useAuthContext } from '../context/AuthContext'
 
 interface Detector {
   id: string
@@ -25,15 +26,8 @@ interface Detector {
 
 type ViewMode = 'cards' | 'table'
 
-export const LogbooksPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const LogbooksPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
   const [detectors, setDetectors] = useState<Detector[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -80,7 +74,6 @@ export const LogbooksPage = ({
   ]
 
   useEffect(() => {
-    if (!isAuthed) return
     const fetchDetectors = async () => {
       try {
         const res = await fetch(`${apiBase}/detector/`, {
@@ -99,19 +92,7 @@ export const LogbooksPage = ({
       }
     }
     fetchDetectors()
-  }, [apiBase, isAuthed, getAuthHeader])
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view logbooks.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+  }, [apiBase, getAuthHeader])
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>

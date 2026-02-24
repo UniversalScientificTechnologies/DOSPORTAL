@@ -4,6 +4,7 @@ import { PageLayout } from '../components/PageLayout'
 import { Section } from '../components/Section'
 import { FormField } from '../components/FormField'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
 
 type SpectralRecord = {
   id: string
@@ -31,15 +32,8 @@ const PROCESSING_STATUS_COLORS: Record<string, string> = {
   'failed': theme.colors.danger,
 }
 
-export const SpectralRecordStatusPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const SpectralRecordStatusPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [record, setRecord] = useState<SpectralRecord | null>(null)
@@ -47,7 +41,7 @@ export const SpectralRecordStatusPage = ({
   const [error, setError] = useState<string | null>(null)
 
   const fetchRecord = async () => {
-    if (!isAuthed || !id) return
+    if (!id) return
 
     try {
       const res = await fetch(`${apiBase}/spectral-record/${id}/`, {
@@ -99,7 +93,7 @@ export const SpectralRecordStatusPage = ({
 
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiBase, isAuthed, id, record?.processing_status])
+  }, [apiBase, getAuthHeader, id, record?.processing_status])
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A'
@@ -122,18 +116,6 @@ export const SpectralRecordStatusPage = ({
 
   const handleShowLog = () => {
     navigate(`/spectral-record/${id}`)
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view spectral record status.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   if (loading && !record) {

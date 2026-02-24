@@ -6,16 +6,10 @@ import { EmptyState } from '../components/EmptyState'
 import { FormField } from '../components/FormField'
 import { theme } from '../theme'
 import type { User } from '../types'
+import { useAuthContext } from '../context/AuthContext'
 
-export const UserDetailPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const UserDetailPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
@@ -23,7 +17,7 @@ export const UserDetailPage = ({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthed || !id) {
+    if (!id) {
       setLoading(false)
       return
     }
@@ -60,19 +54,7 @@ export const UserDetailPage = ({
     }
 
     fetchUser()
-  }, [apiBase, isAuthed, getAuthHeader, id])
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view user details.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+  }, [apiBase, getAuthHeader, id])
 
   if (loading) {
     return (

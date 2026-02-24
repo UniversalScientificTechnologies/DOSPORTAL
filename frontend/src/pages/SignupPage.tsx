@@ -2,20 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import loginBg from '../assets/img/login_background.jpg'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
 
-export const SignupPage = ({
-  onSignup,
-}: {
-  originBase: string
-  onSignup: (
-    username: string,
-    firstName: string,
-    lastName: string,
-    password: string,
-    passwordConfirm: string,
-    email: string,
-  ) => Promise<void>
-}) => {
+export const SignupPage = () => {
+  const { signup } = useAuthContext()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -31,7 +21,7 @@ export const SignupPage = ({
     setStatus('loading')
     setError(null)
     try {
-      await onSignup(username, firstName, lastName, password, passwordConfirm, email)
+      await signup(username, firstName, lastName, password, passwordConfirm, email)
       setStatus('success')
       navigate('/signup/success')
     } catch (err: any) {

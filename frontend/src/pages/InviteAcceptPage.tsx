@@ -2,20 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/PageLayout';
 import { theme } from '../theme';
+import { useAuthContext } from '../context/AuthContext';
 
-
-import { useAuth } from '../hooks/useAuth';
-
-export const InviteAcceptPage = ({
-  apiBase,
-  getAuthHeader,
-}: {
-  apiBase: string;
-  getAuthHeader: () => { Authorization?: string };
-}) => {
+export const InviteAcceptPage = () => {
+  const { API_BASE: apiBase, isAuthed, isLoading, getAuthHeader } = useAuthContext();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { isAuthed, isLoading } = useAuth();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);

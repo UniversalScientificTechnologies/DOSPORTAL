@@ -8,6 +8,7 @@ import { SortableTable } from '../components/SortableTable'
 import type { TableColumn } from '../components/SortableTable'
 import { theme } from '../theme'
 import type { Measurement } from '../types'
+import { useAuthContext } from '../context/AuthContext'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   D: 'Debug',
@@ -32,15 +33,8 @@ const formatDate = (dateStr?: string) => {
   }
 }
 
-export const MeasurementsPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const MeasurementsPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
   const [measurements, setMeasurements] = useState<Measurement[]>([])
   const [loading, setLoading] = useState(true)
@@ -100,11 +94,6 @@ export const MeasurementsPage = ({
   ]
 
   useEffect(() => {
-    if (!isAuthed) {
-      setLoading(false)
-      return
-    }
-    
     const fetchMeasurements = async () => {
       try {
         const res = await fetch(`${apiBase}/measurement/`, {
@@ -126,19 +115,7 @@ export const MeasurementsPage = ({
     }
     
     fetchMeasurements()
-  }, [apiBase, isAuthed, getAuthHeader])
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view measurements.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+  }, [apiBase, getAuthHeader])
 
   return (
     <PageLayout>

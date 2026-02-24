@@ -7,6 +7,7 @@ import { CardGrid } from '../components/CardGrid'
 import { EmptyState } from '../components/EmptyState'
 import { theme } from '../theme'
 import profileBg from '../assets/img/SPACEDOS01.jpg'
+import { useAuthContext } from '../context/AuthContext'
 
 interface UserProfile {
   id: number
@@ -35,16 +36,8 @@ interface Detector {
   }
 }
 
-export const ProfilePage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  originBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const ProfilePage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [detectors, setDetectors] = useState<Detector[]>([])
@@ -55,8 +48,6 @@ export const ProfilePage = ({
 
   // Fetch user profile and related data
   useEffect(() => {
-    if (!isAuthed) return
-
     const fetchData = async () => {
       try {
         // Fetch user profile
@@ -112,7 +103,7 @@ export const ProfilePage = ({
     }
 
     fetchData()
-  }, [apiBase, isAuthed])
+  }, [apiBase, getAuthHeader])
 
   const handleSaveField = async (field: 'email' | 'first_name' | 'last_name', value: string) => {
     setIsSaving(true)
@@ -159,18 +150,6 @@ export const ProfilePage = ({
     } finally {
       setIsSaving(false)
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view profile.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   if (!profile) {

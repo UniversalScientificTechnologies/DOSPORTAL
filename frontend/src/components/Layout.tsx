@@ -1,20 +1,20 @@
 import { type ReactNode } from 'react'
 import { Navbar } from './Navbar'
+import { useAuthContext } from '../context/AuthContext'
 
 interface LayoutProps {
 	children: ReactNode
-	isAuthed: boolean
-	onLogout: () => Promise<void>
 }
 
-export const Layout = ({ children, isAuthed, onLogout }: LayoutProps) => {
+export const Layout = ({ children }: LayoutProps) => {
+	const { isAuthed, logout } = useAuthContext()
 	const commit = import.meta.env.VITE_GIT_COMMIT || 'dev'
 	const branch = import.meta.env.VITE_GIT_BRANCH || 'unknown'
 	const short = commit && typeof commit === 'string' && commit.length > 7 ? commit.slice(0, 7) : commit
 	
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-			<Navbar isAuthed={isAuthed} onLogout={onLogout} />
+			<Navbar isAuthed={isAuthed} onLogout={logout} />
 			<main style={{ flex: 1 }}>
 				{children}
 			</main>

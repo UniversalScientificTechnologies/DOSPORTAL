@@ -7,6 +7,7 @@ import { FormField } from '../components/FormField'
 import { theme } from '../theme'
 import type { Measurement } from '../types'
 import ReactMarkdown from 'react-markdown'
+import { useAuthContext } from '../context/AuthContext'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   D: 'Debug measurement',
@@ -16,15 +17,8 @@ const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   A: 'Special airborne measurement',
 }
 
-export const MeasurementDetailPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const MeasurementDetailPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [measurement, setMeasurement] = useState<Measurement | null>(null)
@@ -32,7 +26,7 @@ export const MeasurementDetailPage = ({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthed || !id) {
+    if (!id) {
       setLoading(false)
       return
     }
@@ -74,7 +68,7 @@ export const MeasurementDetailPage = ({
     }
 
     fetchMeasurement()
-  }, [apiBase, isAuthed, getAuthHeader, id])
+  }, [apiBase, getAuthHeader, id])
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A'
@@ -89,18 +83,6 @@ export const MeasurementDetailPage = ({
     } catch {
       return dateStr
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view measurement details.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   if (loading) {

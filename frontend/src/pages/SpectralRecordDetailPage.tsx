@@ -7,6 +7,7 @@ import { FormField } from '../components/FormField'
 import { SpectralCharts } from '../components/SpectralCharts'
 import { theme } from '../theme'
 import ReactMarkdown from 'react-markdown'
+import { useAuthContext } from '../context/AuthContext'
 
 type FileData = {
   id: string
@@ -64,15 +65,8 @@ const ARTIFACT_TYPE_LABELS: Record<string, string> = {
   'spectral': 'Spectral Files (Parquet)',
 }
 
-export const SpectralRecordDetailPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const SpectralRecordDetailPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [record, setRecord] = useState<SpectralRecord | null>(null)
@@ -82,7 +76,7 @@ export const SpectralRecordDetailPage = ({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthed || !id) {
+    if (!id) {
       setLoading(false)
       return
     }
@@ -124,11 +118,11 @@ export const SpectralRecordDetailPage = ({
     }
 
     fetchRecord()
-  }, [apiBase, isAuthed, getAuthHeader, id])
+  }, [apiBase, getAuthHeader, id])
 
   // Fetch artifacts separately when record is loaded
   useEffect(() => {
-    if (!isAuthed || !id || !record || record.artifacts_count === 0) {
+    if (!id || !record || record.artifacts_count === 0) {
       return
     }
 
@@ -158,7 +152,7 @@ export const SpectralRecordDetailPage = ({
     }
 
     fetchArtifacts()
-  }, [apiBase, isAuthed, getAuthHeader, id, record])
+  }, [apiBase, getAuthHeader, id, record])
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A'
@@ -185,18 +179,6 @@ export const SpectralRecordDetailPage = ({
       unitIndex++
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view spectral record details.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   if (loading) {

@@ -6,6 +6,7 @@ import { SortableTable } from '../components/SortableTable'
 import type { TableColumn } from '../components/SortableTable'
 import { LabeledInput } from '../components/LabeledInput'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
 
 type SpectralRecord = {
   id: string
@@ -71,15 +72,8 @@ const buttonBase: React.CSSProperties = {
   cursor: 'pointer',
 }
 
-export const MeasurementCreatePage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const MeasurementCreatePage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
   const location = useLocation()
   const selectedRecords: SpectralRecord[] = location.state?.selectedRecords ?? []
@@ -96,7 +90,6 @@ export const MeasurementCreatePage = ({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthed) return
     fetch(`${apiBase}/user/organizations/owned/`, {
       headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
     })
@@ -105,7 +98,7 @@ export const MeasurementCreatePage = ({
         setOrgs(data.map((o) => ({ value: o.id, label: o.name })))
       )
       .catch(() => setOrgs([]))
-  }, [apiBase, isAuthed, getAuthHeader])
+  }, [apiBase, getAuthHeader])
 
   const columns: TableColumn<SpectralRecord>[] = [
     {
@@ -183,16 +176,6 @@ export const MeasurementCreatePage = ({
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>Login required.</div>
-        </div>
-      </PageLayout>
-    )
   }
 
   return (

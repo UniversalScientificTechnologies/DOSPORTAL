@@ -4,6 +4,7 @@ import { PageLayout } from '../components/PageLayout'
 import { LocationSearchMap } from '../components/LocationSearchMap'
 import { theme } from '../theme'
 import logbookBg from '../assets/img/SPACEDOS01.jpg'
+import { useAuthContext } from '../context/AuthContext'
 
 interface Detector {
   id: string
@@ -14,15 +15,8 @@ interface Detector {
   }
 }
 
-export const LogbookEntryPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const LogbookEntryPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const { id, entryId } = useParams<{ id: string; entryId?: string }>()
   const navigate = useNavigate()
   const [detector, setDetector] = useState<Detector | null>(null)
@@ -52,14 +46,14 @@ export const LogbookEntryPage = ({
   ]
 
   useEffect(() => {
-    if (!id || !isAuthed) return
+    if (!id) return
 
     const fetchData = async () => {
       setLoading(true)
       setError(null)
       try {
         // Fetch detector details
-        const detectorRes = await fetch(`${apiBase}/detector/`, {
+        const detectorRes = await fetch(`${apiBase}/detector/${id}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -67,12 +61,7 @@ export const LogbookEntryPage = ({
           },
         })
         if (!detectorRes.ok) throw new Error(`HTTP ${detectorRes.status}`)
-        const detectors = await detectorRes.json()
-        const foundDetector = detectors.find((d: Detector) => d.id === id)
-        
-        if (!foundDetector) {
-          throw new Error('Detector not found')
-        }
+        const foundDetector = await detectorRes.json()
         setDetector(foundDetector)
 
         // If in edit mode, fetch the logbook entry
@@ -108,7 +97,7 @@ export const LogbookEntryPage = ({
     }
 
     fetchData()
-  }, [id, entryId, isEditMode, apiBase, isAuthed])
+  }, [id, entryId, isEditMode, apiBase, getAuthHeader])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -179,18 +168,6 @@ export const LogbookEntryPage = ({
     } else {
       setError('Geolocation is not supported by your browser')
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${logbookBg})`}>
-        <div className="panel">theme.colors.danger, padding: theme.spacing['3xl']
-          <div style={{ color: '#dc3545', padding: '2rem' }}>
-            Login required to create logbook entry.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   return (

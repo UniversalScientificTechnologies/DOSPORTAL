@@ -7,6 +7,7 @@ import { CreateEntryButton } from '../components/CreateEntryButton'
 import { SortableTable } from '../components/SortableTable'
 import type { TableColumn } from '../components/SortableTable'
 import { theme } from '../theme'
+import { useAuthContext } from '../context/AuthContext'
 
 type SpectralRecord = {
   id: string
@@ -33,15 +34,8 @@ const PROCESSING_STATUS_COLORS: Record<string, string> = {
   'FAILED': theme.colors.danger,
 }
 
-export const LogsPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const LogsPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
   const [records, setRecords] = useState<SpectralRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -119,11 +113,6 @@ export const LogsPage = ({
   ]
 
   useEffect(() => {
-    if (!isAuthed) {
-      setLoading(false)
-      return
-    }
-    
     const fetchRecords = async () => {
       try {
         const res = await fetch(`${apiBase}/spectral-record/`, {
@@ -145,19 +134,7 @@ export const LogsPage = ({
     }
     
     fetchRecords()
-  }, [apiBase, isAuthed, getAuthHeader])
-
-  if (!isAuthed) {
-    return (
-      <PageLayout>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view spectral records.
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+  }, [apiBase, getAuthHeader])
 
   return (
     <PageLayout>

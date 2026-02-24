@@ -4,16 +4,10 @@ import { PageLayout } from '../components/PageLayout'
 import { theme } from '../theme'
 import { LabeledInput } from '../components/LabeledInput'
 import profileBg from '../assets/img/SPACEDOS01.jpg'
+import { useAuthContext } from '../context/AuthContext'
 
-export const CreateOrganizationPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string
-  isAuthed: boolean
-  getAuthHeader: () => { Authorization?: string }
-}) => {
+export const CreateOrganizationPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [dataPolicy, setDataPolicy] = useState('PU')
@@ -74,18 +68,6 @@ export const CreateOrganizationPage = ({
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to create organization.
-          </div>
-        </div>
-      </PageLayout>
-    )
   }
 
   return (

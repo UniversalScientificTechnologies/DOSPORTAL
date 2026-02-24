@@ -7,6 +7,7 @@ import { FormField } from '../components/FormField';
 import { AddOrganizationMemberPopup } from '../components/AddOrganizationMemberPopup';
 import { SortableTable } from '../components/SortableTable';
 import type { TableColumn } from '../components/SortableTable';
+import { useAuthContext } from '../context/AuthContext';
 
 type Member = {
   id: number;
@@ -32,15 +33,8 @@ type Detector = {
   } | null;
 };
 
-export const OrganizationDetailPage = ({
-  apiBase,
-  isAuthed,
-  getAuthHeader,
-}: {
-  apiBase: string;
-  isAuthed: boolean;
-  getAuthHeader: () => { Authorization?: string };
-}) => {
+export const OrganizationDetailPage = () => {
+  const { API_BASE: apiBase, getAuthHeader } = useAuthContext();
   const { id } = useParams();
   const navigate = useNavigate();
   const [org, setOrg] = useState<any>(null);
@@ -125,7 +119,6 @@ export const OrganizationDetailPage = ({
   };
 
   useEffect(() => {
-    if (!isAuthed) return;
     fetchOrg();
     
     // Fetch detectors for this organization
@@ -145,10 +138,9 @@ export const OrganizationDetailPage = ({
       }
     };
     fetchDetectors();
-  }, [id, apiBase, isAuthed, getAuthHeader, fetchOrg]);
+  }, [id, apiBase, getAuthHeader, fetchOrg]);
 
   useEffect(() => {
-    if (!isAuthed) return;
     fetch(`${apiBase}/user/organizations/`, {
       headers: { ...getAuthHeader() },
     })
@@ -158,7 +150,7 @@ export const OrganizationDetailPage = ({
       })
       .then(setUserOrgs)
       .catch(() => {});
-  }, [apiBase, isAuthed, getAuthHeader]);
+  }, [apiBase, getAuthHeader]);
 
 
 
@@ -228,18 +220,6 @@ export const OrganizationDetailPage = ({
       },
     },
   ];
-
-  if (!isAuthed) {
-    return (
-      <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
-        <div className="panel">
-          <div style={{ color: theme.colors.danger, padding: theme.spacing['3xl'] }}>
-            Login required to view organization.
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout backgroundImage={`linear-gradient(rgba(196, 196, 196, 0.5), rgba(255, 255, 255, 0)), url(${profileBg})`}>
