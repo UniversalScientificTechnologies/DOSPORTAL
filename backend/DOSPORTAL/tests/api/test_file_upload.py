@@ -85,7 +85,7 @@ class TestFileUploadAPI:
     def test_requires_authentication(self, api_client, organization):
         file_content = SimpleUploadedFile("test.txt", b"test", content_type="text/plain")
         response = api_client.post(
-            f'/api/organizations/{organization.id}/files/upload/',
+            '/api/files/',
             {'filename': 'test.txt', 'file': file_content, 'file_type': 'log'},
             format='multipart'
         )
@@ -96,8 +96,8 @@ class TestFileUploadAPI:
         file_content = SimpleUploadedFile("org_file.txt", b"org content", content_type="text/plain")
 
         response = api_client.post(
-            f'/api/organizations/{org_with_members.id}/files/upload/',
-            {'filename': 'org_file.txt', 'file': file_content, 'file_type': 'log'},
+            '/api/files/',
+            {'filename': 'org_file.txt', 'file': file_content, 'file_type': 'log', 'owner': str(org_with_members.id)},
             format='multipart'
         )
 
@@ -110,8 +110,8 @@ class TestFileUploadAPI:
         file_content = SimpleUploadedFile("admin_file.txt", b"admin", content_type="text/plain")
 
         response = api_client.post(
-            f'/api/organizations/{org_with_members.id}/files/upload/',
-            {'filename': 'admin_file.txt', 'file': file_content, 'file_type': 'document'},
+            '/api/files/',
+            {'filename': 'admin_file.txt', 'file': file_content, 'file_type': 'document', 'owner': str(org_with_members.id)},
             format='multipart'
         )
 
@@ -122,8 +122,8 @@ class TestFileUploadAPI:
         file_content = SimpleUploadedFile("member_file.txt", b"member", content_type="text/plain")
 
         response = api_client.post(
-            f'/api/organizations/{org_with_members.id}/files/upload/',
-            {'filename': 'member_file.txt', 'file': file_content, 'file_type': 'log'},
+            '/api/files/',
+            {'filename': 'member_file.txt', 'file': file_content, 'file_type': 'log', 'owner': str(org_with_members.id)},
             format='multipart'
         )
 
@@ -135,8 +135,8 @@ class TestFileUploadAPI:
         file_content = SimpleUploadedFile("outsider.txt", b"outsider", content_type="text/plain")
 
         response = api_client.post(
-            f'/api/organizations/{org_with_members.id}/files/upload/',
-            {'filename': 'outsider.txt', 'file': file_content, 'file_type': 'log'},
+            '/api/files/',
+            {'filename': 'outsider.txt', 'file': file_content, 'file_type': 'log', 'owner': str(org_with_members.id)},
             format='multipart'
         )
 
@@ -146,8 +146,8 @@ class TestFileUploadAPI:
         api_client.force_authenticate(user=owner_user)
 
         response = api_client.post(
-            f'/api/organizations/{org_with_members.id}/files/upload/',
-            {'filename': 'missing.txt', 'file_type': 'log'},
+            '/api/files/',
+            {'filename': 'missing.txt', 'file_type': 'log', 'owner': str(org_with_members.id)},
             format='multipart'
         )
 
@@ -164,8 +164,8 @@ class TestFileUploadAPI:
                 content_type="text/plain"
             )
             response = api_client.post(
-                f'/api/organizations/{org_with_members.id}/files/upload/',
-                {'filename': f'{file_type}.txt', 'file': file_content, 'file_type': file_type},
+                '/api/files/',
+                {'filename': f'{file_type}.txt', 'file': file_content, 'file_type': file_type, 'owner': str(org_with_members.id)},
                 format='multipart'
             )
             assert response.status_code == status.HTTP_201_CREATED

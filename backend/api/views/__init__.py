@@ -13,21 +13,7 @@ from .organizations import (
 )
 
 # Measurement views
-from .measurements import (
-    MeasurementsGet,
-    MeasurementsPost,
-    MeasurementDetail,
-    MeasurementCreate,
-    MeasurementSegmentCreate,
-)
-
 # File views
-from .files import (
-    FileList,
-    FileDetail,
-    FileUpload,
-)
-
 # Spectral views
 from .spectrals import (
     SpectralRecordList,
@@ -51,15 +37,7 @@ __all__ = [
     "UserOrganizations",
     "UserOrganizationsOwned",
     # Measurements
-    "MeasurementsGet",
-    "MeasurementsPost",
-    "MeasurementDetail",
-    "MeasurementCreate",
-    "MeasurementSegmentCreate",
     # Files
-    "FileList",
-    "FileDetail",
-    "FileUpload",
     # Spectrals
     "SpectralRecordList",
     "SpectralRecordCreate",

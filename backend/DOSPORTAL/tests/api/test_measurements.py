@@ -57,9 +57,9 @@ def test_measurements_filtered_by_organization_membership(api_client, user1, use
     
     # user1 should see m1 and m2 (from org1 and org2)
     api_client.force_authenticate(user=user1)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     measurement_ids = {m['id'] for m in data}
     assert str(m1.id) in measurement_ids
     assert str(m2.id) in measurement_ids
@@ -67,9 +67,9 @@ def test_measurements_filtered_by_organization_membership(api_client, user1, use
     
     # user2 should see only m3 (from org3)
     api_client.force_authenticate(user=user2)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     measurement_ids = {m['id'] for m in data}
     assert str(m1.id) not in measurement_ids
     assert str(m2.id) not in measurement_ids
@@ -90,18 +90,18 @@ def test_measurements_user_sees_own_authored(api_client, user1, user2, org1):
     
     # user2 should still see m1 because they are the author
     api_client.force_authenticate(user=user2)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     measurement_ids = {m['id'] for m in data}
     assert str(m1.id) in measurement_ids
     assert str(m2.id) not in measurement_ids
     
     # user1 should see both (member of org1)
     api_client.force_authenticate(user=user1)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     measurement_ids = {m['id'] for m in data}
     assert str(m1.id) in measurement_ids
     assert str(m2.id) in measurement_ids
@@ -122,9 +122,9 @@ def test_measurements_all_member_types_have_access(api_client, org1):
     # All three should see the measurement
     for user in [owner_user, admin_user, member_user]:
         api_client.force_authenticate(user=user)
-        response = api_client.get("/api/measurement/")
+        response = api_client.get("/api/measurements/")
         assert response.status_code == 200
-        data = response.json()
+        data = response.json()['results']
         measurement_ids = {m['id'] for m in data}
         assert str(m1.id) in measurement_ids
 
@@ -132,14 +132,14 @@ def test_measurements_all_member_types_have_access(api_client, org1):
 @pytest.mark.django_db
 def test_measurements_no_organizations(api_client, user1):
     api_client.force_authenticate(user=user1)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json()['results'] == []
 
 
 @pytest.mark.django_db
 def test_measurements_unauthenticated(api_client):
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 401
 
 
@@ -152,17 +152,17 @@ def test_measurements_without_owner(api_client, user1, user2):
     
     # user1 (author) should see it
     api_client.force_authenticate(user=user1)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     measurement_ids = {m['id'] for m in data}
     assert str(m1.id) in measurement_ids
     
     # user2 should not see it
     api_client.force_authenticate(user=user2)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     measurement_ids = {m['id'] for m in data}
     assert str(m1.id) not in measurement_ids
 
@@ -176,11 +176,10 @@ def test_measurements_ordered_by_most_recent(api_client, user1, org1):
     m3 = Measurement.objects.create(name="Measurement 3", author=user1, owner=org1)
     
     api_client.force_authenticate(user=user1)
-    response = api_client.get("/api/measurement/")
+    response = api_client.get("/api/measurements/")
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()['results']
     
-    # Should be ordered newest first (m3, m2, m1)
     assert len(data) == 3
     assert data[0]['id'] == str(m3.id)
     assert data[1]['id'] == str(m2.id)

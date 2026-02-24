@@ -6,6 +6,8 @@ from .detectors import (
     DetectorViewSet,
     DetectorLogbookViewSet,
 )
+from .measurements import MeasurementViewSet, MeasurementSegmentViewSet
+from .files import FileViewSet
 
 __all__ = [
     "OrganizationViewSet",
@@ -14,4 +16,7 @@ __all__ = [
     "DetectorTypeViewSet",
     "DetectorViewSet",
     "DetectorLogbookViewSet",
+    "MeasurementViewSet",
+    "MeasurementSegmentViewSet",
+    "FileViewSet",
 ]

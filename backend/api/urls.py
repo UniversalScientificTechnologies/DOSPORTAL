@@ -9,6 +9,9 @@ from .viewsets import (
     DetectorTypeViewSet,
     DetectorViewSet,
     DetectorLogbookViewSet,
+    MeasurementViewSet,
+    MeasurementSegmentViewSet,
+    FileViewSet,
 )
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -23,6 +26,9 @@ router.register(r"detector-manufacturers", DetectorManufacturerViewSet, basename
 router.register(r"detector-types", DetectorTypeViewSet, basename="detector-type")
 router.register(r"detectors", DetectorViewSet, basename="detector")
 router.register(r"logbook", DetectorLogbookViewSet, basename="logbook")
+router.register(r"measurements", MeasurementViewSet, basename="measurement")
+router.register(r"measurement-segments", MeasurementSegmentViewSet, basename="measurement-segment")
+router.register(r"files", FileViewSet, basename="file")
 
 urlpatterns = [
     # ViewSet routes (Organization, Detector*, LogBook)
@@ -34,12 +40,7 @@ urlpatterns = [
     path("signup/", views.Signup),
     path("logout/", views.Logout),
     # measurements
-    path("measurement/", views.MeasurementsGet),
-    path("measurement/add/", views.MeasurementsPost),
-    path("measurement/<uuid:measurement_id>/", views.MeasurementDetail),
     # File endpoints
-    path("file/", views.FileList),
-    path("file/<uuid:file_id>/", views.FileDetail),
     # Spectral Record endpoints
     path("spectral-record/", spectrals.SpectralRecordList),
     path("spectral-record/<uuid:record_id>/", spectrals.SpectralRecordDetail),
@@ -54,10 +55,7 @@ urlpatterns = [
     path("user/organizations/", views.UserOrganizations),
     path("user/organizations/owned/", views.UserOrganizationsOwned),
     # Org-scoped create endpoints (require org_id in URL)
-    path("organizations/<uuid:org_id>/files/upload/", views.FileUpload),
     path("organizations/<uuid:org_id>/spectral-records/", spectrals.SpectralRecordCreate),
-    path("organizations/<uuid:org_id>/measurements/", views.MeasurementCreate),
-    path("organizations/<uuid:org_id>/measurement-segments/", views.MeasurementSegmentCreate),
     # API documentation
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

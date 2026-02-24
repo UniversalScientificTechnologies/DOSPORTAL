@@ -1,7 +1,7 @@
 """Measurements relatedserializers."""
 
 from rest_framework import serializers
-from DOSPORTAL.models import Measurement, File, SpectrumData, MeasurementSegment
+from DOSPORTAL.models import Measurement, File, SpectrumData, MeasurementSegment, Organization
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
 from DOSPORTAL.models.flights import Flight, Airports
 from .organizations import OrganizationSummarySerializer, UserSummarySerializer
@@ -102,10 +102,18 @@ class MeasurementSegmentSerializer(serializers.ModelSerializer):
 
 
 class MeasurementCreateSerializer(serializers.ModelSerializer):
+    owner_id = serializers.PrimaryKeyRelatedField(
+        source="owner",
+        queryset=Organization.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = Measurement
         fields = (
-            'name', 'measurement_type', 'description', 'public',
-            'time_start', 'time_end',
-            'base_location_lat', 'base_location_lon', 'base_location_alt',
+            "name", "measurement_type", "description", "public",
+            "time_start", "time_end",
+            "base_location_lat", "base_location_lon", "base_location_alt",
+            "owner_id",
         )
