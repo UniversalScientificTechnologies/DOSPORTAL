@@ -9,10 +9,10 @@ import pandas as pd
 import numpy as np
 
 import logging
-from DOSPORTAL.models import File, OrganizationUser
+from DOSPORTAL.models import File, OrganizationUser, Organization
 from DOSPORTAL.models.detectors import Detector
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
-from .organizations import check_org_member_permission
+from ..permissions import IsOrganizationMember, IsOrganizationAdmin
 from ..serializers.organizations import UserSummarySerializer
 from ..serializers.measurements import FileSerializer
 
@@ -65,48 +65,29 @@ def SpectralRecordList(request):
         )
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def SpectralRecordCreate(request):
-    """Create a new SpectralRecord (triggers async processing)."""
+@permission_classes([IsAuthenticated, IsOrganizationAdmin])
+def SpectralRecordCreate(request, org_id):
+    """Create a new SpectralRecord in an organization (admin/owner only)."""
     try:
         data = request.data
-        
-        # Get raw file
+
         raw_file_id = data.get('raw_file_id')
         if not raw_file_id:
             return Response(
-                {'error': 'raw_file_id is required'}, 
+                {'error': 'raw_file_id is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         try:
             raw_file = File.objects.get(id=raw_file_id, file_type=File.FILE_TYPE_LOG)
         except File.DoesNotExist:
             return Response(
-                {'error': 'Raw file not found or not a log file'}, 
+                {'error': 'Raw file not found or not a log file'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
-        # Check if user wants to set explicit owner
-        owner_id = data.get('owner')
-        if owner_id:
-            # Check if user has permission to create records in this organization
-            org_user = OrganizationUser.objects.filter(
-                user=request.user,
-                organization_id=owner_id,
-                user_type__in=["OW", "AD"]
-            ).first()
-            
-            if not org_user:
-                return Response(
-                    {'error': 'You do not have permission to create records in this organization'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-            owner = org_user.organization
-        else:
-            # Use raw file's owner by default
-            owner = raw_file.owner
-        
+
+        owner = Organization.objects.get(id=org_id)  # guaranteed by permission check
+
         record = SpectralRecord.objects.create(
             name=data.get('name', 'Spectral Record'),
             raw_file=raw_file,
@@ -115,8 +96,7 @@ def SpectralRecordCreate(request):
             description=data.get('description', ''),
             processing_status=SpectralRecord.PROCESSING_PENDING
         )
-        
-        # Optionally attach a detector
+
         detector_id = data.get('detector')
         if detector_id:
             try:
@@ -125,27 +105,26 @@ def SpectralRecordCreate(request):
                 record.save(update_fields=['detector'])
             except Detector.DoesNotExist as e:
                 logger.info(f"detector was not attached to spectral record {str(record.id)}: {str(e)}")
-        
+
         return Response({
             'id': str(record.id),
             'name': record.name,
             'processing_status': record.processing_status,
             'message': 'SpectralRecord created, async processing scheduled'
         }, status=status.HTTP_201_CREATED)
-        
+
     except Exception as e:
         logger.exception(f'Failed to create spectral record: {str(e)}')
         return Response(
-            {'error': 'Failed to create spectral record.'}, 
+            {'error': 'Failed to create spectral record.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-def check_spectral_record_permission(user, record):
-    """Check if user has access to spectral record."""
+def _user_can_access_spectral_record(user, record):
+    """Check if user has access to a spectral record (author or org member)."""
     if not record.owner:
-        return user == record.author, None
-    else:
-        return check_org_member_permission(user, record.owner)
+        return user == record.author
+    return IsOrganizationMember.user_is_member(user, record.owner)
 
 
 @api_view(['GET'])
@@ -161,8 +140,7 @@ def SpectralRecordDetail(request, record_id):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        has_permission, _ = check_spectral_record_permission(request.user, record)
-        if not has_permission:
+        if not _user_can_access_spectral_record(request.user, record):
             return Response(
                 {'error': 'You do not have permission to access this record'},
                 status=status.HTTP_403_FORBIDDEN
@@ -213,8 +191,7 @@ def SpectralRecordArtifactList(request):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        has_permission, _ = check_spectral_record_permission(request.user, record)
-        if not has_permission:
+        if not _user_can_access_spectral_record(request.user, record):
             return Response(
                 {'error': 'You do not have permission to access this record'},
                 status=status.HTTP_403_FORBIDDEN
@@ -293,8 +270,7 @@ def SpectralRecordEvolution(request, record_id):
         except SpectralRecord.DoesNotExist:
             return Response({'error': 'SpectralRecord not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        has_permission, _ = check_spectral_record_permission(request.user, record)
-        if not has_permission:
+        if not _user_can_access_spectral_record(request.user, record):
             return Response({'error': 'You do not have permission to access this record'}, status=status.HTTP_403_FORBIDDEN)
 
         df, err = _load_spectral_parquet(record)
@@ -339,8 +315,7 @@ def SpectralRecordSpectrum(request, record_id):
         except SpectralRecord.DoesNotExist:
             return Response({'error': 'SpectralRecord not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        has_permission, _ = check_spectral_record_permission(request.user, record)
-        if not has_permission:
+        if not _user_can_access_spectral_record(request.user, record):
             return Response({'error': 'You do not have permission to access this record'}, status=status.HTTP_403_FORBIDDEN)
 
         df, err = _load_spectral_parquet(record)

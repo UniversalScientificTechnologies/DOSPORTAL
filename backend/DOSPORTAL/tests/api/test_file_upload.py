@@ -82,49 +82,25 @@ def org_with_members(db, organization, owner_user, admin_user, member_user):
 @pytest.mark.django_db
 class TestFileUploadAPI:
     
-    def test_requires_authentication(self, api_client):
+    def test_requires_authentication(self, api_client, organization):
         file_content = SimpleUploadedFile("test.txt", b"test", content_type="text/plain")
         response = api_client.post(
-            '/api/file/upload/',
+            f'/api/organizations/{organization.id}/files/upload/',
             {'filename': 'test.txt', 'file': file_content, 'file_type': 'log'},
             format='multipart'
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
-    def test_upload_without_organization(self, api_client, owner_user):
-        api_client.force_authenticate(user=owner_user)
-        file_content = SimpleUploadedFile("test.txt", b"test content", content_type="text/plain")
-        
-        response = api_client.post(
-            '/api/file/upload/',
-            {'filename': 'test.txt', 'file': file_content, 'file_type': 'log'},
-            format='multipart'
-        )
-        
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['filename'] == 'test.txt'
-        assert response.data['file_type'] == 'log'
-        assert response.data['size'] > 0
-        
-        file_obj = File.objects.get(id=response.data['id'])
-        assert file_obj.author == owner_user
-        assert file_obj.owner is None
-    
     def test_owner_can_upload_to_organization(self, api_client, owner_user, org_with_members):
         api_client.force_authenticate(user=owner_user)
         file_content = SimpleUploadedFile("org_file.txt", b"org content", content_type="text/plain")
-        
+
         response = api_client.post(
-            '/api/file/upload/',
-            {
-                'filename': 'org_file.txt',
-                'file': file_content,
-                'file_type': 'log',
-                'owner': str(org_with_members.id)
-            },
+            f'/api/organizations/{org_with_members.id}/files/upload/',
+            {'filename': 'org_file.txt', 'file': file_content, 'file_type': 'log'},
             format='multipart'
         )
-        
+
         assert response.status_code == status.HTTP_201_CREATED
         file_obj = File.objects.get(id=response.data['id'])
         assert file_obj.owner == org_with_members
@@ -132,70 +108,55 @@ class TestFileUploadAPI:
     def test_admin_can_upload_to_organization(self, api_client, admin_user, org_with_members):
         api_client.force_authenticate(user=admin_user)
         file_content = SimpleUploadedFile("admin_file.txt", b"admin", content_type="text/plain")
-        
+
         response = api_client.post(
-            '/api/file/upload/',
-            {
-                'filename': 'admin_file.txt',
-                'file': file_content,
-                'file_type': 'document',
-                'owner': str(org_with_members.id)
-            },
+            f'/api/organizations/{org_with_members.id}/files/upload/',
+            {'filename': 'admin_file.txt', 'file': file_content, 'file_type': 'document'},
             format='multipart'
         )
-        
+
         assert response.status_code == status.HTTP_201_CREATED
     
     def test_member_cannot_upload_to_organization(self, api_client, member_user, org_with_members):
         api_client.force_authenticate(user=member_user)
         file_content = SimpleUploadedFile("member_file.txt", b"member", content_type="text/plain")
-        
+
         response = api_client.post(
-            '/api/file/upload/',
-            {
-                'filename': 'member_file.txt',
-                'file': file_content,
-                'file_type': 'log',
-                'owner': str(org_with_members.id)
-            },
+            f'/api/organizations/{org_with_members.id}/files/upload/',
+            {'filename': 'member_file.txt', 'file': file_content, 'file_type': 'log'},
             format='multipart'
         )
-        
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert 'permission' in response.data['error'].lower()
+        assert 'permission' in response.data['detail'].lower()
     
     def test_outsider_cannot_upload_to_organization(self, api_client, outsider_user, org_with_members):
         api_client.force_authenticate(user=outsider_user)
         file_content = SimpleUploadedFile("outsider.txt", b"outsider", content_type="text/plain")
-        
+
         response = api_client.post(
-            '/api/file/upload/',
-            {
-                'filename': 'outsider.txt',
-                'file': file_content,
-                'file_type': 'log',
-                'owner': str(org_with_members.id)
-            },
+            f'/api/organizations/{org_with_members.id}/files/upload/',
+            {'filename': 'outsider.txt', 'file': file_content, 'file_type': 'log'},
             format='multipart'
         )
-        
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
     
-    def test_missing_file(self, api_client, owner_user):
+    def test_missing_file(self, api_client, owner_user, org_with_members):
         api_client.force_authenticate(user=owner_user)
-        
+
         response = api_client.post(
-            '/api/file/upload/',
+            f'/api/organizations/{org_with_members.id}/files/upload/',
             {'filename': 'missing.txt', 'file_type': 'log'},
             format='multipart'
         )
-        
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'no file' in response.data['error'].lower()
     
-    def test_multiple_file_types(self, api_client, owner_user):
+    def test_multiple_file_types(self, api_client, owner_user, org_with_members):
         api_client.force_authenticate(user=owner_user)
-        
+
         for file_type in ['log', 'trajectory', 'document']:
             file_content = SimpleUploadedFile(
                 f"{file_type}.txt",
@@ -203,7 +164,7 @@ class TestFileUploadAPI:
                 content_type="text/plain"
             )
             response = api_client.post(
-                '/api/file/upload/',
+                f'/api/organizations/{org_with_members.id}/files/upload/',
                 {'filename': f'{file_type}.txt', 'file': file_content, 'file_type': file_type},
                 format='multipart'
             )

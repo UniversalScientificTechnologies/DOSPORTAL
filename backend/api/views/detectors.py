@@ -24,20 +24,9 @@ from ..serializers import (
     DetectorLogbookSerializer,
 )
 from ..qr_utils import generate_qr_code, generate_qr_detector_with_label
+from ..permissions import IsOrganizationAdmin
 
 logger = logging.getLogger("api.detectors")
-
-
-def check_org_admin_permission(user, org):
-    """
-    Check if user is admin or owner of the organization.
-    Returns (has_permission: bool, org_user: OrganizationUser|None)
-    """
-    from DOSPORTAL.models import OrganizationUser
-
-    org_user = OrganizationUser.objects.filter(user=user, organization=org).first()
-    has_permission = org_user and org_user.user_type in ["OW", "AD"]
-    return has_permission, org_user
 
 
 @extend_schema(
@@ -138,72 +127,53 @@ def DetectorTypeDetail(request, type_id):
 
 @extend_schema(
     responses={200: DetectorSerializer(many=True)},
-    request=DetectorSerializer,
-    description="Get all detectors or create a new detector",
+    description="Get all detectors",
     tags=["Detectors"],
 )
-@api_view(["GET", "POST"])
-@permission_classes((IsAuthenticated,))
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def DetectorGet(request):
-    logger.info(
-        "DetectorGet user=%s auth=%s header=%s",
-        request.user,
-        request.auth,
-        "present" if request.headers.get("Authorization") else "missing",
-    )
-    if request.method == "GET":
-        items = Detector.objects.select_related("type__manufacturer", "owner").all()
-        
-        # Filter by owner organization if provided
-        owner_id = request.GET.get('owner')
-        if owner_id:
-            items = items.filter(owner_id=owner_id)
-        
-        serializer = DetectorSerializer(items, many=True)
-        return Response(serializer.data)
-    elif request.method == "POST":
-        data = request.data.copy()
-        owner_id = data.get("owner")
-        if not owner_id:
-            return Response(
-                {"detail": "Owner organization is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        try:
-            org = Organization.objects.get(id=owner_id)
-        except Organization.DoesNotExist:
-            return Response(
-                {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-        has_permission, _ = check_org_admin_permission(request.user, org)
-        if not has_permission:
-            return Response(
-                {
-                    "detail": "You do not have permission to add detectors to this organization."
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+    items = Detector.objects.select_related("type__manufacturer", "owner").all()
 
-        # Ensure owner is in access
-        access_ids = set()
-        if "access" in data and isinstance(data["access"], list):
-            access_ids = set(str(a) for a in data["access"])
-        owner_id_str = str(owner_id)
-        access_ids.add(owner_id_str)
-        data["access"] = list(access_ids)
+    owner_id = request.GET.get('owner')
+    if owner_id:
+        items = items.filter(owner_id=owner_id)
 
-        serializer = DetectorSerializer(data=data)
-        if serializer.is_valid():
-            detector = serializer.save(owner=org)
-            return Response(
-                DetectorSerializer(detector).data, status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response(
-            {"detail": "Method not allowed."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+    serializer = DetectorSerializer(items, many=True)
+    return Response(serializer.data)
+
+
+@extend_schema(
+    request=DetectorSerializer,
+    responses={201: DetectorSerializer},
+    description="Create a new detector in an organization (admin/owner only)",
+    tags=["Detectors"],
+    parameters=[
+        OpenApiParameter(
+            name="org_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Organization ID",
         )
+    ],
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsOrganizationAdmin])
+def DetectorCreate(request, org_id):
+    org = Organization.objects.get(id=org_id)  # guaranteed by permission check
+    data = request.data.copy()
+
+    # Ensure owner is set and is in access list
+    data["owner"] = str(org_id)
+    access_ids = set(str(a) for a in data.get("access", []))
+    access_ids.add(str(org_id))
+    data["access"] = list(access_ids)
+
+    serializer = DetectorSerializer(data=data)
+    if serializer.is_valid():
+        detector = serializer.save(owner=org)
+        return Response(DetectorSerializer(detector).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(

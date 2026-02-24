@@ -8,24 +8,19 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 
-from DOSPORTAL.models import File, OrganizationUser
+from DOSPORTAL.models import File, OrganizationUser, Organization
 from ..serializers import FileSerializer, FileUploadSerializer
-from .organizations import check_org_member_permission
+from ..permissions import IsOrganizationMember, IsOrganizationAdmin
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def check_org_member_permission_file(user, file_obj):
-    """
-    Check if user has permission of member (or higher).
-    Returns (has_permission: bool, org_user: OrganizationUser|None)
-    """
+def _user_can_access_file(user, file_obj):
+    """Check if user can access a file (author or org member)."""
     if not file_obj.owner:
-        # Files without organization can be accessed by uploader only
-        return user == file_obj.author, None
-    else:
-        return check_org_member_permission(user, file_obj.owner)
+        return user == file_obj.author
+    return IsOrganizationMember.user_is_member(user, file_obj.owner)
 
 
 @extend_schema(
@@ -112,8 +107,7 @@ def FileDetail(request, file_id):
         )
     
     # Check permission
-    has_permission, _ = check_org_member_permission_file(request.user, file_obj)
-    if not has_permission:
+    if not _user_can_access_file(request.user, file_obj):
         return Response(
             {'error': 'You do not have permission to access this file'},
             status=status.HTTP_403_FORBIDDEN
@@ -126,53 +120,44 @@ def FileDetail(request, file_id):
 @extend_schema(
     request=FileUploadSerializer,
     responses={201: FileSerializer},
-    description="Upload a new file",
+    description="Upload a new file to an organization (admin/owner only)",
     tags=["Files"],
+    parameters=[
+        OpenApiParameter(
+            name="org_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="Organization ID",
+        )
+    ],
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def FileUpload(request):
+@permission_classes([IsAuthenticated, IsOrganizationAdmin])
+def FileUpload(request, org_id):
     """
     Upload a file and create File record.
     User must be owner or admin of the target organization.
     """
     try:
-        # Validate file presence
         if 'file' not in request.FILES:
             return Response(
-                {'error': 'No file was submitted'}, 
+                {'error': 'No file was submitted'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Check organization permission if owner is specified
-        owner_id = request.data.get('owner')
-        if owner_id:
-            org_user = OrganizationUser.objects.filter(
-                user=request.user,
-                organization_id=owner_id,
-                user_type__in=["OW", "AD"]
-            ).first()
-            
-            if not org_user:
-                return Response(
-                    {'error': 'You do not have permission to upload files to this organization'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-        
+
+        org = Organization.objects.get(id=org_id)  # guaranteed by permission check
+
         data = {
             'filename': request.data.get('filename'),
             'file_type': request.data.get('file_type', 'log'),
             'metadata': request.data.get('metadata', {}),
-            'file': request.FILES['file'],  # Add file directly for validation
+            'file': request.FILES['file'],
+            'owner': str(org_id),
         }
-        
-        # Add owner if provided
-        if owner_id:
-            data['owner'] = owner_id
-        
+
         serializer = FileUploadSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            file_obj = serializer.save(author=request.user)
+            file_obj = serializer.save(author=request.user, owner=org)
             return Response({
                 'id': str(file_obj.id),
                 'filename': file_obj.filename,
@@ -180,12 +165,12 @@ def FileUpload(request):
                 'size': file_obj.size,
                 'created_at': file_obj.created_at.isoformat(),
             }, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
     except Exception as e:
         logger.exception(f"File upload failed: {str(e)}")
         return Response(
-            {'error': 'Upload failed.'}, 
+            {'error': 'Upload failed.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

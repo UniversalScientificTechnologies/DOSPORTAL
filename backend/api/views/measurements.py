@@ -6,10 +6,11 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 
-from DOSPORTAL.models import Measurement, MeasurementSegment
+from DOSPORTAL.models import Measurement, MeasurementSegment, Organization
 from ..serializers import MeasurementsSerializer
 from ..serializers.measurements import MeasurementCreateSerializer, MeasurementSegmentSerializer
-from .organizations import get_user_organizations, check_org_member_permission
+from .organizations import get_user_organizations
+from ..permissions import IsOrganizationMember
 
 
 @extend_schema(
@@ -76,11 +77,9 @@ def MeasurementDetail(request, measurement_id):
         serializer = MeasurementsSerializer(measurement)
         return Response(serializer.data)
     
-    if measurement.owner:
-        has_permission, _ = check_org_member_permission(request.user, measurement.owner)
-        if has_permission:
-            serializer = MeasurementsSerializer(measurement)
-            return Response(serializer.data)
+    if measurement.owner and IsOrganizationMember.user_is_member(request.user, measurement.owner):
+        serializer = MeasurementsSerializer(measurement)
+        return Response(serializer.data)
     
     return Response(
         {'error': 'You do not have permission to access this measurement'},
@@ -90,26 +89,28 @@ def MeasurementDetail(request, measurement_id):
 
 @extend_schema(tags=["Measurements"])
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def MeasurementCreate(request):
+@permission_classes([IsAuthenticated, IsOrganizationMember])
+def MeasurementCreate(request, org_id):
     serializer = MeasurementCreateSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    measurement = serializer.save(author=request.user)
+    owner = Organization.objects.get(id=org_id)  # guaranteed by permission check
+    measurement = serializer.save(author=request.user, owner=owner)
     return Response(MeasurementsSerializer(measurement).data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(tags=["Measurements"])
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def MeasurementSegmentCreate(request):
+@permission_classes([IsAuthenticated, IsOrganizationMember])
+def MeasurementSegmentCreate(request, org_id):
     serializer = MeasurementSegmentSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     measurement = serializer.validated_data['measurement']
-    if measurement.author != request.user:
-        has_perm, _ = check_org_member_permission(request.user, measurement.owner) if measurement.owner else (False, None)
-        if not has_perm:
-            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+    if not measurement.owner or str(measurement.owner_id) != str(org_id):
+        return Response(
+            {'error': 'Measurement does not belong to this organization'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     segment = serializer.save()
     return Response(MeasurementSegmentSerializer(segment).data, status=status.HTTP_201_CREATED)

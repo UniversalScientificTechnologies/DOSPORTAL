@@ -8,6 +8,7 @@ from .detectors import (
     DetectorTypeList,
     DetectorTypeDetail,
     DetectorGet,
+    DetectorCreate,
     DetectorLogbookGet,
     DetectorLogbookPost,
     DetectorLogbookPut,
@@ -18,7 +19,7 @@ from .detectors import (
 from .organizations import (
     Organizations,
     OrganizationDetail,
-    OrganizationMember,
+    OrganizationMemberView,
     UserDetail,
     UserProfile,
     UserOrganizations,

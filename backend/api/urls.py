@@ -16,16 +16,12 @@ urlpatterns = [
     # measurements
     path("measurement/", views.MeasurementsGet),
     path("measurement/add/", views.MeasurementsPost),
-    path("measurement/create/", views.MeasurementCreate),
     path("measurement/<uuid:measurement_id>/", views.MeasurementDetail),
-    path("measurement-segment/", views.MeasurementSegmentCreate),
     # File endpoints
     path("file/", views.FileList),
     path("file/<uuid:file_id>/", views.FileDetail),
-    path("file/upload/", views.FileUpload),
     # Spectral Record endpoints
     path("spectral-record/", spectrals.SpectralRecordList),
-    path("spectral-record/create/", spectrals.SpectralRecordCreate),
     path("spectral-record/<uuid:record_id>/", spectrals.SpectralRecordDetail),
     path("spectral-record/<uuid:record_id>/evolution/", spectrals.SpectralRecordEvolution),
     path("spectral-record/<uuid:record_id>/spectrum/", spectrals.SpectralRecordSpectrum),
@@ -51,8 +47,13 @@ urlpatterns = [
     path("user/organizations/owned/", views.UserOrganizationsOwned),
     path("organizations/", views.Organizations),
     path("organizations/<uuid:org_id>/", views.OrganizationDetail),
-    path("organizations/<uuid:org_id>/member/", views.OrganizationMember),
+    path("organizations/<uuid:org_id>/member/", views.OrganizationMemberView.as_view()),
     path("organizations/<uuid:org_id>/invites/", views.CreateOrganizationInvite),
+    path("organizations/<uuid:org_id>/detectors/", views.DetectorCreate),
+    path("organizations/<uuid:org_id>/files/upload/", views.FileUpload),
+    path("organizations/<uuid:org_id>/spectral-records/", spectrals.SpectralRecordCreate),
+    path("organizations/<uuid:org_id>/measurements/", views.MeasurementCreate),
+    path("organizations/<uuid:org_id>/measurement-segments/", views.MeasurementSegmentCreate),
     path("invites/<str:token>/accept/", views.AcceptOrganizationInvite),
     path("invites/<str:token>/", views.GetOrganizationInviteDetails),
     # API documentation

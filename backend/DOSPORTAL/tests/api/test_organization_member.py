@@ -227,19 +227,16 @@ class OrganizationMemberTests(TestCase):
         self.client.force_authenticate(user=self.owner_user)
         fake_url = "/api/organizations/00000000-0000-0000-0000-000000000000/member/"
 
-        # Try to add
         response = self.client.post(
             fake_url, {"username": "newuser", "user_type": "ME"}
         )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Try to update
         response = self.client.put(fake_url, {"username": "member", "user_type": "AD"})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Try to delete
         response = self.client.delete(fake_url, {"username": "member"})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_missing_username_parameter(self):
         """Request without username should fail."""
