@@ -33,7 +33,13 @@ def SpectralRecordList(request):
         ) | SpectralRecord.objects.filter(author=request.user)
         
         queryset = queryset.select_related('raw_file', 'author', 'owner').distinct()
-        
+
+        processing_status = request.GET.get('processing_status')
+        if processing_status:
+            queryset = queryset.filter(processing_status=processing_status.lower())
+
+        print(f"processing_status {processing_status}")
+
         data = []
         for record in queryset:
             data.append({
@@ -44,7 +50,9 @@ def SpectralRecordList(request):
                 'author': record.author.username if record.author else None,
                 'owner': record.owner.name if record.owner else None,
                 'raw_file_id': str(record.raw_file.id) if record.raw_file else None,
-                'artifacts_count': record.artifacts.count()
+                'artifacts_count': record.artifacts.count(),
+                'time_start': record.time_start.isoformat() if record.time_start else None,
+                'record_duration': record.record_duration.total_seconds() if record.record_duration else None,
             })
         
         return Response(data)

@@ -16,7 +16,9 @@ urlpatterns = [
     # measurements
     path("measurement/", views.MeasurementsGet),
     path("measurement/add/", views.MeasurementsPost),
+    path("measurement/create/", views.MeasurementCreate),
     path("measurement/<uuid:measurement_id>/", views.MeasurementDetail),
+    path("measurement-segment/", views.MeasurementSegmentCreate),
     # File endpoints
     path("file/", views.FileList),
     path("file/<uuid:file_id>/", views.FileDetail),

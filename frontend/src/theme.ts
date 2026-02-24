@@ -33,6 +33,7 @@ export const theme = {
     warningBorder: '#fde047',
 
     infoBg: '#f0f9ff',
+    infoBgGreen: '#f0fdf4',
     infoBorder: '#bfdbfe',
   },
   

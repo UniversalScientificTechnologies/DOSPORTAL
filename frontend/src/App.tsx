@@ -22,6 +22,8 @@ import { SpectralRecordStatusPage } from './pages/SpectralRecordStatusPage';
 import { SpectralRecordDetailPage } from './pages/SpectralRecordDetailPage';
 import { AirportDetailPage } from './pages/AirportDetailPage';
 import { UserDetailPage } from './pages/UserDetailPage';
+import { RecordSelectorPage } from './pages/RecordSelectorPage';
+import { MeasurementCreatePage } from './pages/MeasurementCreatePage';
 
 function App() {
   const { API_BASE, ORIGIN_BASE, isAuthed, login, signup, logout, getAuthHeader } = useAuth()
@@ -52,6 +54,8 @@ function App() {
           <Route path="/invite/:token" element={<InviteAcceptPage apiBase={API_BASE} getAuthHeader={getAuthHeader} />} />
           <Route path="/logs/upload" element={<LogsUploadPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/measurements" element={<MeasurementsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/measurement/create" element={<RecordSelectorPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
+          <Route path="/measurement/create/details" element={<MeasurementCreatePage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/measurement/:id" element={<MeasurementDetailPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/logs" element={<LogsPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />
           <Route path="/spectral-record-status/:id" element={<SpectralRecordStatusPage apiBase={API_BASE} isAuthed={isAuthed} getAuthHeader={getAuthHeader} />} />

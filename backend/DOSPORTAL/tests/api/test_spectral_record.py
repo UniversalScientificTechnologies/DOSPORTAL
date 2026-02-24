@@ -228,7 +228,7 @@ class TestSpectralRecordListEndpoint:
         statuses = [item['processing_status'] for item in response.data]
         assert SpectralRecord.PROCESSING_PENDING in statuses
         assert SpectralRecord.PROCESSING_COMPLETED in statuses
-    
+
     def test_owner_field_returns_spectral_record_owner_name(self, api_client, user_with_org, organization, sample_candy_log):
         from django.utils import timezone
         

@@ -147,14 +147,6 @@ class Measurement(UUIDMixin):
     def user_directory_path(instance, filename):
         return "data/user_records/{0}/{1}".format(instance.user.id, filename)
 
-    records = models.ManyToManyField(
-        SpectralRecord,
-        related_name='measurements',
-        blank=True,
-        verbose_name=_('Spectral records'),
-        help_text=_('Spectral records associated with this measurement.'),
-    )
-
     files = models.ManyToManyField(
         File,
         related_name='measurements',
@@ -181,7 +173,46 @@ class Measurement(UUIDMixin):
         help_text=_('Measurement campaigns this measurement belongs to.'),
     )
 
-    
+
+class MeasurementSegment(UUIDMixin):
+    """
+    A segment represents a (part of a) SpectralRecord within a Measurement.
+    A measurement can consist of multiple records or record parts sliced by time.
+    """
+
+    measurement = models.ForeignKey(
+        Measurement,
+        on_delete=models.CASCADE,
+        related_name='segments',
+        verbose_name=_('Measurement'),
+    )
+
+    spectral_record = models.ForeignKey(
+        SpectralRecord,
+        on_delete=models.CASCADE,
+        related_name='segments',
+        verbose_name=_('Spectral record'),
+    )
+
+    time_from = models.DateTimeField(
+        verbose_name=_('Segment start time'),
+        null=True,
+        blank=True,
+    )
+
+    time_to = models.DateTimeField(
+        verbose_name=_('Segment end time'),
+        null=True,
+        blank=True,
+    )
+
+    position = models.IntegerField(
+        verbose_name=_('Position / order within measurement'),
+        default=0,
+    )
+
+    def __str__(self):
+        return f"Segment {self.position} of {self.measurement} — {self.spectral_record}"
 
 
 class Trajectory(UUIDMixin):

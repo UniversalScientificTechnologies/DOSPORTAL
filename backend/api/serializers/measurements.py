@@ -1,7 +1,7 @@
 """Measurements relatedserializers."""
 
 from rest_framework import serializers
-from DOSPORTAL.models import Measurement, File, SpectrumData
+from DOSPORTAL.models import Measurement, File, SpectrumData, MeasurementSegment
 from DOSPORTAL.models.spectrals import SpectralRecord, SpectralRecordArtifact
 from DOSPORTAL.models.flights import Flight, Airports
 from .organizations import OrganizationSummarySerializer, UserSummarySerializer
@@ -92,3 +92,29 @@ class SpectralRecordCreateSerializer(serializers.ModelSerializer):
         if value and value.file_type != File.FILE_TYPE_LOG:
             raise serializers.ValidationError("Raw file must be of type 'log'")
         return value
+
+
+class MeasurementSegmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MeasurementSegment
+        fields = ('id', 'measurement', 'spectral_record', 'time_from', 'time_to', 'position')
+        read_only_fields = ('id',)
+
+
+class MeasurementCreateSerializer(serializers.ModelSerializer):
+    owner_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+
+    class Meta:
+        model = Measurement
+        fields = (
+            'name', 'measurement_type', 'description', 'public',
+            'time_start', 'time_end',
+            'base_location_lat', 'base_location_lon', 'base_location_alt',
+            'owner_id',
+        )
+
+    def create(self, validated_data):
+        from DOSPORTAL.models.organizations import Organization
+        owner_id = validated_data.pop('owner_id', None)
+        owner = Organization.objects.filter(id=owner_id).first() if owner_id else None
+        return Measurement.objects.create(owner=owner, **validated_data)

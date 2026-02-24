@@ -5,7 +5,7 @@ from .flights import CARImodel, Airports, Flight
 from .measurements import (
 	_validate_data_file, _validate_metadata_file, _validate_log_file,
 	MeasurementDataFlight,
-	MeasurementCampaign, Measurement, Trajectory, TrajectoryPoint, SpectrumData
+	MeasurementCampaign, Measurement, MeasurementSegment, Trajectory, TrajectoryPoint, SpectrumData
 )
 from .files import File
 from .spectrals import SpectralRecord, SpectralRecordArtifact
@@ -16,6 +16,6 @@ __all__ = [
 	"Organization", "OrganizationUser", "OrganizationInvite",
 	"_validate_data_file", "_validate_metadata_file", "_validate_log_file",
 	"CARImodel", "Airports", "Flight", "MeasurementDataFlight",
-	"MeasurementCampaign", "Measurement", "File", "Trajectory", "TrajectoryPoint", "SpectrumData",
+	"MeasurementCampaign", "Measurement", "MeasurementSegment", "File", "Trajectory", "TrajectoryPoint", "SpectrumData",
     "SpectralRecord", "SpectralRecordArtifact"
 ]

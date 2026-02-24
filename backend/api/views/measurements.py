@@ -6,8 +6,9 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 
-from DOSPORTAL.models import Measurement
+from DOSPORTAL.models import Measurement, MeasurementSegment
 from ..serializers import MeasurementsSerializer
+from ..serializers.measurements import MeasurementCreateSerializer, MeasurementSegmentSerializer
 from .organizations import get_user_organizations, check_org_member_permission
 
 
@@ -85,3 +86,30 @@ def MeasurementDetail(request, measurement_id):
         {'error': 'You do not have permission to access this measurement'},
         status=status.HTTP_403_FORBIDDEN
     )
+
+
+@extend_schema(tags=["Measurements"])
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def MeasurementCreate(request):
+    serializer = MeasurementCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    measurement = serializer.save(author=request.user)
+    return Response(MeasurementsSerializer(measurement).data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(tags=["Measurements"])
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def MeasurementSegmentCreate(request):
+    serializer = MeasurementSegmentSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    measurement = serializer.validated_data['measurement']
+    if measurement.author != request.user:
+        has_perm, _ = check_org_member_permission(request.user, measurement.owner) if measurement.owner else (False, None)
+        if not has_perm:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+    segment = serializer.save()
+    return Response(MeasurementSegmentSerializer(segment).data, status=status.HTTP_201_CREATED)

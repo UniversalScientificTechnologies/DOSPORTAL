@@ -33,6 +33,8 @@ from .measurements import (
     MeasurementsGet,
     MeasurementsPost,
     MeasurementDetail,
+    MeasurementCreate,
+    MeasurementSegmentCreate,
 )
 
 # File views
@@ -82,6 +84,8 @@ __all__ = [
     "MeasurementsGet",
     "MeasurementsPost",
     "MeasurementDetail",
+    "MeasurementCreate",
+    "MeasurementSegmentCreate",
     # Files
     "FileList",
     "FileDetail",
