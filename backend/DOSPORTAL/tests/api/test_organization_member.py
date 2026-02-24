@@ -50,13 +50,14 @@ class OrganizationMemberTests(TestCase):
             user=self.member_user, organization=self.org, user_type="ME"
         )
 
-        self.url = f"/api/organizations/{self.org.id}/member/"
+        self.members_url = f"/api/organizations/{self.org.id}/members/"
+        self.member_url = lambda u: f"/api/organizations/{self.org.id}/members/{u}/"
 
     def test_add_member_as_owner(self):
         """Owner should be able to add new members."""
         self.client.force_authenticate(user=self.owner_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "ME"}
+            self.members_url, {"username": "newuser", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
@@ -69,7 +70,7 @@ class OrganizationMemberTests(TestCase):
         """Admin should be able to add new members."""
         self.client.force_authenticate(user=self.admin_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "ME"}
+            self.members_url, {"username": "newuser", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
@@ -82,7 +83,7 @@ class OrganizationMemberTests(TestCase):
         """Regular member should NOT be able to add new members."""
         self.client.force_authenticate(user=self.member_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "ME"}
+            self.members_url, {"username": "newuser", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertFalse(
@@ -94,7 +95,7 @@ class OrganizationMemberTests(TestCase):
     def test_add_member_unauthenticated(self):
         """Unauthenticated users should not be able to add members."""
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "ME"}
+            self.members_url, {"username": "newuser", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -102,14 +103,14 @@ class OrganizationMemberTests(TestCase):
         """Adding a non-existent user should fail."""
         self.client.force_authenticate(user=self.owner_user)
         response = self.client.post(
-            self.url, {"username": "doesnotexist", "user_type": "ME"}
+            self.members_url, {"username": "doesnotexist", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_add_duplicate_member(self):
         """Adding a user who is already a member should fail."""
         self.client.force_authenticate(user=self.owner_user)
-        response = self.client.post(self.url, {"username": "member", "user_type": "ME"})
+        response = self.client.post(self.members_url, {"username": "member", "user_type": "ME"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("already a member", response.data["detail"].lower())
 
@@ -117,7 +118,7 @@ class OrganizationMemberTests(TestCase):
         """Adding a member with OW role should fail."""
         self.client.force_authenticate(user=self.owner_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "OW"}
+            self.members_url, {"username": "newuser", "user_type": "OW"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -125,7 +126,7 @@ class OrganizationMemberTests(TestCase):
         """Adding a member with invalid role should fail."""
         self.client.force_authenticate(user=self.owner_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "INVALID"}
+            self.members_url, {"username": "newuser", "user_type": "INVALID"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -133,7 +134,7 @@ class OrganizationMemberTests(TestCase):
         """Owner should be able to add a new admin."""
         self.client.force_authenticate(user=self.owner_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "AD"}
+            self.members_url, {"username": "newuser", "user_type": "AD"}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         org_user = OrganizationUser.objects.get(
@@ -144,7 +145,7 @@ class OrganizationMemberTests(TestCase):
     def test_change_member_role_as_owner(self):
         """Owner should be able to change member roles."""
         self.client.force_authenticate(user=self.owner_user)
-        response = self.client.put(self.url, {"username": "member", "user_type": "AD"})
+        response = self.client.put(self.member_url("member"), {"user_type": "AD"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         org_user = OrganizationUser.objects.get(
             user=self.member_user, organization=self.org
@@ -154,27 +155,27 @@ class OrganizationMemberTests(TestCase):
     def test_change_member_role_as_admin(self):
         """Admin should be able to change member roles."""
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.put(self.url, {"username": "member", "user_type": "AD"})
+        response = self.client.put(self.member_url("member"), {"user_type": "AD"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_change_member_role_as_regular_member(self):
         """Regular member should NOT be able to change roles."""
         self.client.force_authenticate(user=self.member_user)
-        response = self.client.put(self.url, {"username": "member", "user_type": "AD"})
+        response = self.client.put(self.member_url("member"), {"user_type": "AD"})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_change_role_to_invalid_value(self):
         """Changing role to invalid value should fail."""
         self.client.force_authenticate(user=self.owner_user)
         response = self.client.put(
-            self.url, {"username": "member", "user_type": "INVALID"}
+            self.member_url("member"), {"user_type": "INVALID"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_remove_member_as_owner(self):
         """Owner should be able to remove members."""
         self.client.force_authenticate(user=self.owner_user)
-        response = self.client.delete(self.url, {"username": "member"})
+        response = self.client.delete(self.member_url("member"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
             OrganizationUser.objects.filter(
@@ -185,19 +186,19 @@ class OrganizationMemberTests(TestCase):
     def test_remove_member_as_admin(self):
         """Admin should be able to remove members."""
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.delete(self.url, {"username": "member"})
+        response = self.client.delete(self.member_url("member"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_remove_member_as_regular_member(self):
         """Regular member should NOT be able to remove other members."""
         self.client.force_authenticate(user=self.member_user)
-        response = self.client.delete(self.url, {"username": "admin"})
+        response = self.client.delete(self.member_url("admin"))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_remove_self(self):
         """Any member should be able to remove themselves."""
         self.client.force_authenticate(user=self.member_user)
-        response = self.client.delete(self.url, {"username": "member"})
+        response = self.client.delete(self.member_url("member"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
             OrganizationUser.objects.filter(
@@ -208,7 +209,7 @@ class OrganizationMemberTests(TestCase):
     def test_remove_owner(self):
         """Removing the owner should fail."""
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.delete(self.url, {"username": "owner"})
+        response = self.client.delete(self.member_url("owner"))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(
             OrganizationUser.objects.filter(
@@ -219,43 +220,44 @@ class OrganizationMemberTests(TestCase):
     def test_remove_non_member(self):
         """Removing a non-member should fail."""
         self.client.force_authenticate(user=self.owner_user)
-        response = self.client.delete(self.url, {"username": "unrelated"})
+        response = self.client.delete(self.member_url("unrelated"))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_operations_on_nonexistent_organization(self):
         """Operations on non-existent organization should fail."""
         self.client.force_authenticate(user=self.owner_user)
-        fake_url = "/api/organizations/00000000-0000-0000-0000-000000000000/member/"
+        fake_members_url = "/api/organizations/00000000-0000-0000-0000-000000000000/members/"
+        fake_member_url = "/api/organizations/00000000-0000-0000-0000-000000000000/members/member/"
 
         response = self.client.post(
-            fake_url, {"username": "newuser", "user_type": "ME"}
+            fake_members_url, {"username": "newuser", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.put(fake_url, {"username": "member", "user_type": "AD"})
+        response = self.client.put(fake_member_url, {"user_type": "AD"})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.delete(fake_url, {"username": "member"})
+        response = self.client.delete(fake_member_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_missing_username_parameter(self):
         """Request without username should fail."""
         self.client.force_authenticate(user=self.owner_user)
-        response = self.client.post(self.url, {"user_type": "ME"})
+        response = self.client.post(self.members_url, {"user_type": "ME"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unrelated_user_cannot_add_members(self):
         """User not in organization should not be able to add members."""
         self.client.force_authenticate(user=self.unrelated_user)
         response = self.client.post(
-            self.url, {"username": "newuser", "user_type": "ME"}
+            self.members_url, {"username": "newuser", "user_type": "ME"}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_owner_cannot_add_to_different_org(self):
         """Owner of one organization should not be able to add members to a different organization."""
         self.client.force_authenticate(user=self.owner_user)
-        other_org_url = f"/api/organizations/{self.other_org.id}/member/"
+        other_org_url = f"/api/organizations/{self.other_org.id}/members/"
         response = self.client.post(
             other_org_url, {"username": "newuser", "user_type": "ME"}
         )

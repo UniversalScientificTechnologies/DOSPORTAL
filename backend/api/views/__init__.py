@@ -2,31 +2,14 @@
 from .auth import Login, Signup, Logout, Version
 
 # Detector views
-from .detectors import (
-    detector_manufacturer_list,
-    detector_manufacturer_detail,
-    DetectorTypeList,
-    DetectorTypeDetail,
-    DetectorGet,
-    DetectorCreate,
-    DetectorLogbookGet,
-    DetectorLogbookPost,
-    DetectorLogbookPut,
-    DetectorQRCode,
-)
+from .detectors_qr import DetectorQRCode
 
 # Organization views
 from .organizations import (
-    Organizations,
-    OrganizationDetail,
-    OrganizationMemberView,
     UserDetail,
     UserProfile,
     UserOrganizations,
     UserOrganizationsOwned,
-    CreateOrganizationInvite,
-    AcceptOrganizationInvite,
-    GetOrganizationInviteDetails,
 )
 
 # Measurement views
@@ -61,26 +44,12 @@ __all__ = [
     "Logout",
     "Version",
     # Detectors
-    "detector_manufacturer_list",
-    "detector_manufacturer_detail",
-    "DetectorTypeList",
-    "DetectorTypeDetail",
-    "DetectorGet",
-    "DetectorLogbookGet",
-    "DetectorLogbookPost",
-    "DetectorLogbookPut",
     "DetectorQRCode",
     # Organizations
-    "Organizations",
-    "OrganizationDetail",
-    "OrganizationMember",
     "UserProfile",
     "UserDetail",
     "UserOrganizations",
     "UserOrganizationsOwned",
-    "CreateOrganizationInvite",
-    "AcceptOrganizationInvite",
-    "GetOrganizationInviteDetails",
     # Measurements
     "MeasurementsGet",
     "MeasurementsPost",

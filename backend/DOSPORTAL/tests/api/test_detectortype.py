@@ -15,7 +15,7 @@ def test_create_detector_type_success():
         'url': 'http://typea.com',
         'description': 'Test type'
     }
-    response = client.post('/api/detector-type/', data, format='json')
+    response = client.post('/api/detector-types/', data, format='json')
     assert response.status_code == 201
     assert response.data['name'] == 'TypeA'
     assert response.data['manufacturer']['id'] == str(manufacturer.id)
@@ -31,6 +31,6 @@ def test_create_detector_type_missing_name():
         'url': 'http://typea.com',
         'description': 'Test type'
     }
-    response = client.post('/api/detector-type/', data, format='json')
+    response = client.post('/api/detector-types/', data, format='json')
     assert response.status_code == 400
     assert 'name' in response.data

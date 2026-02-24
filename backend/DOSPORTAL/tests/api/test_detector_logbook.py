@@ -22,7 +22,7 @@ def test_logbook_get_empty():
     response = client.get("/api/logbook/")
 
     assert response.status_code == 200
-    assert response.data == []
+    assert response.data["results"] == []
 
 
 @pytest.mark.django_db
@@ -60,8 +60,8 @@ def test_logbook_get_filtered_by_detector_and_type():
     )
 
     assert response.status_code == 200
-    assert len(response.data) == 1
-    assert response.data[0]["text"] == "Maintenance done"
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["text"] == "Maintenance done"
 
 
 @pytest.mark.django_db
@@ -80,7 +80,7 @@ def test_logbook_post_success():
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.post(
-        "/api/logbook/add/",
+        "/api/logbook/",
         {"detector": str(detector.id), "text": "Created entry", "entry_type": "note"},
         format="json",
     )
@@ -111,7 +111,7 @@ def test_logbook_put_success():
 
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.put(
+    response = client.patch(
         f"/api/logbook/{entry.id}/",
         {"text": "Updated entry", "entry_type": "reset"},
         format="json",

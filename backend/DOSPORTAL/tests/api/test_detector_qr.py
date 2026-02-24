@@ -13,7 +13,6 @@ from DOSPORTAL.models import (
 @pytest.mark.django_db
 def test_get_detector_qr_code_success():
     """GET /detector/{detector_id}/qr/ - success"""
-    # Setup
     user = User.objects.create_user(username="user1", password="pass123")
     manuf = DetectorManufacturer.objects.create(name="Sony", url="http://sony.com")
     dtype = DetectorType.objects.create(name="Gamma", manufacturer=manuf)
@@ -27,7 +26,7 @@ def test_get_detector_qr_code_success():
 
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.get(f"/api/detector/{detector.id}/qr/")
+    response = client.get(f"/api/detectors/{detector.id}/qr/")
     assert response.status_code == 200
     # QR code returns image/png content
     assert response["Content-Type"] == "image/png"
@@ -50,7 +49,7 @@ def test_get_detector_qr_code_with_label():
 
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.get(f"/api/detector/{detector.id}/qr/?label=true")
+    response = client.get(f"/api/detectors/{detector.id}/qr/?label=true")
     assert response.status_code == 200
     assert response["Content-Type"] == "image/png"
 
@@ -61,7 +60,7 @@ def test_get_detector_qr_code_not_found():
     user = User.objects.create_user(username="user1", password="pass123")
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.get("/api/detector/00000000-0000-0000-0000-000000000000/qr/")
+    response = client.get("/api/detectors/00000000-0000-0000-0000-000000000000/qr/")
     assert response.status_code == 404
 
 
@@ -80,5 +79,5 @@ def test_get_detector_qr_code_unauthorized():
     )
 
     client = APIClient()
-    response = client.get(f"/api/detector/{detector.id}/qr/")
+    response = client.get(f"/api/detectors/{detector.id}/qr/")
     assert response.status_code == 401

@@ -124,6 +124,8 @@ class Detector(UUIDMixin, SoftDeleteModel):
         blank=True,
     )
 
+    created = models.DateTimeField(auto_now_add=True, null=True)
+
     owner = models.ForeignKey(
         Organization,
         on_delete=models.DO_NOTHING,

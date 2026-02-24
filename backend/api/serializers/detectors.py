@@ -6,6 +6,7 @@ from DOSPORTAL.models import (
     DetectorType,
     Detector,
     DetectorLogbook,
+    Organization,
 )
 from .organizations import OrganizationSummarySerializer, UserSummarySerializer
 
@@ -40,6 +41,12 @@ class DetectorTypeSerializer(serializers.ModelSerializer):
 class DetectorSerializer(serializers.ModelSerializer):
 
     owner = OrganizationSummarySerializer(read_only=True)
+    owner_id = serializers.PrimaryKeyRelatedField(
+        source="owner",
+        queryset=Organization.objects.all(),
+        required=True,
+        write_only=False,
+    )
     type = DetectorTypeSerializer(read_only=True)
     type_id = serializers.PrimaryKeyRelatedField(
         source="type",
@@ -56,6 +63,7 @@ class DetectorSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
         rep["type_id"] = str(instance.type.id) if instance.type else None
+        rep["owner_id"] = str(instance.owner.id) if instance.owner else None
         rep["owner"] = str(instance.owner.id) if instance.owner else None
         return rep
 

@@ -1,13 +1,33 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 from . import views
 from .views import spectrals
+from .viewsets import (
+    OrganizationViewSet,
+    InviteViewSet,
+    DetectorManufacturerViewSet,
+    DetectorTypeViewSet,
+    DetectorViewSet,
+    DetectorLogbookViewSet,
+)
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
 
+router = SimpleRouter()
+router.register(r"organizations", OrganizationViewSet, basename="organization")
+router.register(r"invites", InviteViewSet, basename="invite")
+router.register(r"detector-manufacturers", DetectorManufacturerViewSet, basename="detector-manufacturer")
+router.register(r"detector-types", DetectorTypeViewSet, basename="detector-type")
+router.register(r"detectors", DetectorViewSet, basename="detector")
+router.register(r"logbook", DetectorLogbookViewSet, basename="logbook")
+
 urlpatterns = [
+    # ViewSet routes (Organization, Detector*, LogBook)
+    path("", include(router.urls)),
+
     path("version/", views.Version),
     # auth
     path("login/", views.Login),
@@ -26,36 +46,18 @@ urlpatterns = [
     path("spectral-record/<uuid:record_id>/evolution/", spectrals.SpectralRecordEvolution),
     path("spectral-record/<uuid:record_id>/spectrum/", spectrals.SpectralRecordSpectrum),
     path("spectral-record-artifact/", spectrals.SpectralRecordArtifactList),
-    # Detectors
-    path("detector/", views.DetectorGet),
-    path("detector/<uuid:detector_id>/qr/", views.DetectorQRCode),
-    path("detector-manufacturer/", views.detector_manufacturer_list),
-    path(
-        "detector-manufacturer/<uuid:manufacturer_id>/",
-        views.detector_manufacturer_detail,
-    ),
-    path("detector-type/", views.DetectorTypeList),
-    path("detector-type/<uuid:type_id>/", views.DetectorTypeDetail),
-    # Detector logbooks
-    path("logbook/", views.DetectorLogbookGet),
-    path("logbook/add/", views.DetectorLogbookPost),
-    path("logbook/<uuid:entry_id>/", views.DetectorLogbookPut),
+    # Detector QR code (custom, stays as FBV)
+    path("detectors/<uuid:detector_id>/qr/", views.DetectorQRCode),
     # organizations / users
     path("user/profile/", views.UserProfile),
     path("user/<int:user_id>/", views.UserDetail),
     path("user/organizations/", views.UserOrganizations),
     path("user/organizations/owned/", views.UserOrganizationsOwned),
-    path("organizations/", views.Organizations),
-    path("organizations/<uuid:org_id>/", views.OrganizationDetail),
-    path("organizations/<uuid:org_id>/member/", views.OrganizationMemberView.as_view()),
-    path("organizations/<uuid:org_id>/invites/", views.CreateOrganizationInvite),
-    path("organizations/<uuid:org_id>/detectors/", views.DetectorCreate),
+    # Org-scoped create endpoints (require org_id in URL)
     path("organizations/<uuid:org_id>/files/upload/", views.FileUpload),
     path("organizations/<uuid:org_id>/spectral-records/", spectrals.SpectralRecordCreate),
     path("organizations/<uuid:org_id>/measurements/", views.MeasurementCreate),
     path("organizations/<uuid:org_id>/measurement-segments/", views.MeasurementSegmentCreate),
-    path("invites/<str:token>/accept/", views.AcceptOrganizationInvite),
-    path("invites/<str:token>/", views.GetOrganizationInviteDetails),
     # API documentation
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

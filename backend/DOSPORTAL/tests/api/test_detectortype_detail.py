@@ -10,7 +10,7 @@ def test_get_detector_type_detail_success():
     dtype = DetectorType.objects.create(name='TypeA', manufacturer=manufacturer)
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.get(f'/api/detector-type/{dtype.id}/')
+    response = client.get(f'/api/detector-types/{dtype.id}/')
     assert response.status_code == 200
     assert response.data['id'] == str(dtype.id)
     assert response.data['name'] == 'TypeA'
@@ -23,6 +23,6 @@ def test_get_detector_type_detail_not_found():
     client.force_authenticate(user=user)
     import uuid
     fake_id = uuid.uuid4()
-    response = client.get(f'/api/detector-type/{fake_id}/')
+    response = client.get(f'/api/detector-types/{fake_id}/')
     assert response.status_code == 404
     assert 'detail' in response.data
