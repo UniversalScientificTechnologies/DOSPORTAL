@@ -1,3 +1,4 @@
+from .soft_delete import SoftDeleteModel, SoftDeleteManager, SoftDeleteQuerySet
 from .utils import UUIDMixin, Profile
 from .detectors import DetectorManufacturer, DetectorType, DetectorCalib, Detector, DetectorLogbook
 from .organizations import Organization, OrganizationUser, OrganizationInvite
@@ -11,6 +12,7 @@ from .files import File
 from .spectrals import SpectralRecord, SpectralRecordArtifact
 
 __all__ = [
+	"SoftDeleteModel", "SoftDeleteManager", "SoftDeleteQuerySet",
 	"UUIDMixin", "Profile",
 	"DetectorManufacturer", "DetectorType", "DetectorCalib", "Detector", "DetectorLogbook",
 	"Organization", "OrganizationUser", "OrganizationInvite",

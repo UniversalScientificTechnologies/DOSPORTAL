@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.contrib.postgres.fields import ArrayField
 from ..models.utils import UUIDMixin
+from ..models.soft_delete import SoftDeleteModel
 from martor.models import MartorField
 from DOSPORTAL.services.file_validation import validate_uploaded_file
 from .flights import Flight
@@ -66,7 +67,7 @@ class MeasurementCampaign(UUIDMixin):
         return "Campaign: {}".format(self.name)
 
 
-class Measurement(UUIDMixin):
+class Measurement(UUIDMixin, SoftDeleteModel):
     """
     Měřením se rozumí sada zaznamů (record), které analyzují jednu a tu samou věc a jsou změřeny jedním detektorem.
     Pokud jsou v latedle dva detektory, tak to jsou dvě měření. Pokud je ale záznam z jednoho detektoru

@@ -6,9 +6,10 @@ from django.utils.text import slugify
 from .utils import UUIDMixin
 import hashlib
 from django.utils import timezone
+from .soft_delete import SoftDeleteModel
 
 
-class Organization(UUIDMixin):
+class Organization(UUIDMixin, SoftDeleteModel):
     DATA_POLICY_CHOICES = [
         ("PR", "Private"),
         ("PU", "Public"),

@@ -1,5 +1,6 @@
 from django.db import models
 from .utils import UUIDMixin
+from .soft_delete import SoftDeleteModel
 from django.conf import settings
 from django.utils.translation import gettext as _
 from django.urls import reverse
@@ -88,7 +89,7 @@ class DetectorCalib(UUIDMixin):
         return f"Calibration '{self.name}' ({self.coef0/1000:.2f}+x*{self.coef1/1000:.2f} KeV), {self.created}, {self.description}"
 
 
-class Detector(UUIDMixin):
+class Detector(UUIDMixin, SoftDeleteModel):
 
     sn = models.CharField(
         max_length=80,
@@ -149,7 +150,7 @@ class Detector(UUIDMixin):
                 <a class='btn btn-sm btn-info' title='{self}' href='{self.get_absolute_url()}'>{self.name} <span class='text-small text-muted'>({self.sn})</span></a>"""
 
 
-class DetectorLogbook(UUIDMixin):
+class DetectorLogbook(UUIDMixin, SoftDeleteModel):
 
     detector = models.ForeignKey(
         Detector, on_delete=models.CASCADE, related_name="logbook"

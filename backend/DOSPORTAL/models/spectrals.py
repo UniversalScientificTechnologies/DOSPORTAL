@@ -1,4 +1,5 @@
 from .utils import UUIDMixin
+from .soft_delete import SoftDeleteModel
 from django.db import models
 from ..models.organizations import Organization
 from django.conf import settings
@@ -58,7 +59,7 @@ def user_directory_path_data(instance, extension="pk"):
     """Generate data file path."""
     return f"user_records/record_{instance.pk}/data.{extension}"
 
-class SpectralRecord(UUIDMixin):
+class SpectralRecord(UUIDMixin, SoftDeleteModel):
 
     name = models.CharField(
         max_length=80,
