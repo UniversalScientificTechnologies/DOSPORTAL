@@ -1,17 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import { theme } from '../theme'
+import { theme } from '@/theme'
 
 interface DetectorCardProps {
   detector: {
     id: string
     name: string
     sn: string
-    type: {
-      name: string
-      manufacturer: {
-        name: string
-      }
-    }
+    type?: { name: string }
   }
 }
 
@@ -20,7 +15,7 @@ export const DetectorCard = ({ detector }: DetectorCardProps) => {
 
   return (
     <div
-      onClick={() => navigate(`/logbook/${detector.id}`)}
+      onClick={() => navigate(`/device/${detector.id}`)}
       style={{
         padding: theme.spacing['2xl'],
         background: theme.colors.card,

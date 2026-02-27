@@ -204,3 +204,24 @@ link {
   border-top: 1px solid #d1d5db;
   margin: 1rem 0;
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.section-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  opacity: 0.4;
+}
+
+.button.primary:not(:disabled):hover  { background: #0b5ed7 !important; }
+.button.success:not(:disabled):hover  { background: #157347 !important; }
+.button.danger:not(:disabled):hover   { background: #bb2d3b !important; }
+.button.secondary:not(:disabled):hover { background: #f3f4f6 !important; }
+.button.ghost:not(:disabled):hover    { background: #f3f4f6 !important; }
+.button.outline:not(:disabled):hover  { border-color: #6b7280 !important; }

@@ -1,5 +1,5 @@
-import { PageLayout } from '../components/PageLayout'
-import homeBg from '../assets/img/SPACEDOS01.jpg'
+import { PageLayout } from '@/shared/components/Layout/PageLayout'
+import homeBg from '@/assets/img/SPACEDOS01.jpg'
 
 export const HomePage = () => {
   return (

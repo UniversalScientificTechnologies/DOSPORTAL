@@ -1,7 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import ReactECharts from 'echarts-for-react'
 import type { EChartsOption } from 'echarts'
-import { theme } from '../theme'
+import { theme } from '@/theme'
+import {
+  useSpectralRecordsEvolutionRetrieve,
+  useSpectralRecordsSpectrumRetrieve,
+} from '@/api/spectral-records/spectral-records'
 
 type EvolutionData = {
   evolution_values: [number, number][]
@@ -14,53 +18,20 @@ type SpectrumData = {
   calib: boolean
 }
 
-export const SpectralCharts = ({
-  apiBase,
-  recordId,
-  getAuthHeader,
-}: {
-  apiBase: string
-  recordId: string
-  getAuthHeader: () => { Authorization?: string }
-}) => {
-  const [evolutionData, setEvolutionData] = useState<EvolutionData | null>(null)
-  const [spectrumData, setSpectrumData] = useState<SpectrumData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export const SpectralCharts = ({ recordId }: { recordId: string }) => {
   const chartRef = useRef<ReactECharts | null>(null)
 
-  useEffect(() => {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-    }
+  const evolutionQuery = useSpectralRecordsEvolutionRetrieve(recordId)
+  const spectrumQuery = useSpectralRecordsSpectrumRetrieve(recordId)
 
-    const fetchEvolution = fetch(`${apiBase}/spectral-record/${recordId}/evolution/`, {
-      method: 'GET',
-      headers,
-    }).then(res => {
-      if (!res.ok) throw new Error(`Evolution HTTP ${res.status}`)
-      return res.json() as Promise<EvolutionData>
-    })
-
-    const fetchSpectrum = fetch(`${apiBase}/spectral-record/${recordId}/spectrum/`, {
-      method: 'GET',
-      headers,
-    }).then(res => {
-      if (!res.ok) throw new Error(`Spectrum HTTP ${res.status}`)
-      return res.json() as Promise<SpectrumData>
-    })
-
-    Promise.all([fetchEvolution, fetchSpectrum])
-      .then(([evo, spec]) => {
-        setEvolutionData(evo)
-        setSpectrumData(spec)
-      })
-      .catch(e => {
-        setError(e instanceof Error ? e.message : 'Failed to load chart data')
-      })
-      .finally(() => setLoading(false))
-  }, [apiBase, recordId, getAuthHeader])
+  const evolutionData = evolutionQuery.data?.data as unknown as EvolutionData | null
+  const spectrumData = spectrumQuery.data?.data as unknown as SpectrumData | null
+  const loading = evolutionQuery.isLoading || spectrumQuery.isLoading
+  const error = evolutionQuery.error
+    ? `Evolution: ${(evolutionQuery.error as Error).message}`
+    : spectrumQuery.error
+    ? `Spectrum: ${(spectrumQuery.error as Error).message}`
+    : null
 
   if (loading) {
     return (

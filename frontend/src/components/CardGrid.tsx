@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { theme } from '../theme'
+import { theme } from '@/theme'
 
 interface CardGridProps {
   children: ReactNode
