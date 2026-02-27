@@ -1,6 +1,4 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.mixins import CreateModelMixin
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
@@ -10,6 +8,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from DOSPORTAL.models import Measurement, MeasurementSegment, OrganizationUser
 from ..serializers import MeasurementsSerializer
 from ..serializers.measurements import MeasurementCreateSerializer, MeasurementSegmentSerializer
+from ..viewsets_base import SoftDeleteModelViewSet
 
 
 @extend_schema_view(
@@ -19,10 +18,11 @@ from ..serializers.measurements import MeasurementCreateSerializer, MeasurementS
         description="Create a measurement. Supply owner_id to assign to an organization (user must be a member).",
         tags=["Measurements"],
     ),
+    destroy=extend_schema(description="Soft-delete a measurement (author or org admin/owner only).", tags=["Measurements"]),
 )
-class MeasurementViewSet(ModelViewSet):
+class MeasurementViewSet(SoftDeleteModelViewSet):
     permission_classes = [IsAuthenticated]
-    http_method_names = ["get", "post", "head", "options"]
+    http_method_names = ["get", "post", "delete", "head", "options"]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -61,19 +61,40 @@ class MeasurementViewSet(ModelViewSet):
                 )
         serializer.save(author=self.request.user)
 
+    def perform_destroy(self, instance):
+        is_author = instance.author == self.request.user
+        is_org_admin = instance.owner and OrganizationUser.objects.filter(
+            user=self.request.user,
+            organization=instance.owner,
+            user_type__in=["OW", "AD"],
+        ).exists()
+        if not (is_author or is_org_admin):
+            raise PermissionDenied("You do not have permission to delete this measurement.")
+        instance.soft_delete(deleted_by=self.request.user)
+
 
 @extend_schema_view(
+    list=extend_schema(description="List measurement segments accessible to the current user.", tags=["Measurements"]),
+    retrieve=extend_schema(description="Get measurement segment detail.", tags=["Measurements"]),
     create=extend_schema(
         description="Create a measurement segment. User must be a member of the measurement's organization.",
         tags=["Measurements"],
     ),
 )
-class MeasurementSegmentViewSet(CreateModelMixin, GenericViewSet):
+class MeasurementSegmentViewSet(ModelViewSet):
     serializer_class = MeasurementSegmentSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "head", "options"]
 
     def get_queryset(self):
-        return MeasurementSegment.objects.all()
+        user = self.request.user
+        user_orgs = OrganizationUser.objects.filter(
+            user=user, user_type__in=["OW", "AD", "ME"]
+        ).values_list("organization_id", flat=True)
+        return (
+            MeasurementSegment.objects.filter(measurement__owner__in=user_orgs)
+            | MeasurementSegment.objects.filter(measurement__author=user)
+        ).select_related("measurement", "spectral_record").distinct().order_by("position")
 
     def perform_create(self, serializer):
         measurement = serializer.validated_data["measurement"]

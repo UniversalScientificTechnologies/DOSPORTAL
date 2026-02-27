@@ -12,17 +12,6 @@ from .organizations import (
     UserOrganizationsOwned,
 )
 
-# Measurement views
-# File views
-# Spectral views
-from .spectrals import (
-    SpectralRecordList,
-    SpectralRecordCreate,
-    SpectralRecordDetail,
-    SpectralRecordEvolution,
-    SpectralRecordSpectrum,
-)
-
 __all__ = [
     # Auth
     "Login",
@@ -36,12 +25,4 @@ __all__ = [
     "UserDetail",
     "UserOrganizations",
     "UserOrganizationsOwned",
-    # Measurements
-    # Files
-    # Spectrals
-    "SpectralRecordList",
-    "SpectralRecordCreate",
-    "SpectralRecordDetail",
-    "SpectralRecordEvolution",
-    "SpectralRecordSpectrum",
 ]

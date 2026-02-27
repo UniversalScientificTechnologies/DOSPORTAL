@@ -19,7 +19,7 @@ def test_logbook_get_empty():
     client = APIClient()
     client.force_authenticate(user=user)
 
-    response = client.get("/api/logbook/")
+    response = client.get("/api/logbooks/")
 
     assert response.status_code == 200
     assert response.data["results"] == []
@@ -56,7 +56,7 @@ def test_logbook_get_filtered_by_detector_and_type():
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.get(
-        f"/api/logbook/?detector={detector1.id}&entry_type=maintenance"
+        f"/api/logbooks/?detector={detector1.id}&entry_type=maintenance"
     )
 
     assert response.status_code == 200
@@ -80,7 +80,7 @@ def test_logbook_post_success():
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.post(
-        "/api/logbook/",
+        "/api/logbooks/",
         {"detector": str(detector.id), "text": "Created entry", "entry_type": "note"},
         format="json",
     )
@@ -112,7 +112,7 @@ def test_logbook_put_success():
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.patch(
-        f"/api/logbook/{entry.id}/",
+        f"/api/logbooks/{entry.id}/",
         {"text": "Updated entry", "entry_type": "reset"},
         format="json",
     )

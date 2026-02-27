@@ -8,6 +8,8 @@ from .detectors import (
 )
 from .measurements import MeasurementViewSet, MeasurementSegmentViewSet
 from .files import FileViewSet
+from .spectrals import SpectralRecordViewSet, SpectralRecordArtifactViewSet
+from .flights import FlightViewSet, AirportsViewSet
 
 __all__ = [
     "OrganizationViewSet",
@@ -19,4 +21,8 @@ __all__ = [
     "MeasurementViewSet",
     "MeasurementSegmentViewSet",
     "FileViewSet",
+    "SpectralRecordViewSet",
+    "SpectralRecordArtifactViewSet",
+    "FlightViewSet",
+    "AirportsViewSet",
 ]

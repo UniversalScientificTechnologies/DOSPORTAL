@@ -64,17 +64,25 @@ class MeasurementsSerializer(serializers.ModelSerializer):
 
 class SpectralRecordArtifactSerializer(serializers.ModelSerializer):
     """Serializer for spectral record artifacts."""
+    artifact = FileSerializer(read_only=True)
+
     class Meta:
         model = SpectralRecordArtifact
-        fields = '__all__'
+        fields = ('id', 'artifact_type', 'artifact', 'spectral_record', 'created_at')
         read_only_fields = ('id', 'created_at')
 
 
 class SpectralRecordSerializer(serializers.ModelSerializer):
     """Serializer for spectral records."""
     artifacts = SpectralRecordArtifactSerializer(many=True, read_only=True)
+    artifacts_count = serializers.SerializerMethodField()
     raw_file = FileSerializer(read_only=True)
-    
+    owner = OrganizationSummarySerializer(read_only=True)
+    author = UserSummarySerializer(read_only=True)
+
+    def get_artifacts_count(self, obj):
+        return obj.artifacts.count()
+
     class Meta:
         model = SpectralRecord
         fields = '__all__'
@@ -83,12 +91,16 @@ class SpectralRecordSerializer(serializers.ModelSerializer):
 
 class SpectralRecordCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating spectral records."""
+    raw_file = serializers.PrimaryKeyRelatedField(
+        queryset=File.objects.all(),
+        required=True,
+    )
+
     class Meta:
         model = SpectralRecord
-        fields = ('name', 'raw_file', 'detector', 'description', 'owner', 'author')
-        
+        fields = ('name', 'raw_file', 'detector', 'description', 'owner')
+
     def validate_raw_file(self, value):
-        """Validate that the file is of log type."""
         if value and value.file_type != File.FILE_TYPE_LOG:
             raise serializers.ValidationError("Raw file must be of type 'log'")
         return value
