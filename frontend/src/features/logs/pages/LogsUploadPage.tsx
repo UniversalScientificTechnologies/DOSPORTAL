@@ -4,7 +4,7 @@ import { AppSelect } from '@/shared/components/common/AppSelect';
 import type { SelectOption } from '@/shared/components/common/AppSelect';
 import { PageLayout } from '@/shared/components/Layout/PageLayout';
 import { FileDropzone } from '@/shared/components/common/FileDropzone';
-import { LabeledInput } from '@/components/LabeledInput';
+import { LabeledInput } from '@/shared/components/common/LabeledInput';
 import { theme } from '@/theme';
 import { useUserOrganizationsOwnedList } from '@/api/authentication/authentication';
 import { useDetectorsList } from '@/api/detectors/detectors';

@@ -1,6 +1,6 @@
-
 from .models import File
 from .models.spectrals import SpectralRecord, SpectralRecordArtifact
+from .models.utils import ProcessingStatusMixin
 from .helpers_cari import create_cari_input
 from django.core.files.base import ContentFile
 import io
@@ -8,6 +8,8 @@ import os
 import numpy as np
 import pandas as pd
 import json
+from .models.measurements import Measurement, MeasurementSegment, MeasurementArtifact
+from .models.files import File
 
 
 def process_flight_entry(Flight):
@@ -129,7 +131,7 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         record = SpectralRecord.objects.get(id=spectral_record_id)
         print(f"Processing SpectralRecord {record.id}")
         
-        record.processing_status = SpectralRecord.PROCESSING_IN_PROGRESS
+        record.processing_status = ProcessingStatusMixin.PROCESSING_IN_PROGRESS
         record.save(update_fields=['processing_status'])
         
         # Get raw file
@@ -220,7 +222,7 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
             artifact_type=SpectralRecordArtifact.SPECTRAL_FILE
         )
         
-        record.processing_status = SpectralRecord.PROCESSING_COMPLETED
+        record.processing_status = ProcessingStatusMixin.PROCESSING_COMPLETED
         record.save(update_fields=['processing_status'])
         
         print(f"SpectralRecord {record.id} processed successfully - Parquet artifact created: {spectral_file.id}")
@@ -232,7 +234,7 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         
         try:
             record = SpectralRecord.objects.get(id=spectral_record_id)
-            record.processing_status = SpectralRecord.PROCESSING_FAILED
+            record.processing_status = ProcessingStatusMixin.PROCESSING_FAILED
             record.metadata = record.metadata or {}
             record.metadata['processing_error'] = str(e)
             record.save(update_fields=['processing_status', 'metadata'])
@@ -243,6 +245,80 @@ def process_spectral_record_into_spectral_file_async(spectral_record_id):
         raise
 
 
+def create_measurement_artifact(measurement_id):
+    try:
+        measurement = Measurement.objects.get(id=measurement_id)
+        print(f"Creating artifact for Measurement {measurement.id}")
 
+        # Retrieve all segments, sorted by position
+        segments = MeasurementSegment.objects.filter(measurement=measurement).order_by("position")
 
+        if not segments.exists():
+            raise ValueError("No segments found for the measurement.")
 
+        # Combine data from all segments
+        combined_data = []
+        for segment in segments:
+            spectral_record = segment.spectral_record
+            artifact = spectral_record.artifacts.filter(artifact_type=SpectralRecordArtifact.SPECTRAL_FILE).first()
+
+            if not artifact:
+                raise ValueError(f"No spectral artifact found for segment {segment.id}.)")
+
+            artifact.artifact.file.open("rb")
+            df = pd.read_parquet(artifact.artifact.file, engine="fastparquet")
+            artifact.artifact.file.close()
+
+            combined_data.append(df)
+        print(f"num of segments: {len(segments)}")
+
+        combined_df = pd.concat(combined_data, ignore_index=True)
+
+        # Normalize time to start from 0
+        combined_df["time_ms"] = combined_df["time_ms"] - combined_df["time_ms"].min()
+
+        parquet_buffer = io.BytesIO()
+        combined_df.to_parquet(parquet_buffer, engine="fastparquet", index=False)
+        parquet_buffer.seek(0)
+
+        artifact_file = File.objects.create(
+            filename=f"measurement_{measurement.id}.parquet",
+            file_type=File.FILE_TYPE_PARQUET,
+            source_type="generated",
+            owner=measurement.owner,
+            metadata={
+                "measurement_id": str(measurement.id),
+                "records_count": len(combined_df),
+                "time_range_ms": [
+                    float(combined_df["time_ms"].min()),
+                    float(combined_df["time_ms"].max()),
+                ],
+            },
+        )
+
+        artifact_file.file.save(
+            f"measurement_{measurement.id}.parquet",
+            ContentFile(parquet_buffer.read()),
+            save=True,
+        )
+
+        MeasurementArtifact.objects.update_or_create(
+            measurement=measurement,
+            artifact_type=MeasurementArtifact.MEASUREMENT_FILE,
+            defaults={"artifact": artifact_file},
+        )
+
+        measurement.processing_status = ProcessingStatusMixin.PROCESSING_COMPLETED
+        measurement.save(update_fields=["processing_status"])
+
+        print(f"MeasurementArtifact created for Measurement {measurement.id}")
+
+    except Exception as e:
+        print(f"Error creating MeasurementArtifact for Measurement {measurement_id}: {str(e)}")
+        try:
+            measurement = Measurement.objects.get(id=measurement_id)
+            measurement.processing_status = ProcessingStatusMixin.PROCESSING_FAILED
+            measurement.save(update_fields=["processing_status"])
+        except Exception:
+            pass
+        raise

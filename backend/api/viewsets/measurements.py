@@ -1,14 +1,53 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from DOSPORTAL.models import Measurement, MeasurementSegment, OrganizationUser
+from django.db import transaction
+from DOSPORTAL.models import Measurement, MeasurementSegment, OrganizationUser, MeasurementArtifact
 from ..serializers import MeasurementsSerializer
 from ..serializers.measurements import MeasurementCreateSerializer, MeasurementSegmentSerializer
 from ..viewsets_base import SoftDeleteModelViewSet
+import pandas as pd
+import numpy as np
+from django_q.tasks import async_task
+
+
+def _load_spectral_parquet(measurement):
+    """Load Parquet DataFrame from a completed Measurement's artifact.
+    Returns (df, error_response). If error_response is not None, return it directly.
+    """
+    if measurement.processing_status == Measurement.PROCESSING_IN_PROGRESS:
+        return None, Response(
+            {"detail": "Measurement artifact is still being processed."},
+            status=status.HTTP_425_TOO_EARLY,
+        )
+    if measurement.processing_status != Measurement.PROCESSING_COMPLETED:
+        return None, Response(
+            {"detail": f"Artifact not ready. Status: {measurement.processing_status}"},
+            status=status.HTTP_425_TOO_EARLY,
+        )
+
+    try:
+        artifact = MeasurementArtifact.objects.get(
+            measurement=measurement,
+        )
+    except MeasurementArtifact.DoesNotExist:
+        return None, Response(
+            {"detail": "Parquet artifact not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    artifact.artifact.file.open("rb")
+    df = pd.read_parquet(artifact.artifact.file, engine="fastparquet")
+    artifact.artifact.file.close()
+
+    channel_cols = [col for col in df.columns if col.startswith("channel_")]
+    df[channel_cols] = df[channel_cols].fillna(0)
+    return df, None
 
 
 @extend_schema_view(
@@ -72,6 +111,77 @@ class MeasurementViewSet(SoftDeleteModelViewSet):
             raise PermissionDenied("You do not have permission to delete this measurement.")
         instance.soft_delete(deleted_by=self.request.user)
 
+    @action(detail=True, methods=["get"])
+    def evolution(self, request, pk=None):
+        """Get counts-per-second evolution over time from Parquet artifact."""
+        measurement = self.get_object()
+        df, err = _load_spectral_parquet(measurement)
+        if err:
+            return err
+
+        channel_columns = [col for col in df.columns if col.startswith("channel_")]
+        total_time = float(df["time_ms"].max() - df["time_ms"].min())
+        if total_time == 0 or np.isnan(total_time) or np.isinf(total_time):
+            total_time = 1.0
+
+        row_sums = df[channel_columns].sum(axis=1)
+        counts_per_second = row_sums / total_time
+        counts_per_second = counts_per_second.replace([np.inf, -np.inf], 0).fillna(0)
+        time_series = df["time_ms"].replace([np.inf, -np.inf], 0).fillna(0)
+
+        evolution_values = list(
+            zip(time_series.astype(float).tolist(), counts_per_second.tolist())
+        )
+        return Response({"evolution_values": evolution_values, "total_time": total_time})
+
+    @action(detail=True, methods=["get"])
+    def spectrum(self, request, pk=None):
+        """Get energy/channel spectrum (sum over all exposures) from Parquet artifact."""
+        measurement = self.get_object()
+        df, err = _load_spectral_parquet(measurement)
+        if err:
+            return err
+
+        channel_columns = [col for col in df.columns if col.startswith("channel_")]
+        total_time = float(df["time_ms"].max() - df["time_ms"].min())
+        if total_time == 0:
+            total_time = 1.0
+
+        channel_sums = df[channel_columns].sum(axis=0) / total_time
+        channel_sums = channel_sums.fillna(0)
+
+        # has_calib = measurement.calib is not None
+        spectrum_values = []
+        for col in channel_columns:
+            channel_num = int(col.replace("channel_", ""))
+            cps = float(channel_sums[col])
+            # if has_calib:
+            #     x_val = (measurement.calib.coef0 + channel_num * measurement.calib.coef1) / 1000
+            # else:
+            x_val = channel_num
+            spectrum_values.append([x_val, cps])
+
+        return Response(
+            {"spectrum_values": spectrum_values, "total_time": total_time}
+        )
+
+    @action(detail=True, methods=["post"])
+    def finalize(self, request, pk=None):
+        measurement = self.get_object()
+
+        if not measurement.segments.exists():
+            return Response({"error": "No segments found."}, status=400)
+
+        if measurement.processing_status == Measurement.PROCESSING_IN_PROGRESS:
+            return Response({"error": "Already processing."}, status=400)
+
+        measurement.processing_status = Measurement.PROCESSING_IN_PROGRESS
+        measurement.save(update_fields=["processing_status"])
+
+        transaction.on_commit(
+            lambda: async_task('DOSPORTAL.tasks.create_measurement_artifact', measurement.id)
+        )
+        return Response({"status": "processing"})
 
 @extend_schema_view(
     list=extend_schema(description="List measurement segments accessible to the current user.", tags=["Measurements"]),

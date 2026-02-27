@@ -7,6 +7,7 @@ import { FlightDashboard } from '@/shared/components/common/FlightDashboard'
 import { theme } from '@/theme'
 import ReactMarkdown from 'react-markdown'
 import { useMeasurementsRetrieve } from '@/api/measurements/measurements'
+import { MeasurementCharts } from '@/features/measurements/components/MeasurementCharts'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   D: 'Debug measurement',
@@ -251,6 +252,13 @@ export const MeasurementDetailPage = () => {
               </dd>
             </dl>
           </div>
+
+          {/* Charts - only show when measurement data is available */}
+          {measurement && (
+            <div style={{ gridColumn: '1 / -1', marginTop: theme.spacing.sm }}>
+              <MeasurementCharts measurementId={id!} />
+            </div>
+          )}
         </div>
       </Section>
     </PageLayout>

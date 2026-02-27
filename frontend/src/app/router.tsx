@@ -24,6 +24,7 @@ import { AirportDetailPage } from '@/features/flights/pages/AirportDetailPage'
 import { UserDetailPage } from '@/features/organization/pages/UserDetailPage'
 import { RecordSelectorPage } from '@/features/logs/pages/RecordSelectorPage'
 import { MeasurementCreatePage } from '@/features/measurements/pages/MeasurementCreatePage'
+import { MeasurementStatusPage } from '@/features/measurements/pages/MeasurementStatusPage'
 
 
 export const router = createBrowserRouter([
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
 			{ path: '/measurements',                element: <ProtectedRoute><MeasurementsPage /></ProtectedRoute> },
 			{ path: '/measurement/create',          element: <ProtectedRoute><RecordSelectorPage /></ProtectedRoute> },
 			{ path: '/measurement/create/details',  element: <ProtectedRoute><MeasurementCreatePage /></ProtectedRoute> },
+			{ path: '/measurement/status/:id',      element: <ProtectedRoute><MeasurementStatusPage /></ProtectedRoute> },
 			{ path: '/measurement/:id',             element: <ProtectedRoute><MeasurementDetailPage /></ProtectedRoute> },
 			{ path: '/logs',                        element: <ProtectedRoute><LogsPage /></ProtectedRoute> },
 			{ path: '/spectral-record-status/:id',  element: <ProtectedRoute><SpectralRecordStatusPage /></ProtectedRoute> },

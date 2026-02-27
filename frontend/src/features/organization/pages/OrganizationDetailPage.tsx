@@ -6,7 +6,7 @@ import { PageLayout } from '@/shared/components/Layout/PageLayout';
 import { theme } from '@/theme';
 import profileBg from '@/assets/img/SPACEDOS01.jpg';
 import { FormField } from '@/shared/components/common/FormField'
-import { AddOrganizationMemberPopup } from '@/components/AddOrganizationMemberPopup';
+import { AddOrganizationMemberPopup } from '@/features/organization/components/AddOrganizationMemberPopup';
 import { SortableTable } from '@/shared/components/common/SortableTable';
 import type { TableColumn } from '@/shared/components/common/SortableTable';
 import { SuccessToast } from '@/shared/components/common/SuccessToast';
@@ -23,7 +23,7 @@ import type { OrganizationDetailRequest, PatchedOrganizationDetailRequest } from
 import { Button } from '@/shared/components/Button/Button';
 import { Section } from '@/shared/components/Layout/Section';
 import { Modal } from '@/shared/components/common/Modal';
-import { LabeledInput } from '@/components/LabeledInput';
+import { LabeledInput } from '@/shared/components/common/LabeledInput';
 
 type Member = {
   id: number;

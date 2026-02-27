@@ -2,64 +2,32 @@ import { useRef } from 'react'
 import ReactECharts from 'echarts-for-react'
 import type { EChartsOption } from 'echarts'
 import { theme } from '@/theme'
-import {
-  useSpectralRecordsEvolutionRetrieve,
-  useSpectralRecordsSpectrumRetrieve,
-} from '@/api/spectral-records/spectral-records'
 
-type EvolutionData = {
+export type EvolutionData = {
   evolution_values: [number, number][]
   total_time: number
 }
 
-type SpectrumData = {
+export type SpectrumData = {
   spectrum_values: [number, number][]
   total_time: number
   calib: boolean
 }
 
-export const SpectralCharts = ({ recordId }: { recordId: string }) => {
+type Props = {
+  evolutionData: EvolutionData
+  spectrumData: SpectrumData
+}
+
+export const ChartsView = ({ evolutionData, spectrumData }: Props) => {
   const chartRef = useRef<ReactECharts | null>(null)
-
-  const evolutionQuery = useSpectralRecordsEvolutionRetrieve(recordId)
-  const spectrumQuery = useSpectralRecordsSpectrumRetrieve(recordId)
-
-  const evolutionData = evolutionQuery.data?.data as unknown as EvolutionData | null
-  const spectrumData = spectrumQuery.data?.data as unknown as SpectrumData | null
-  const loading = evolutionQuery.isLoading || spectrumQuery.isLoading
-  const error = evolutionQuery.error
-    ? `Evolution: ${(evolutionQuery.error as Error).message}`
-    : spectrumQuery.error
-    ? `Spectrum: ${(spectrumQuery.error as Error).message}`
-    : null
-
-  if (loading) {
-    return (
-      <div style={{ padding: theme.spacing['3xl'], textAlign: 'center', color: theme.colors.muted }}>
-        Loading chart data...
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div style={{
-        padding: theme.spacing.xl,
-        color: theme.colors.danger,
-        backgroundColor: theme.colors.warningBg,
-        borderRadius: theme.borders.radius.sm,
-        border: `${theme.borders.width} solid ${theme.colors.warningBorder}`,
-      }}>
-        Failed to load charts: {error}
-      </div>
-    )
-  }
-
-  if (!evolutionData || !spectrumData) return null
 
   const xAxisSpectrum = spectrumData.calib
     ? { name: 'Energy [keV]', axisLabel: { formatter: '{value} keV' } }
     : { name: 'Channel [#]', axisLabel: { formatter: '{value} ch' } }
+
+  const axisLabelFormatter = (value: number) =>
+    value.toFixed(8).replace(/\.?0+$/, '')
 
   const option: EChartsOption = {
     title: [
@@ -85,22 +53,8 @@ export const SpectralCharts = ({ recordId }: { recordId: string }) => {
     dataZoom: [
       { type: 'inside', xAxisIndex: 0 },
       { type: 'inside', xAxisIndex: 1 },
-      {
-        type: 'slider',
-        filterMode: 'empty',
-        realtime: true,
-        height: '5%',
-        bottom: '54%',
-        xAxisIndex: 0,
-      },
-      {
-        type: 'slider',
-        filterMode: 'empty',
-        realtime: false,
-        height: '5%',
-        bottom: 0,
-        xAxisIndex: 1,
-      },
+      { type: 'slider', filterMode: 'empty', realtime: true,  height: '5%', bottom: '54%', xAxisIndex: 0 },
+      { type: 'slider', filterMode: 'empty', realtime: false, height: '5%', bottom: 0,     xAxisIndex: 1 },
     ],
     xAxis: [
       {
@@ -119,23 +73,8 @@ export const SpectralCharts = ({ recordId }: { recordId: string }) => {
       },
     ],
     yAxis: [
-      {
-        axisLabel: {
-            formatter: (value: number) => value.toFixed(8).replace(/\.?0+$/, ''),
-        },
-        min: 'dataMin',
-        max: 'dataMax',
-        name: 'Counts per second',
-      },
-      {
-        axisLabel: {
-            formatter: (value: number) => value.toFixed(8).replace(/\.?0+$/, ''),
-        },
-        gridIndex: 1,
-        min: 'dataMin',
-        max: 'dataMax',
-        name: 'Counts per second',
-      },
+      { axisLabel: { formatter: axisLabelFormatter }, min: 'dataMin', max: 'dataMax', name: 'Counts per second' },
+      { axisLabel: { formatter: axisLabelFormatter }, gridIndex: 1, min: 'dataMin', max: 'dataMax', name: 'Counts per second' },
     ],
     series: [
       {
@@ -162,7 +101,7 @@ export const SpectralCharts = ({ recordId }: { recordId: string }) => {
         emphasis: { disabled: true },
         tooltip: { show: false },
       },
-      { 
+      {
         id: 'spectrum',
         data: spectrumData.spectrum_values,
         type: 'scatter',

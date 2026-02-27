@@ -1,4 +1,4 @@
-from .utils import UUIDMixin
+from .utils import UUIDMixin, ProcessingStatusMixin
 from .soft_delete import SoftDeleteModel
 from django.db import models
 from ..models.organizations import Organization
@@ -59,7 +59,7 @@ def user_directory_path_data(instance, extension="pk"):
     """Generate data file path."""
     return f"user_records/record_{instance.pk}/data.{extension}"
 
-class SpectralRecord(UUIDMixin, SoftDeleteModel):
+class SpectralRecord(UUIDMixin, SoftDeleteModel, ProcessingStatusMixin):
 
     name = models.CharField(
         max_length=80,
@@ -171,25 +171,7 @@ class SpectralRecord(UUIDMixin, SoftDeleteModel):
         blank=True,
     )
 
-    # Processing status for async tasks
-    PROCESSING_PENDING = "pending"          # uploaded to, waiting for being processed into artifacts
-    PROCESSING_IN_PROGRESS = "processing"   # post processing in async task started
-    PROCESSING_COMPLETED = "completed"      # post processing finished: artifacts created
-    PROCESSING_FAILED = "failed"            # post processing finished: artifacts NOT created
-    
-    PROCESSING_STATUS_CHOICES = (
-        (PROCESSING_PENDING, "Pending processing"),
-        (PROCESSING_IN_PROGRESS, "Processing in progress"),
-        (PROCESSING_COMPLETED, "Processing completed"),
-        (PROCESSING_FAILED, "Processing failed"),
-    )
-    
-    processing_status = models.CharField(
-        max_length=16,
-        choices=PROCESSING_STATUS_CHOICES,
-        default=PROCESSING_PENDING,
-        help_text="Status of async background processing"
-    )
+
 
 
 class SpectralRecordArtifact(UUIDMixin):
@@ -224,5 +206,3 @@ class SpectralRecordArtifact(UUIDMixin):
         auto_now_add=True,
         help_text="Time when the artifact was created",
     )
-    
-    

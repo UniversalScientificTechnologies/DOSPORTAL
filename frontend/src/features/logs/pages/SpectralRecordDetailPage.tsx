@@ -3,7 +3,7 @@ import { PageLayout } from '@/shared/components/Layout/PageLayout'
 import { Section } from '@/shared/components/Layout/Section'
 import { EmptyState } from '@/shared/components/common/EmptyState'
 import { FormField } from '@/shared/components/common/FormField'
-import { SpectralCharts } from '@/components/SpectralCharts'
+import { SpectralCharts } from '@/features/logs/components/SpectralCharts'
 import { theme } from '@/theme'
 import ReactMarkdown from 'react-markdown'
 import {

@@ -5,7 +5,7 @@ import { useOrganizationsMembersCreate, useOrganizationsInvitesCreate } from '@/
 import type { OrganizationDetailRequest } from '@/api/model';
 import { Modal } from '@/shared/components/common/Modal';
 import { Button } from '@/shared/components/Button/Button';
-import { LabeledInput } from '@/components/LabeledInput';
+import { LabeledInput } from '@/shared/components/common/LabeledInput';
 
 export const AddOrganizationMemberPopup = ({
   open,

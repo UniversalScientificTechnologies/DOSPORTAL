@@ -6,12 +6,13 @@ import { SortableTable } from '@/shared/components/common/SortableTable'
 import type { TableColumn } from '@/shared/components/common/SortableTable'
 import { AppSelect } from '@/shared/components/common/AppSelect'
 import type { SelectOption } from '@/shared/components/common/AppSelect'
-import { LabeledInput } from '@/components/LabeledInput'
+import { LabeledInput } from '@/shared/components/common/LabeledInput'
 import { theme } from '@/theme'
 import { useUserOrganizationsOwnedList } from '@/api/authentication/authentication'
 import { useMeasurementsCreate, useMeasurementSegmentsCreate } from '@/api/measurements/measurements'
 import type { MeasurementTypeEnum } from '@/api/model'
 import { Button } from '@/shared/components/Button/Button'
+import { useMeasurementsFinalizeCreate } from '@/api/measurements/measurements'
 
 type SpectralRecord = {
   id: string
@@ -75,6 +76,7 @@ export const MeasurementCreatePage = () => {
 
   const createMeasurement = useMeasurementsCreate()
   const createSegment = useMeasurementSegmentsCreate()
+  const finalizeMeasurement = useMeasurementsFinalizeCreate()
 
   const columns: TableColumn<SpectralRecord>[] = [
     {
@@ -138,7 +140,10 @@ export const MeasurementCreatePage = () => {
         })
       )
 
-      navigate(`/measurement/${measurement.id}`)
+      // Call the finalize endpoint manually
+      await finalizeMeasurement.mutateAsync({ id: measurement.id, data: { name: name.trim() } })
+
+      navigate(`/measurement/status/${measurement.id}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
     } finally {

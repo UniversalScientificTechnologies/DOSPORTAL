@@ -5,9 +5,9 @@ import { AppSelect } from '@/shared/components/common/AppSelect';
 import type { SelectOption } from '@/shared/components/common/AppSelect';
 import { PageLayout } from "@/shared/components/Layout/PageLayout";
 import { theme } from "@/theme";
-import { LabeledInput } from "@/components/LabeledInput";
+import { LabeledInput } from "@/shared/components/common/LabeledInput";
 import logbookBg from "@/assets/img/SPACEDOS01.jpg";
-import { DetectorTypeInfo } from "@/components/DetectorTypeInfo";
+import { DetectorTypeInfo } from "@/features/devices/components/DetectorTypeInfo";
 import { Button } from "@/shared/components/Button/Button";
 import { Section } from "@/shared/components/Layout/Section";
 import {

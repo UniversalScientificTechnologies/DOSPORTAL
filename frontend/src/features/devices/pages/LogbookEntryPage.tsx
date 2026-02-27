@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { PageLayout } from '@/shared/components/Layout/PageLayout'
-import { LocationSearchMap } from '@/components/LocationSearchMap'
+import { LocationSearchMap } from '@/shared/components/common/LocationSearchMap'
 import { theme } from '@/theme'
 import logbookBg from '@/assets/img/SPACEDOS01.jpg'
 import { useDetectorsRetrieve, useLogbooksRetrieve, useLogbooksCreate, useLogbooksUpdate } from '@/api/detectors/detectors'
