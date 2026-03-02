@@ -7,6 +7,7 @@ import type { TableColumn } from '@/shared/components/common/SortableTable'
 import { theme } from '@/theme'
 import { useSpectralRecordsList } from '@/api/spectral-records/spectral-records'
 import type { SpectralRecord } from '@/api/model'
+import { formatDate } from '@/shared/utils/formatDate'
 
 const PROCESSING_STATUS_LABELS: Record<string, string> = {
   'PENDING': 'Pending',
@@ -28,21 +29,6 @@ export const LogsPage = () => {
   const records: SpectralRecord[] = recordsQuery.data?.data?.results ?? []
   const loading = recordsQuery.isLoading
   const error = recordsQuery.error ? `Failed to load spectral records: ${(recordsQuery.error as Error).message}` : null
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'N/A'
-    try {
-      return new Date(dateStr).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    } catch {
-      return dateStr
-    }
-  }
 
   const columns: TableColumn<SpectralRecord>[] = [
     {

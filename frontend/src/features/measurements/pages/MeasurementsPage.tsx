@@ -8,6 +8,7 @@ import type { TableColumn } from '@/shared/components/common/SortableTable'
 import { theme } from '@/theme'
 import { useMeasurementsList } from '@/api/measurements/measurements'
 import type { Measurements } from '@/api/model'
+import { formatDate } from '@/shared/utils/formatDate'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   D: 'Debug',
@@ -15,21 +16,6 @@ const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   M: 'Mobile (ground)',
   C: 'Civil airborne',
   A: 'Special airborne',
-}
-
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return 'N/A'
-  try {
-    return new Date(dateStr).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return dateStr
-  }
 }
 
 export const MeasurementsPage = () => {

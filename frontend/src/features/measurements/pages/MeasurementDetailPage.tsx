@@ -8,6 +8,7 @@ import { theme } from '@/theme'
 import ReactMarkdown from 'react-markdown'
 import { useMeasurementsRetrieve } from '@/api/measurements/measurements'
 import { MeasurementCharts } from '@/features/measurements/components/MeasurementCharts'
+import { formatDate } from '@/shared/utils/formatDate'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   D: 'Debug measurement',
@@ -26,21 +27,6 @@ export const MeasurementDetailPage = () => {
   const error = measurementQuery.isError
     ? `Failed to load measurement: ${(measurementQuery.error as Error).message}`
     : null
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'N/A'
-    try {
-      return new Date(dateStr).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    } catch {
-      return dateStr
-    }
-  }
 
   if (loading) {
     return (

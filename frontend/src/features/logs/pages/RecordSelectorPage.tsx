@@ -5,6 +5,7 @@ import { EmptyState } from '@/shared/components/common/EmptyState'
 import { theme } from '@/theme'
 import { useSpectralRecordsList } from '@/api/spectral-records/spectral-records'
 import { Button } from '@/shared/components/Button/Button'
+import { formatDate } from '@/shared/utils/formatDate'
 
 type SpectralRecord = {
   id: string
@@ -20,21 +21,6 @@ type SpectralRecord = {
 
 type SortField = keyof SpectralRecord
 type SortDir = 'asc' | 'desc'
-
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return 'N/A'
-  try {
-    return new Date(dateStr).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return dateStr
-  }
-}
 
 function sortRecords(records: SpectralRecord[], field: SortField, dir: SortDir): SpectralRecord[] {
   return [...records].sort((a, b) => {

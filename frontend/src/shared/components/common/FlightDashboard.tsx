@@ -1,28 +1,15 @@
 import { Link } from 'react-router-dom'
 import { theme } from '@/theme'
 import type { Flight } from '@/api/model'
+import { formatDate as formatDateDefault }  from '@/shared/utils/formatDate'
 
 interface FlightDashboardProps {
   flight: Flight
   formatDate?: (dateStr?: string) => string
 }
 
-const defaultFormatDate = (dateStr?: string) => {
-  if (!dateStr) return 'N/A'
-  try {
-    return new Date(dateStr).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return dateStr
-  }
-}
 
-export const FlightDashboard = ({ flight, formatDate = defaultFormatDate }: FlightDashboardProps) => {
+export const FlightDashboard = ({ flight, formatDate = formatDateDefault}: FlightDashboardProps) => {
   const dtStyle: React.CSSProperties = {
     fontWeight: theme.typography.fontWeight.semibold,
     color: theme.colors.textSecondary,

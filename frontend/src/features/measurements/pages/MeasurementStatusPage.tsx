@@ -6,6 +6,7 @@ import { theme } from '@/theme'
 import { useMeasurementsRetrieve } from '@/api/measurements/measurements'
 import type { Measurements } from '@/api/model'
 import { Button } from '@/shared/components/Button/Button'
+import { formatDate } from '@/shared/utils/formatDate'
 
 type MeasurementWithStatus = Measurements & { processing_status?: string }
 
@@ -29,18 +30,6 @@ const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   M: 'Mobile (ground)',
   C: 'Civil airborne',
   A: 'Special airborne',
-}
-
-const formatDate = (dateStr?: string | null) => {
-  if (!dateStr) return 'N/A'
-  try {
-    return new Date(dateStr).toLocaleString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    })
-  } catch {
-    return dateStr
-  }
 }
 
 export const MeasurementStatusPage = () => {

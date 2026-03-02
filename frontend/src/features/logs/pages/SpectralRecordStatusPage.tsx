@@ -6,6 +6,7 @@ import { theme } from '@/theme'
 import { useSpectralRecordsRetrieve } from '@/api/spectral-records/spectral-records'
 import type { SpectralRecord } from '@/api/model'
 import { Button } from '@/shared/components/Button/Button'
+import { formatDate } from '@/shared/utils/formatDate'
 
 const PROCESSING_STATUS_LABELS: Record<string, string> = {
   'pending': 'Pending',
@@ -39,21 +40,6 @@ export const SpectralRecordStatusPage = () => {
   const error = recordQuery.isError
     ? `Failed to load spectral record: ${(recordQuery.error as Error)?.message ?? 'Unknown error'}`
     : null
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'N/A'
-    try {
-      return new Date(dateStr).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    } catch {
-      return dateStr
-    }
-  }
 
   const handleClose = () => {
     navigate('/logs')
