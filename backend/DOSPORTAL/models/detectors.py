@@ -117,6 +117,14 @@ class Detector(UUIDMixin, SoftDeleteModel):
         blank=True,
     )
 
+    image = models.ImageField(
+        verbose_name=_("Detector image"),
+        help_text=_("Photo of the detector"),
+        upload_to="detector_photos",
+        null=True,
+        blank=True,
+    )
+
     data = models.JSONField(
         _("Detector metadata"),
         help_text="Detector metadata, used for advanced data processing and maintaining",

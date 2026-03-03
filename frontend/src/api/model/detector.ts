@@ -14,6 +14,8 @@ export interface Detector {
   owner_id: string;
   readonly type: DetectorType;
   type_id: string;
+  /** @nullable */
+  image?: string | null;
   is_deleted?: boolean;
   /** @nullable */
   deleted_at?: string | null;

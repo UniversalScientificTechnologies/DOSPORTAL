@@ -973,10 +973,39 @@ export const detectorsCreate = (
     detectorRequest: DetectorRequest, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<Detector>> => {
     
-    
+    const formData = new FormData();
+formData.append(`owner_id`, detectorRequest.owner_id)
+formData.append(`type_id`, detectorRequest.type_id)
+if(detectorRequest.image !== undefined && detectorRequest.image !== null) {
+ formData.append(`image`, detectorRequest.image)
+ }
+if(detectorRequest.is_deleted !== undefined) {
+ formData.append(`is_deleted`, detectorRequest.is_deleted.toString())
+ }
+if(detectorRequest.deleted_at !== undefined && detectorRequest.deleted_at !== null) {
+ formData.append(`deleted_at`, detectorRequest.deleted_at)
+ }
+formData.append(`sn`, detectorRequest.sn)
+formData.append(`name`, detectorRequest.name)
+if(detectorRequest.manufactured_date !== undefined && detectorRequest.manufactured_date !== null) {
+ formData.append(`manufactured_date`, detectorRequest.manufactured_date)
+ }
+if(detectorRequest.data !== undefined) {
+ formData.append(`data`, detectorRequest.data)
+ }
+if(detectorRequest.deleted_by !== undefined && detectorRequest.deleted_by !== null) {
+ formData.append(`deleted_by`, detectorRequest.deleted_by.toString())
+ }
+if(detectorRequest.calib !== undefined) {
+ detectorRequest.calib.forEach(value => formData.append(`calib`, value));
+ }
+if(detectorRequest.access !== undefined) {
+ detectorRequest.access.forEach(value => formData.append(`access`, value));
+ }
+
     return axios.default.post(
       `/api/detectors/`,
-      detectorRequest,options
+      formData,options
     );
   }
 
@@ -1215,10 +1244,39 @@ export const detectorsUpdate = (
     detectorRequest: DetectorRequest, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<Detector>> => {
     
-    
+    const formData = new FormData();
+formData.append(`owner_id`, detectorRequest.owner_id)
+formData.append(`type_id`, detectorRequest.type_id)
+if(detectorRequest.image !== undefined && detectorRequest.image !== null) {
+ formData.append(`image`, detectorRequest.image)
+ }
+if(detectorRequest.is_deleted !== undefined) {
+ formData.append(`is_deleted`, detectorRequest.is_deleted.toString())
+ }
+if(detectorRequest.deleted_at !== undefined && detectorRequest.deleted_at !== null) {
+ formData.append(`deleted_at`, detectorRequest.deleted_at)
+ }
+formData.append(`sn`, detectorRequest.sn)
+formData.append(`name`, detectorRequest.name)
+if(detectorRequest.manufactured_date !== undefined && detectorRequest.manufactured_date !== null) {
+ formData.append(`manufactured_date`, detectorRequest.manufactured_date)
+ }
+if(detectorRequest.data !== undefined) {
+ formData.append(`data`, detectorRequest.data)
+ }
+if(detectorRequest.deleted_by !== undefined && detectorRequest.deleted_by !== null) {
+ formData.append(`deleted_by`, detectorRequest.deleted_by.toString())
+ }
+if(detectorRequest.calib !== undefined) {
+ detectorRequest.calib.forEach(value => formData.append(`calib`, value));
+ }
+if(detectorRequest.access !== undefined) {
+ detectorRequest.access.forEach(value => formData.append(`access`, value));
+ }
+
     return axios.default.put(
       `/api/detectors/${id}/`,
-      detectorRequest,options
+      formData,options
     );
   }
 
@@ -1274,10 +1332,47 @@ export const detectorsPartialUpdate = (
     patchedDetectorRequest: PatchedDetectorRequest, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<Detector>> => {
     
-    
+    const formData = new FormData();
+if(patchedDetectorRequest.owner_id !== undefined) {
+ formData.append(`owner_id`, patchedDetectorRequest.owner_id)
+ }
+if(patchedDetectorRequest.type_id !== undefined) {
+ formData.append(`type_id`, patchedDetectorRequest.type_id)
+ }
+if(patchedDetectorRequest.image !== undefined && patchedDetectorRequest.image !== null) {
+ formData.append(`image`, patchedDetectorRequest.image)
+ }
+if(patchedDetectorRequest.is_deleted !== undefined) {
+ formData.append(`is_deleted`, patchedDetectorRequest.is_deleted.toString())
+ }
+if(patchedDetectorRequest.deleted_at !== undefined && patchedDetectorRequest.deleted_at !== null) {
+ formData.append(`deleted_at`, patchedDetectorRequest.deleted_at)
+ }
+if(patchedDetectorRequest.sn !== undefined) {
+ formData.append(`sn`, patchedDetectorRequest.sn)
+ }
+if(patchedDetectorRequest.name !== undefined) {
+ formData.append(`name`, patchedDetectorRequest.name)
+ }
+if(patchedDetectorRequest.manufactured_date !== undefined && patchedDetectorRequest.manufactured_date !== null) {
+ formData.append(`manufactured_date`, patchedDetectorRequest.manufactured_date)
+ }
+if(patchedDetectorRequest.data !== undefined) {
+ formData.append(`data`, patchedDetectorRequest.data)
+ }
+if(patchedDetectorRequest.deleted_by !== undefined && patchedDetectorRequest.deleted_by !== null) {
+ formData.append(`deleted_by`, patchedDetectorRequest.deleted_by.toString())
+ }
+if(patchedDetectorRequest.calib !== undefined) {
+ patchedDetectorRequest.calib.forEach(value => formData.append(`calib`, value));
+ }
+if(patchedDetectorRequest.access !== undefined) {
+ patchedDetectorRequest.access.forEach(value => formData.append(`access`, value));
+ }
+
     return axios.default.patch(
       `/api/detectors/${id}/`,
-      patchedDetectorRequest,options
+      formData,options
     );
   }
 

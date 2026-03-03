@@ -172,6 +172,26 @@ export const DevicePage = () => {
                 </div>
               )}
             </div>
+            {detector.image && (
+              <div style={{ marginTop: theme.spacing.lg }}>
+                <strong
+                  style={{ color: theme.colors.muted, fontSize: theme.typography.fontSize.sm, display: 'block', marginBottom: theme.spacing.xs }}
+                >
+                  Photo:
+                </strong>
+                <img
+                  src={detector.image}
+                  alt={detector.name}
+                  style={{
+                    maxWidth: '320px',
+                    maxHeight: '240px',
+                    objectFit: 'contain',
+                    borderRadius: theme.borders.radius.sm,
+                    border: `${theme.borders.width} solid ${theme.colors.border}`,
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
 

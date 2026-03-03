@@ -54,6 +54,7 @@ class DetectorSerializer(serializers.ModelSerializer):
         required=True,
         write_only=False,
     )
+    image = serializers.ImageField(required=False, allow_null=True, use_url=True)
 
     class Meta:
         model = Detector

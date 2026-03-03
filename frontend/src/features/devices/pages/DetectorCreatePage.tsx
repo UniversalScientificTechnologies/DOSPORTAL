@@ -33,6 +33,20 @@ export const DetectorCreatePage = () => {
   const [owner, setOwner] = useState<SelectOption | null>(null);
   const [selectedAccess, setSelectedAccess] = useState<SelectOption[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setImageFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
   const detectorTypesQuery = useDetectorTypesList();
   const typeOptions: SelectOption[] = (detectorTypesQuery.data?.data?.results ?? []).map((t) => ({
@@ -60,6 +74,7 @@ export const DetectorCreatePage = () => {
           type_id: type!.value,
           owner_id: owner!.value,
           access: selectedAccess.map((o) => o.value),
+          ...(imageFile ? { image: imageFile } : {}),
         } as DetectorRequest,
       });
       navigate("/logbooks");
@@ -122,6 +137,30 @@ export const DetectorCreatePage = () => {
                 placeholder="Select owner..."
                 isLoading={ownedOrgsQuery.isLoading}
               />
+            </div>
+
+            <div style={{ marginBottom: theme.spacing["2xl"] }}>
+              <label style={labelStyle}>Photo (optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: 'block', marginBottom: theme.spacing.sm }}
+              />
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{
+                    maxWidth: '240px',
+                    maxHeight: '180px',
+                    objectFit: 'contain',
+                    borderRadius: theme.borders.radius.sm,
+                    border: `${theme.borders.width} solid ${theme.colors.border}`,
+                    marginTop: theme.spacing.xs,
+                  }}
+                />
+              )}
             </div>
 
             <div style={{ marginBottom: theme.spacing["2xl"] }}>

@@ -9,6 +9,8 @@
 export interface PatchedDetectorRequest {
   owner_id?: string;
   type_id?: string;
+  /** @nullable */
+  image?: Blob | null;
   is_deleted?: boolean;
   /** @nullable */
   deleted_at?: string | null;

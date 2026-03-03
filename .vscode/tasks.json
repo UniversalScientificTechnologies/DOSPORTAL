@@ -46,6 +46,11 @@
 			"command": "docker compose exec backend python manage.py migrate"
 		},
 		{
+			"label": "orval gen api",
+			"type": "shell",
+			"command": "docker compose exec frontend npm run generate-api"
+		},
+		{
 		"label": "Test backend (path)",
 		"type": "shell",
 		"command": "docker",
