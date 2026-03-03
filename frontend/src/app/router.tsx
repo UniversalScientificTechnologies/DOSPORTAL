@@ -22,8 +22,8 @@ import { SpectralRecordStatusPage } from '@/features/logs/pages/SpectralRecordSt
 import { SpectralRecordDetailPage } from '@/features/logs/pages/SpectralRecordDetailPage'
 import { AirportDetailPage } from '@/features/flights/pages/AirportDetailPage'
 import { UserDetailPage } from '@/features/organization/pages/UserDetailPage'
-import { RecordSelectorPage } from '@/features/logs/pages/RecordSelectorPage'
 import { MeasurementCreatePage } from '@/features/measurements/pages/MeasurementCreatePage'
+import { MeasurementEditorPage } from '@/features/measurements/pages/MeasurementEditorPage'
 import { MeasurementStatusPage } from '@/features/measurements/pages/MeasurementStatusPage'
 
 
@@ -47,8 +47,8 @@ export const router = createBrowserRouter([
 			{ path: '/invite/:token',               element: <InviteAcceptPage /> },
 			{ path: '/logs/upload',                 element: <ProtectedRoute><LogsUploadPage /></ProtectedRoute> },
 			{ path: '/measurements',                element: <ProtectedRoute><MeasurementsPage /></ProtectedRoute> },
-			{ path: '/measurement/create',          element: <ProtectedRoute><RecordSelectorPage /></ProtectedRoute> },
-			{ path: '/measurement/create/details',  element: <ProtectedRoute><MeasurementCreatePage /></ProtectedRoute> },
+			{ path: '/measurement/create',          element: <ProtectedRoute><MeasurementCreatePage /></ProtectedRoute> },
+			{ path: '/measurement/edit/:id',        element: <ProtectedRoute><MeasurementEditorPage /></ProtectedRoute> },
 			{ path: '/measurement/status/:id',      element: <ProtectedRoute><MeasurementStatusPage /></ProtectedRoute> },
 			{ path: '/measurement/:id',             element: <ProtectedRoute><MeasurementDetailPage /></ProtectedRoute> },
 			{ path: '/logs',                        element: <ProtectedRoute><LogsPage /></ProtectedRoute> },

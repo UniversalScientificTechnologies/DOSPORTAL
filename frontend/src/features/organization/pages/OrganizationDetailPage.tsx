@@ -7,8 +7,8 @@ import { theme } from '@/theme';
 import profileBg from '@/assets/img/SPACEDOS01.jpg';
 import { FormField } from '@/shared/components/common/FormField'
 import { AddOrganizationMemberPopup } from '@/features/organization/components/AddOrganizationMemberPopup';
-import { SortableTable } from '@/shared/components/common/SortableTable';
-import type { TableColumn } from '@/shared/components/common/SortableTable';
+import { SortableTable } from '@/shared/components/SortableTable/SortableTable';
+import type { TableColumn } from '@/shared/components/SortableTable/SortableTable';
 import { SuccessToast } from '@/shared/components/common/SuccessToast';
 import {
   useOrganizationsRetrieve,

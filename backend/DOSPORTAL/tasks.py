@@ -302,6 +302,15 @@ def create_measurement_artifact(measurement_id):
             save=True,
         )
 
+        # deletes olf artifact (when generating a new one)
+        old = MeasurementArtifact.objects.filter(
+            measurement=measurement,
+            artifact_type=MeasurementArtifact.MEASUREMENT_FILE,
+        ).first()
+        if old:
+            old.artifact.file.delete(save=False)
+            old.artifact.delete()
+
         MeasurementArtifact.objects.update_or_create(
             measurement=measurement,
             artifact_type=MeasurementArtifact.MEASUREMENT_FILE,

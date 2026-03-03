@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown'
 import { useMeasurementsRetrieve } from '@/api/measurements/measurements'
 import { MeasurementCharts } from '@/features/measurements/components/MeasurementCharts'
 import { formatDate } from '@/shared/utils/formatDate'
+import { Button } from '@/shared/components/Button/Button'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   D: 'Debug measurement',
@@ -62,7 +63,8 @@ export const MeasurementDetailPage = () => {
 
   return (
     <PageLayout>
-      <Section title={measurement.name} backLink={{ to: '/measurements', label: 'Back to Measurements' }}>
+      <Section title={measurement.name} backLink={{ to: '/measurements', label: 'Back to Measurements' }}
+      actions={<Button variant='primary' to={`/measurement/edit/${id}`}>Edit</Button>}>
 
         <div style={{
           display: 'grid',

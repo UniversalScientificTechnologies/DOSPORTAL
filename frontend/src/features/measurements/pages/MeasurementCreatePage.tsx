@@ -1,30 +1,15 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { PageLayout } from '@/shared/components/Layout/PageLayout'
 import { Section } from '@/shared/components/Layout/Section'
-import { SortableTable } from '@/shared/components/common/SortableTable'
-import type { TableColumn } from '@/shared/components/common/SortableTable'
 import { AppSelect } from '@/shared/components/common/AppSelect'
 import type { SelectOption } from '@/shared/components/common/AppSelect'
 import { LabeledInput } from '@/shared/components/common/LabeledInput'
 import { theme } from '@/theme'
 import { useUserOrganizationsOwnedList } from '@/api/authentication/authentication'
-import { useMeasurementsCreate, useMeasurementSegmentsCreate } from '@/api/measurements/measurements'
+import { useMeasurementsCreate } from '@/api/measurements/measurements'
 import type { MeasurementTypeEnum } from '@/api/model'
 import { Button } from '@/shared/components/Button/Button'
-import { useMeasurementsFinalizeCreate } from '@/api/measurements/measurements'
-
-type SpectralRecord = {
-  id: string
-  name: string
-  created: string
-  author: string | null
-  owner: string | null
-  raw_file_id: string | null
-  artifacts_count: number
-  time_start: string | null
-  record_duration: number | null
-}
 
 const MEASUREMENT_TYPES = [
   { value: 'D', label: 'Debug' },
@@ -33,16 +18,6 @@ const MEASUREMENT_TYPES = [
   { value: 'C', label: 'Civil airborne' },
   { value: 'A', label: 'Special airborne' },
 ]
-
-const formatDate = (dateStr?: string | null) => {
-  if (!dateStr) return '—'
-  try {
-    return new Date(dateStr).toLocaleString('en-US', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    })
-  } catch { return dateStr }
-}
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
@@ -58,8 +33,6 @@ const fieldWrapper: React.CSSProperties = {
 
 export const MeasurementCreatePage = () => {
   const navigate = useNavigate()
-  const location = useLocation()
-  const selectedRecords: SpectralRecord[] = location.state?.selectedRecords ?? []
 
   const [name, setName] = useState('')
   const [measurementType, setMeasurementType] = useState<SelectOption>({ value: 'S', label: 'Static' })
@@ -75,31 +48,6 @@ export const MeasurementCreatePage = () => {
   const orgs = (orgsQuery.data?.data ?? []).map((o) => ({ value: o.id, label: o.name }))
 
   const createMeasurement = useMeasurementsCreate()
-  const createSegment = useMeasurementSegmentsCreate()
-  const finalizeMeasurement = useMeasurementsFinalizeCreate()
-
-  const columns: TableColumn<SpectralRecord>[] = [
-    {
-      id: 'name', key: 'name', label: 'Name',
-      render: (v) => (
-        <span style={{ color: theme.colors.primary, fontWeight: theme.typography.fontWeight.medium }}>
-          {String(v)}
-        </span>
-      ),
-    },
-    {
-      id: 'owner', key: 'owner', label: 'Owner',
-      render: (v) => v ? String(v) : <span style={{ color: theme.colors.mutedLight }}>—</span>,
-    },
-    {
-      id: 'time_start', key: 'time_start', label: 'Start time',
-      render: (v) => formatDate(v as string | null),
-    },
-    {
-      id: 'created', key: 'created', label: 'Uploaded',
-      render: (v) => formatDate(v as string),
-    },
-  ]
 
   const handleSubmit = async () => {
     if (!name.trim()) { setError('Measurement name is required.'); return }
@@ -118,32 +66,7 @@ export const MeasurementCreatePage = () => {
         },
       })
       const measurement = measResult.data as unknown as { id: string }
-
-      await Promise.all(
-        selectedRecords.map((record, index) => {
-          const timeFrom = record.time_start ?? null
-          const timeTo =
-            record.time_start && record.record_duration
-              ? new Date(
-                  new Date(record.time_start).getTime() + (record.record_duration as unknown as number) * 1000
-                ).toISOString()
-              : null
-          return createSegment.mutateAsync({
-            data: {
-              measurement: measurement.id,
-              spectral_record: record.id,
-              time_from: timeFrom,
-              time_to: timeTo,
-              position: index,
-            },
-          })
-        })
-      )
-
-      // Call the finalize endpoint manually
-      await finalizeMeasurement.mutateAsync({ id: measurement.id, data: { name: name.trim() } })
-
-      navigate(`/measurement/status/${measurement.id}`)
+      navigate(`/measurement/edit/${measurement.id}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
     } finally {
@@ -153,26 +76,13 @@ export const MeasurementCreatePage = () => {
 
   return (
     <PageLayout>
-      {/* Header bar */}
       <Section title='Create Measurement'
         actions={
           <Button onClick={handleSubmit} disabled={submitting || !name.trim()}>
             {submitting ? 'Creating…' : 'Create Measurement'}
           </Button>}
-        backLink={{ to: '/measurement/create', label: 'Back'}}
         error={error}
       >
-
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: theme.spacing.sm,
-          alignItems: 'start',
-        }}
-      >
-        {/* ---- Left: form ---- */}
         <Section title="Details">
           <LabeledInput
             id="meas-name"
@@ -235,7 +145,6 @@ export const MeasurementCreatePage = () => {
             onChange={(e) => setTimeEnd(e.target.value)}
           />
 
-          
           <LabeledInput
             id="meas-description"
             label="Description (optional)"
@@ -246,31 +155,6 @@ export const MeasurementCreatePage = () => {
             rows={4}
           />
         </Section>
-
-        {/* ---- Right: selected records ---- */}
-        <Section title={`Selected Records (${selectedRecords.length})`}>
-          {selectedRecords.length === 0 ? (
-            <div style={{ color: theme.colors.muted, padding: theme.spacing.lg, fontStyle: 'italic', fontSize: theme.typography.fontSize.sm }}>
-              No records selected.{' '}
-              <span
-                style={{ color: theme.colors.primary, cursor: 'pointer', textDecoration: 'underline' }}
-                onClick={() => navigate('/measurement/create')}
-              >
-                Go back to select records.
-              </span>
-            </div>
-          ) : (
-            <SortableTable
-              columns={columns}
-              data={selectedRecords}
-              defaultSortField="time_start"
-              defaultSortDirection="asc"
-              getRowKey={(r) => r.id}
-              emptyMessage="No records selected."
-            />
-          )}
-        </Section>
-      </div>
       </Section>
     </PageLayout>
   )

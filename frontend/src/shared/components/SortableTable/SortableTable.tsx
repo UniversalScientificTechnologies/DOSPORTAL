@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { theme } from '@/theme'
-import { EmptyState } from './EmptyState'
+import { EmptyState } from '../common/EmptyState'
 
 export interface TableColumn<T> {
   id: string

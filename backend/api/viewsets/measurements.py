@@ -20,11 +20,18 @@ def _load_spectral_parquet(measurement):
     """Load Parquet DataFrame from a completed Measurement's artifact.
     Returns (df, error_response). If error_response is not None, return it directly.
     """
+    if measurement.processing_status == Measurement.PROCESSING_PENDING:
+        return None, Response(
+            {"detail": "Measurement artifact not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    
     if measurement.processing_status == Measurement.PROCESSING_IN_PROGRESS:
         return None, Response(
             {"detail": "Measurement artifact is still being processed."},
             status=status.HTTP_425_TOO_EARLY,
         )
+
     if measurement.processing_status != Measurement.PROCESSING_COMPLETED:
         return None, Response(
             {"detail": f"Artifact not ready. Status: {measurement.processing_status}"},
@@ -184,39 +191,61 @@ class MeasurementViewSet(SoftDeleteModelViewSet):
         return Response({"status": "processing"})
 
 @extend_schema_view(
-    list=extend_schema(description="List measurement segments accessible to the current user.", tags=["Measurements"]),
+    list=extend_schema(description="List measurement segments accessible to the current user. Filter by ?measurement=<id>.", tags=["Measurements"]),
     retrieve=extend_schema(description="Get measurement segment detail.", tags=["Measurements"]),
     create=extend_schema(
         description="Create a measurement segment. User must be a member of the measurement's organization.",
+        tags=["Measurements"],
+    ),
+    partial_update=extend_schema(
+        description="Partially update a segment (e.g. time_from, time_to, position).",
+        tags=["Measurements"],
+    ),
+    destroy=extend_schema(
+        description="Delete a measurement segment. Only accessible to the measurement author or org admin/owner.",
         tags=["Measurements"],
     ),
 )
 class MeasurementSegmentViewSet(ModelViewSet):
     serializer_class = MeasurementSegmentSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ["get", "post", "head", "options"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def get_queryset(self):
         user = self.request.user
         user_orgs = OrganizationUser.objects.filter(
             user=user, user_type__in=["OW", "AD", "ME"]
         ).values_list("organization_id", flat=True)
-        return (
+        qs = (
             MeasurementSegment.objects.filter(measurement__owner__in=user_orgs)
             | MeasurementSegment.objects.filter(measurement__author=user)
         ).select_related("measurement", "spectral_record").distinct().order_by("position")
 
-    def perform_create(self, serializer):
-        measurement = serializer.validated_data["measurement"]
+        measurement_id = self.request.query_params.get("measurement")
+        if measurement_id:
+            qs = qs.filter(measurement__id=measurement_id)
+
+        return qs
+
+    def _check_measurement_permission(self, measurement):
         if measurement.owner:
             if not OrganizationUser.objects.filter(
                 user=self.request.user,
                 organization=measurement.owner,
                 user_type__in=["OW", "AD", "ME"],
             ).exists():
-                raise PermissionDenied(
-                    "You do not have permission to add segments to this measurement."
-                )
+                raise PermissionDenied("You do not have permission to modify segments of this measurement.")
         elif measurement.author != self.request.user:
             raise PermissionDenied("You do not have access to this measurement.")
+
+    def perform_create(self, serializer):
+        self._check_measurement_permission(serializer.validated_data["measurement"])
         serializer.save()
+
+    def perform_update(self, serializer):
+        self._check_measurement_permission(serializer.instance.measurement)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self._check_measurement_permission(instance.measurement)
+        instance.delete()
