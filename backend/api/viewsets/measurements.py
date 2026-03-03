@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from django.db import transaction
 from DOSPORTAL.models import Measurement, MeasurementSegment, OrganizationUser, MeasurementArtifact
@@ -191,7 +192,19 @@ class MeasurementViewSet(SoftDeleteModelViewSet):
         return Response({"status": "processing"})
 
 @extend_schema_view(
-    list=extend_schema(description="List measurement segments accessible to the current user. Filter by ?measurement=<id>.", tags=["Measurements"]),
+    list=extend_schema(
+        description="List measurement segments accessible to the current user. Filter by ?measurement=<id>.",
+        tags=["Measurements"],
+        parameters=[
+            OpenApiParameter(
+                name="measurement",
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.QUERY,
+                description="Filter segments by measurement ID.",
+                required=False,
+            )
+        ],
+    ),
     retrieve=extend_schema(description="Get measurement segment detail.", tags=["Measurements"]),
     create=extend_schema(
         description="Create a measurement segment. User must be a member of the measurement's organization.",

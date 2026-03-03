@@ -4,11 +4,15 @@ import { Section } from '@/shared/components/Layout/Section'
 import { EmptyState } from '@/shared/components/common/EmptyState'
 import { FormField } from '@/shared/components/common/FormField'
 import { FlightDashboard } from '@/shared/components/common/FlightDashboard'
+import { SortableTable } from '@/shared/components/SortableTable/SortableTable'
+import type { TableColumn } from '@/shared/components/SortableTable/SortableTable'
 import { theme } from '@/theme'
 import ReactMarkdown from 'react-markdown'
 import { useMeasurementsRetrieve } from '@/api/measurements/measurements'
+import { useMeasurementSegmentsList } from '@/api/measurements/measurements'
+import type { MeasurementSegment } from '@/api/model'
 import { MeasurementCharts } from '@/features/measurements/components/MeasurementCharts'
-import { formatDate } from '@/shared/utils/formatDate'
+import { formatDate, formatTime } from '@/shared/utils/formatDate'
 import { Button } from '@/shared/components/Button/Button'
 
 const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
@@ -19,6 +23,41 @@ const MEASUREMENT_TYPE_LABELS: Record<string, string> = {
   A: 'Special airborne measurement',
 }
 
+const SEGMENT_COLUMNS: TableColumn<MeasurementSegment>[] = [
+  {
+    id: 'position',
+    key: 'position',
+    label: '#',
+    render: (v) => <span style={{ color: theme.colors.muted }}>{v != null ? String(Number(v) + 1) : '—'}</span>,
+  },
+  {
+    id: 'spectral_record',
+    key: 'spectral_record',
+    label: 'Spectral Record',
+    render: (v) => (
+      <Link
+        to={`/spectral-records/${v}`}
+        style={{ color: theme.colors.primary, textDecoration: 'none' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {String(v)}
+      </Link>
+    ),
+  },
+  {
+    id: 'time_from',
+    key: 'time_from',
+    label: 'From',
+    render: (v) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(v as string | null)}</span>,
+  },
+  {
+    id: 'time_to',
+    key: 'time_to',
+    label: 'To',
+    render: (v) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(v as string | null)}</span>,
+  },
+]
+
 export const MeasurementDetailPage = () => {
   const { id } = useParams<{ id: string }>()
 
@@ -28,6 +67,12 @@ export const MeasurementDetailPage = () => {
   const error = measurementQuery.isError
     ? `Failed to load measurement: ${(measurementQuery.error as Error).message}`
     : null
+
+  const segmentsQuery = useMeasurementSegmentsList(
+    { measurement: id },
+    { query: { enabled: !!id } },
+  )
+  const segments: MeasurementSegment[] = segmentsQuery.data?.data?.results ?? []
 
   if (loading) {
     return (
@@ -239,6 +284,20 @@ export const MeasurementDetailPage = () => {
                 {formatDate(measurement.time_end ?? undefined)}
               </dd>
             </dl>
+          </div>
+
+          {/* Measurement Segments */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <Section title={`Segments (${segments.length})`}>
+              <SortableTable<MeasurementSegment>
+                columns={SEGMENT_COLUMNS}
+                data={segments}
+                getRowKey={(row) => row.id}
+                defaultSortField="position"
+                defaultSortDirection="asc"
+                emptyMessage="No segments found."
+              />
+            </Section>
           </div>
 
           {/* Charts - only show when measurement data is available */}

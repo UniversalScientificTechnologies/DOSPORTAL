@@ -8,6 +8,10 @@
 
 export type MeasurementSegmentsListParams = {
 /**
+ * Filter segments by measurement ID.
+ */
+measurement?: string;
+/**
  * A page number within the paginated result set.
  */
 page?: number;

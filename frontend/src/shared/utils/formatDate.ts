@@ -12,3 +12,17 @@ export function formatDate(dateStr?: string) {
     return dateStr
   }
 }
+
+export function formatTime(dateStr?: string | null): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    const hh = String(d.getUTCHours()).padStart(2, '0')
+    const mm = String(d.getUTCMinutes()).padStart(2, '0')
+    const ss = String(d.getUTCSeconds()).padStart(2, '0')
+    const ms = String(d.getUTCMilliseconds()).padStart(3, '0')
+    return `${hh}:${mm}:${ss}.${ms}`
+  } catch {
+    return dateStr
+  }
+}
