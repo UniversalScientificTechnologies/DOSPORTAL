@@ -3,6 +3,7 @@ import { PageLayout } from '@/shared/components/Layout/PageLayout'
 import { Section } from '@/shared/components/Layout/Section'
 import { EmptyState } from '@/shared/components/common/EmptyState'
 import { FormField } from '@/shared/components/common/FormField'
+import { JsonEditor } from '@/shared/components/common/JsonEditor'
 import { SpectralCharts } from '@/features/logs/components/SpectralCharts'
 import { theme } from '@/theme'
 import ReactMarkdown from 'react-markdown'
@@ -156,6 +157,24 @@ export const SpectralRecordDetailPage = () => {
               <div className="text" style={{ marginTop: theme.spacing.md }}>
                 <ReactMarkdown>{record.description}</ReactMarkdown>
               </div>
+            </div>
+          )}
+
+          {/* Metadata */}
+          {record.metadata != null && typeof record.metadata === 'object' && Object.keys(record.metadata as object).length > 0 && (
+            <div style={{
+              padding: theme.spacing.xl,
+              backgroundColor: theme.colors.bg,
+              border: `${theme.borders.width} solid ${theme.colors.border}`,
+              borderRadius: theme.borders.radius.sm,
+              marginTop: theme.spacing.sm,
+            }}>
+              <JsonEditor
+                label="Metadata"
+                value={record.metadata as object}
+                readOnly
+                height="220px"
+              />
             </div>
           )}
 

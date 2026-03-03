@@ -34,11 +34,13 @@ import type {
 import type {
   PaginatedSpectralRecordArtifactList,
   PaginatedSpectralRecordList,
+  PatchedSpectralRecordUpdateRequest,
   SpectralRecord,
   SpectralRecordArtifact,
   SpectralRecordArtifactsListParams,
   SpectralRecordCreate,
   SpectralRecordCreateRequest,
+  SpectralRecordUpdate,
   SpectralRecordsListParams
 } from '.././model';
 
@@ -457,6 +459,65 @@ export function useSpectralRecordsRetrieve<TData = Awaited<ReturnType<typeof spe
 
 
 /**
+ * Update editable fields of a spectral record.
+ */
+export const spectralRecordsPartialUpdate = (
+    id: string,
+    patchedSpectralRecordUpdateRequest: PatchedSpectralRecordUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<SpectralRecordUpdate>> => {
+    
+    
+    return axios.default.patch(
+      `/api/spectral-records/${id}/`,
+      patchedSpectralRecordUpdateRequest,options
+    );
+  }
+
+
+
+export const getSpectralRecordsPartialUpdateMutationOptions = <TError = AxiosError<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof spectralRecordsPartialUpdate>>, TError,{id: string;data: PatchedSpectralRecordUpdateRequest}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof spectralRecordsPartialUpdate>>, TError,{id: string;data: PatchedSpectralRecordUpdateRequest}, TContext> => {
+
+const mutationKey = ['spectralRecordsPartialUpdate'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof spectralRecordsPartialUpdate>>, {id: string;data: PatchedSpectralRecordUpdateRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  spectralRecordsPartialUpdate(id,data,axiosOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SpectralRecordsPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof spectralRecordsPartialUpdate>>>
+    export type SpectralRecordsPartialUpdateMutationBody = PatchedSpectralRecordUpdateRequest
+    export type SpectralRecordsPartialUpdateMutationError = AxiosError<unknown>
+
+    export const useSpectralRecordsPartialUpdate = <TError = AxiosError<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof spectralRecordsPartialUpdate>>, TError,{id: string;data: PatchedSpectralRecordUpdateRequest}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof spectralRecordsPartialUpdate>>,
+        TError,
+        {id: string;data: PatchedSpectralRecordUpdateRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getSpectralRecordsPartialUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * Soft-delete a spectral record (org admin/owner only).
  */
 export const spectralRecordsDestroy = (

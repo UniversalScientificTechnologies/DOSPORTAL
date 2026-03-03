@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dnd-kit/react": "^0.3.2",
+    "@monaco-editor/react": "^4.7.0",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.5",
     "echarts": "^6.0.0",

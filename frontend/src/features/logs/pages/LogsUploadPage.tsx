@@ -5,6 +5,7 @@ import type { SelectOption } from '@/shared/components/common/AppSelect';
 import { PageLayout } from '@/shared/components/Layout/PageLayout';
 import { FileDropzone } from '@/shared/components/common/FileDropzone';
 import { LabeledInput } from '@/shared/components/common/LabeledInput';
+import { JsonEditor } from '@/shared/components/common/JsonEditor';
 import { theme } from '@/theme';
 import { useUserOrganizationsOwnedList } from '@/api/authentication/authentication';
 import { useDetectorsList } from '@/api/detectors/detectors';
@@ -29,6 +30,7 @@ export const LogsUploadPage = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedOwner, setSelectedOwner] = useState<SelectOption | null>(null);
   const [selectedDetector, setSelectedDetector] = useState<SelectOption | null>(null);
+  const [metadata, setMetadata] = useState<object>({});
 
   const orgsQuery = useUserOrganizationsOwnedList();
   const orgOptions: SelectOption[] = (orgsQuery.data?.data ?? []).map((o) => ({ value: o.id, label: o.name }));
@@ -87,6 +89,7 @@ export const LogsUploadPage = () => {
             raw_file: fileData.id,
             name: fileName,
             description,
+            metadata,
             ...(selectedOwner?.value ? { owner: selectedOwner.value } : {}),
             ...(selectedDetector?.value ? { detector: selectedDetector.value } : {}),
           },
@@ -181,6 +184,17 @@ export const LogsUploadPage = () => {
                 resize: 'vertical',
                 boxSizing: 'border-box',
               }}
+            />
+          </div>
+        )}
+
+        {fileType === 'log' && (
+          <div style={{ marginBottom: theme.spacing.xl }}>
+            <JsonEditor
+              label="Metadata (optional)"
+              value={metadata}
+              onChange={setMetadata}
+              height="200px"
             />
           </div>
         )}

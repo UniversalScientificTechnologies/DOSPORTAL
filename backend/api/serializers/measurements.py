@@ -98,12 +98,19 @@ class SpectralRecordCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SpectralRecord
-        fields = ('name', 'raw_file', 'detector', 'description', 'owner')
+        fields = ('name', 'raw_file', 'detector', 'description', 'owner', 'metadata')
 
     def validate_raw_file(self, value):
         if value and value.file_type != File.FILE_TYPE_LOG:
             raise serializers.ValidationError("Raw file must be of type 'log'")
         return value
+
+
+class SpectralRecordUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SpectralRecord
+        fields = ('name', 'description', 'metadata')
 
 
 class MeasurementSegmentSerializer(serializers.ModelSerializer):

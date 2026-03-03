@@ -26,4 +26,6 @@ export interface SpectralRecordCreate {
    * @nullable
    */
   owner?: string | null;
+  /** record metadata, used for advanced data processing and maintaining */
+  metadata?: unknown;
 }

@@ -6,10 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * Serializer for creating spectral records.
- */
-export interface SpectralRecordCreateRequest {
+export interface PatchedSpectralRecordUpdateRequest {
   /**
    * Name of this record. Short and simple description of record.
    * @minLength 1
@@ -17,16 +14,8 @@ export interface SpectralRecordCreateRequest {
    * @nullable
    */
   name?: string | null;
-  raw_file: string;
-  /** @nullable */
-  detector?: string | null;
   /** Description of the record */
   description?: string;
-  /**
-   * Organization that owns this record
-   * @nullable
-   */
-  owner?: string | null;
   /** record metadata, used for advanced data processing and maintaining */
   metadata?: unknown;
 }

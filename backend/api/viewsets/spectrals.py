@@ -18,6 +18,7 @@ from ..serializers.measurements import (
     SpectralRecordArtifactSerializer,
     SpectralRecordCreateSerializer,
     SpectralRecordSerializer,
+    SpectralRecordUpdateSerializer,
 )
 from ..viewsets_base import SoftDeleteModelViewSet
 
@@ -82,14 +83,20 @@ def _load_spectral_parquet(record):
         tags=["Spectral Records"],
     ),
     destroy=extend_schema(description="Soft-delete a spectral record (org admin/owner only).", tags=["Spectral Records"]),
+    partial_update=extend_schema(
+        description="Update editable fields of a spectral record.",
+        tags=["Spectral Records"],
+    ),
 )
 class SpectralRecordViewSet(SoftDeleteModelViewSet):
     permission_classes = [IsAuthenticated]
-    http_method_names = ["get", "post", "delete", "head", "options"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def get_serializer_class(self):
         if self.action == "create":
             return SpectralRecordCreateSerializer
+        if self.action == "partial_update":
+            return SpectralRecordUpdateSerializer
         return SpectralRecordSerializer
 
     def get_queryset(self):
@@ -133,6 +140,18 @@ class SpectralRecordViewSet(SoftDeleteModelViewSet):
                     "You do not have permission to create spectral records for this organization."
                 )
         serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        is_org_member = instance.owner and OrganizationUser.objects.filter(
+            user=self.request.user,
+            organization=instance.owner,
+            user_type__in=["OW", "AD", "ME"],
+        ).exists()
+        is_author = instance.author == self.request.user
+        if not (is_org_member or is_author):
+            raise PermissionDenied("You do not have permission to edit this spectral record.")
+        serializer.save()
 
     def perform_destroy(self, instance):
         is_org_admin = instance.owner and OrganizationUser.objects.filter(
