@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth.models import User
-from DOSPORTAL.models import Organization, Measurement, File
+from DOSPORTAL.models import Organization, Measurement
 
 
 @pytest.fixture

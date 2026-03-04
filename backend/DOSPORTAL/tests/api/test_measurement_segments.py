@@ -2,7 +2,7 @@ import pytest
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
 
-from DOSPORTAL.models import Measurement, MeasurementSegment, Organization, OrganizationUser
+from DOSPORTAL.models import Measurement, MeasurementSegment
 from DOSPORTAL.models.spectrals import SpectralRecord
 
 

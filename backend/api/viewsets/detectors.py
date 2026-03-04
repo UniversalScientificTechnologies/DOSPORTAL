@@ -1,12 +1,10 @@
 from django.utils.dateparse import parse_datetime
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
+from rest_framework.exceptions import PermissionDenied, NotFound
 
 from DOSPORTAL.models import (
     DetectorManufacturer,

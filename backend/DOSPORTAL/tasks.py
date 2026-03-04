@@ -1,6 +1,4 @@
-from .models import File
-from .models.spectrals import SpectralRecord, SpectralRecordArtifact
-from .models.utils import ProcessingStatusMixin
+from .models import File, SpectralRecord, SpectralRecordArtifact, ProcessingStatusMixin, Measurement, MeasurementSegment, MeasurementArtifact
 from .helpers_cari import create_cari_input
 from django.core.files.base import ContentFile
 import io
@@ -8,8 +6,6 @@ import os
 import numpy as np
 import pandas as pd
 import json
-from .models.measurements import Measurement, MeasurementSegment, MeasurementArtifact
-from .models.files import File
 
 
 def process_flight_entry(Flight):
