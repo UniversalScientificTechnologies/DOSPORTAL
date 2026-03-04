@@ -323,6 +323,6 @@ def create_measurement_artifact(measurement_id):
             measurement = Measurement.objects.get(id=measurement_id)
             measurement.processing_status = ProcessingStatusMixin.PROCESSING_FAILED
             measurement.save(update_fields=["processing_status"])
-        except Exception:
+        except Exception:  # noqa: BLE001 - best-effort status update; don't mask the original error
             pass
         raise
