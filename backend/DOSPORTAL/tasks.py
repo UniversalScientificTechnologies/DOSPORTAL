@@ -259,7 +259,7 @@ def create_measurement_artifact(measurement_id):
             artifact = spectral_record.artifacts.filter(artifact_type=SpectralRecordArtifact.SPECTRAL_FILE).first()
 
             if not artifact:
-                raise ValueError(f"No spectral artifact found for segment {segment.id}.)")
+                raise ValueError(f"No spectral artifact found for segment {segment.id}.")
 
             artifact.artifact.file.open("rb")
             df = pd.read_parquet(artifact.artifact.file, engine="fastparquet")
@@ -297,7 +297,7 @@ def create_measurement_artifact(measurement_id):
             save=True,
         )
 
-        # deletes olf artifact (when generating a new one)
+        # deletes old artifact (when generating a new one)
         old = MeasurementArtifact.objects.filter(
             measurement=measurement,
             artifact_type=MeasurementArtifact.MEASUREMENT_FILE,
