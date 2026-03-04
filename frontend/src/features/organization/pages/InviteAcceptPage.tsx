@@ -39,7 +39,7 @@ export const InviteAcceptPage = () => {
   useEffect(() => {
     if (isLoading) return; // Wait until auth state is known
     if (!isAuthed) {
-      navigate(`/login?next=/invite/${token}`); // not handled copletely (next not working)
+      navigate(`/login?next=/invite/${token}`); // not handled completely (next not working)
       return;
     }
   }, [isAuthed, isLoading, token, navigate]);
