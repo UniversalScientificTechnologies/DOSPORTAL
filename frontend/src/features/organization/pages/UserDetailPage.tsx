@@ -10,7 +10,17 @@ import type { UserSummary } from '@/api/model'
 export const UserDetailPage = () => {
   const { id } = useParams<{ id: string }>()
 
-  const userQuery = useUserRetrieve(Number(id), { query: { enabled: !!id } })
+  let userId: number | null = null
+  if (typeof id === 'string') {
+    const parsedId = Number(id)
+    if (!Number.isNaN(parsedId)) {
+      userId = parsedId
+    }
+  }
+
+  const userQuery = useUserRetrieve(userId as unknown as number, {
+    query: { enabled: userId !== null },
+  })
   const user = userQuery.data?.data as UserSummary | undefined
   const loading = userQuery.isLoading
   const error = userQuery.isError
