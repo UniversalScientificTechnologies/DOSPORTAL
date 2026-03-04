@@ -266,7 +266,6 @@ def create_measurement_artifact(measurement_id):
             artifact.artifact.file.close()
 
             combined_data.append(df)
-        print(f"num of segments: {len(segments)}")
 
         combined_df = pd.concat(combined_data, ignore_index=True)
 
