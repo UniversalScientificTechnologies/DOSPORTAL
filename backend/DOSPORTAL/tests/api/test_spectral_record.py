@@ -175,33 +175,33 @@ def completed_spectral_record_with_artifact(db, spectral_record):
 class TestSpectralRecordListEndpoint:
     
     def test_list_requires_authentication(self, api_client):
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_member_sees_org_records(self, api_client, member_user, spectral_record, org_with_members):
         api_client.force_authenticate(user=member_user)
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['id'] == str(spectral_record.id)
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['id'] == str(spectral_record.id)
     
     def test_outsider_does_not_see_org_records(self, api_client, outsider_user, spectral_record):
         api_client.force_authenticate(user=outsider_user)
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 0
+        assert len(response.data['results']) == 0
     
     def test_list_authenticated(self, api_client, user_with_org, spectral_record):
         api_client.force_authenticate(user=user_with_org)
         
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['id'] == str(spectral_record.id)
-        assert response.data[0]['name'] == 'Test Spectral Record'
-        assert response.data[0]['processing_status'] == SpectralRecord.PROCESSING_PENDING
-        assert response.data[0]['artifacts_count'] == 0
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['id'] == str(spectral_record.id)
+        assert response.data['results'][0]['name'] == 'Test Spectral Record'
+        assert response.data['results'][0]['processing_status'] == SpectralRecord.PROCESSING_PENDING
+        assert response.data['results'][0]['artifacts_count'] == 0
     
     def test_list_multiple_records(self, api_client, user_with_org, log_file, organization):
         from django.utils import timezone
@@ -220,15 +220,15 @@ class TestSpectralRecordListEndpoint:
             )
             records.append(record)
         
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 3
+        assert len(response.data['results']) == 3
         
-        statuses = [item['processing_status'] for item in response.data]
+        statuses = [item['processing_status'] for item in response.data['results']]
         assert SpectralRecord.PROCESSING_PENDING in statuses
         assert SpectralRecord.PROCESSING_COMPLETED in statuses
-    
+
     def test_owner_field_returns_spectral_record_owner_name(self, api_client, user_with_org, organization, sample_candy_log):
         from django.utils import timezone
         
@@ -251,14 +251,14 @@ class TestSpectralRecordListEndpoint:
             time_start=timezone.now()
         )
         
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) >= 1
+        assert len(response.data['results']) >= 1
         
-        record_data = next((r for r in response.data if r['id'] == str(spectral_record.id)), None)
+        record_data = next((r for r in response.data['results'] if r['id'] == str(spectral_record.id)), None)
         assert record_data is not None
-        assert record_data['owner'] == organization.name
+        assert record_data['owner']['name'] == organization.name
     
     def test_owner_field_null_when_no_spectral_record_owner(self, api_client, user_with_org, sample_candy_log):
         from django.utils import timezone
@@ -281,11 +281,11 @@ class TestSpectralRecordListEndpoint:
             time_start=timezone.now()
         )
         
-        response = api_client.get('/api/spectral-record/')
+        response = api_client.get('/api/spectral-records/')
         
         assert response.status_code == status.HTTP_200_OK
         
-        record_data = next((r for r in response.data if r['id'] == str(spectral_record.id)), None)
+        record_data = next((r for r in response.data['results'] if r['id'] == str(spectral_record.id)), None)
         assert record_data is not None
         assert record_data['owner'] is None
 
@@ -293,81 +293,82 @@ class TestSpectralRecordListEndpoint:
 @pytest.mark.django_db
 class TestSpectralRecordCreateEndpoint:
     
-    def test_create_unauthenticated(self, api_client, log_file):
-        response = api_client.post('/api/spectral-record/create/', {
+    def test_create_unauthenticated(self, api_client, log_file, organization):
+        response = api_client.post('/api/spectral-records/', {
             'name': 'Test Record',
-            'raw_file_id': str(log_file.id)
+            'raw_file': str(log_file.id)
         })
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
-    def test_create_success(self, api_client, user_with_org, log_file):
+    def test_create_success(self, api_client, user_with_org, log_file, organization):
         api_client.force_authenticate(user=user_with_org)
-        
+
         data = {
             'name': 'New Spectral Record',
-            'raw_file_id': str(log_file.id),
+            'raw_file': str(log_file.id),
+            'owner': str(organization.id),
             'description': 'Test description'
         }
-        
-        response = api_client.post('/api/spectral-record/create/', data)
-        
+
+        response = api_client.post('/api/spectral-records/', data)
+
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['name'] == 'New Spectral Record'
         assert response.data['processing_status'] == SpectralRecord.PROCESSING_PENDING
         assert 'message' in response.data
-        
+
         record = SpectralRecord.objects.get(id=response.data['id'])
         assert record.name == 'New Spectral Record'
         assert record.raw_file == log_file
         assert record.author == user_with_org
-        assert record.owner == log_file.owner
+        assert record.owner == organization
     
-    def test_create_missing_file_id(self, api_client, user_with_org):
+    def test_create_missing_file(self, api_client, user_with_org, organization):
         api_client.force_authenticate(user=user_with_org)
-        
-        data = {'name': 'Test Record'}
-        
-        response = api_client.post('/api/spectral-record/create/', data)
-        
+
+        data = {'name': 'Test Record', 'owner': str(organization.id)}
+
+        response = api_client.post('/api/spectral-records/', data)
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'raw_file_id is required' in response.data['error']
+        assert 'raw_file' in response.data
     
-    def test_create_invalid_file_id(self, api_client, user_with_org):
+    def test_create_invalid_file_id(self, api_client, user_with_org, organization):
         api_client.force_authenticate(user=user_with_org)
-        
+
         from uuid import uuid4
-        data = {'name': 'Test Record', 'raw_file_id': str(uuid4())}
-        
-        response = api_client.post('/api/spectral-record/create/', data)
-        
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert 'not found' in response.data['error'].lower()
+        data = {'name': 'Test Record', 'raw_file': str(uuid4()), 'owner': str(organization.id)}
+
+        response = api_client.post('/api/spectral-records/', data)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'raw_file' in response.data
     
     def test_create_with_unauthorized_owner(self, api_client, outsider_user, log_file, organization):
         api_client.force_authenticate(user=outsider_user)
-        
+
         data = {
             'name': 'Test Record',
-            'raw_file_id': str(log_file.id),
-            'owner': str(organization.id)
+            'raw_file': str(log_file.id),
+            'owner': str(organization.id),
         }
-        
-        response = api_client.post('/api/spectral-record/create/', data)
-        
+
+        response = api_client.post('/api/spectral-records/', data)
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert 'permission' in response.data['error'].lower()
+        assert 'permission' in response.data['detail'].lower()
     
     def test_create_member_cannot_set_owner(self, api_client, member_user, log_file, org_with_members):
         api_client.force_authenticate(user=member_user)
-        
+
         data = {
             'name': 'Test Record',
-            'raw_file_id': str(log_file.id),
-            'owner': str(org_with_members.id)
+            'raw_file': str(log_file.id),
+            'owner': str(org_with_members.id),
         }
-        
-        response = api_client.post('/api/spectral-record/create/', data)
-        
+
+        response = api_client.post('/api/spectral-records/', data)
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -379,14 +380,14 @@ class TestSpectralRecordEvolutionEndpoint:
 
     def test_evolution_requires_authentication(self, api_client, completed_spectral_record_with_artifact):
         record = completed_spectral_record_with_artifact
-        response = api_client.get(f'/api/spectral-record/{record.id}/evolution/')
+        response = api_client.get(f'/api/spectral-records/{record.id}/evolution/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_evolution_success(self, api_client, completed_spectral_record_with_artifact, user_with_org):
         record = completed_spectral_record_with_artifact
         api_client.force_authenticate(user=user_with_org)
 
-        response = api_client.get(f'/api/spectral-record/{record.id}/evolution/')
+        response = api_client.get(f'/api/spectral-records/{record.id}/evolution/')
 
         assert response.status_code == status.HTTP_200_OK
         assert 'evolution_values' in response.data
@@ -402,19 +403,19 @@ class TestSpectralRecordEvolutionEndpoint:
     def test_evolution_record_not_found(self, api_client, user_with_org):
         from uuid import uuid4
         api_client.force_authenticate(user=user_with_org)
-        response = api_client.get(f'/api/spectral-record/{uuid4()}/evolution/')
+        response = api_client.get(f'/api/spectral-records/{uuid4()}/evolution/')
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_evolution_processing_not_completed(self, api_client, spectral_record, user_with_org):
         api_client.force_authenticate(user=user_with_org)
-        response = api_client.get(f'/api/spectral-record/{spectral_record.id}/evolution/')
+        response = api_client.get(f'/api/spectral-records/{spectral_record.id}/evolution/')
         assert response.status_code == status.HTTP_425_TOO_EARLY
 
     def test_evolution_permission_denied(self, api_client, completed_spectral_record_with_artifact, outsider_user):
         record = completed_spectral_record_with_artifact
         api_client.force_authenticate(user=outsider_user)
-        response = api_client.get(f'/api/spectral-record/{record.id}/evolution/')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        response = api_client.get(f'/api/spectral-records/{record.id}/evolution/')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -422,14 +423,14 @@ class TestSpectralRecordSpectrumEndpoint:
 
     def test_spectrum_requires_authentication(self, api_client, completed_spectral_record_with_artifact):
         record = completed_spectral_record_with_artifact
-        response = api_client.get(f'/api/spectral-record/{record.id}/spectrum/')
+        response = api_client.get(f'/api/spectral-records/{record.id}/spectrum/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_spectrum_success(self, api_client, completed_spectral_record_with_artifact, user_with_org):
         record = completed_spectral_record_with_artifact
         api_client.force_authenticate(user=user_with_org)
 
-        response = api_client.get(f'/api/spectral-record/{record.id}/spectrum/')
+        response = api_client.get(f'/api/spectral-records/{record.id}/spectrum/')
 
         assert response.status_code == status.HTTP_200_OK
         assert 'spectrum_values' in response.data
@@ -447,16 +448,16 @@ class TestSpectralRecordSpectrumEndpoint:
     def test_spectrum_record_not_found(self, api_client, user_with_org):
         from uuid import uuid4
         api_client.force_authenticate(user=user_with_org)
-        response = api_client.get(f'/api/spectral-record/{uuid4()}/spectrum/')
+        response = api_client.get(f'/api/spectral-records/{uuid4()}/spectrum/')
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_spectrum_processing_not_completed(self, api_client, spectral_record, user_with_org):
         api_client.force_authenticate(user=user_with_org)
-        response = api_client.get(f'/api/spectral-record/{spectral_record.id}/spectrum/')
+        response = api_client.get(f'/api/spectral-records/{spectral_record.id}/spectrum/')
         assert response.status_code == status.HTTP_425_TOO_EARLY
 
     def test_spectrum_permission_denied(self, api_client, completed_spectral_record_with_artifact, outsider_user):
         record = completed_spectral_record_with_artifact
         api_client.force_authenticate(user=outsider_user)
-        response = api_client.get(f'/api/spectral-record/{record.id}/spectrum/')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        response = api_client.get(f'/api/spectral-records/{record.id}/spectrum/')
+        assert response.status_code == status.HTTP_404_NOT_FOUND

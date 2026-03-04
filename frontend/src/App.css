@@ -170,7 +170,6 @@ button.primary:disabled {
 }
 
 .success {
-  margin-top: 0.75rem;
   color: var(--green);
 }
 

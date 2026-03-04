@@ -7,9 +7,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-api": "orval"
   },
   "dependencies": {
+    "@dnd-kit/react": "^0.3.2",
+    "@monaco-editor/react": "^4.7.0",
+    "@tanstack/react-query": "^5.90.21",
+    "axios": "^1.13.5",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
     "leaflet": "^1.9.4",
@@ -17,12 +22,13 @@
     "react-dom": "^19.2.0",
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.12.0"
+    "react-router-dom": "^7.12.0",
+    "react-select": "^5.10.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/leaflet": "^1.9.14",
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.10.13",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
@@ -30,6 +36,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "orval": "^7.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "npm:rolldown-vite@7.2.5"

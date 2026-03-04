@@ -19,10 +19,10 @@ def test_logbook_get_empty():
     client = APIClient()
     client.force_authenticate(user=user)
 
-    response = client.get("/api/logbook/")
+    response = client.get("/api/logbooks/")
 
     assert response.status_code == 200
-    assert response.data == []
+    assert response.data["results"] == []
 
 
 @pytest.mark.django_db
@@ -56,12 +56,12 @@ def test_logbook_get_filtered_by_detector_and_type():
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.get(
-        f"/api/logbook/?detector={detector1.id}&entry_type=maintenance"
+        f"/api/logbooks/?detector={detector1.id}&entry_type=maintenance"
     )
 
     assert response.status_code == 200
-    assert len(response.data) == 1
-    assert response.data[0]["text"] == "Maintenance done"
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["text"] == "Maintenance done"
 
 
 @pytest.mark.django_db
@@ -80,7 +80,7 @@ def test_logbook_post_success():
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.post(
-        "/api/logbook/add/",
+        "/api/logbooks/",
         {"detector": str(detector.id), "text": "Created entry", "entry_type": "note"},
         format="json",
     )
@@ -111,8 +111,8 @@ def test_logbook_put_success():
 
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.put(
-        f"/api/logbook/{entry.id}/",
+    response = client.patch(
+        f"/api/logbooks/{entry.id}/",
         {"text": "Updated entry", "entry_type": "reset"},
         format="json",
     )

@@ -86,26 +86,24 @@ def sample_file(db, org_with_members, owner_user):
 class TestFileDetail:
     
     def test_requires_authentication(self, api_client, sample_file):
-        response = api_client.get(f'/api/file/{sample_file.id}/')
+        response = api_client.get(f'/api/files/{sample_file.id}/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_file_not_found(self, api_client, owner_user):
         api_client.force_authenticate(user=owner_user)
-        response = api_client.get('/api/file/00000000-0000-0000-0000-000000000000/')
+        response = api_client.get('/api/files/00000000-0000-0000-0000-000000000000/')
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert 'not found' in response.data['error'].lower()
     
     def test_member_can_access_org_file(self, api_client, member_user, sample_file):
         api_client.force_authenticate(user=member_user)
-        response = api_client.get(f'/api/file/{sample_file.id}/')
+        response = api_client.get(f'/api/files/{sample_file.id}/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['filename'] == 'test.txt'
     
     def test_outsider_cannot_access_org_file(self, api_client, outsider_user, sample_file):
         api_client.force_authenticate(user=outsider_user)
-        response = api_client.get(f'/api/file/{sample_file.id}/')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert 'permission' in response.data['error'].lower()
+        response = api_client.get(f'/api/files/{sample_file.id}/')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
     
     def test_uploader_can_access_own_file_without_org(self, api_client, owner_user):
         api_client.force_authenticate(user=owner_user)
@@ -118,7 +116,7 @@ class TestFileDetail:
             owner=None,
             size=8
         )
-        response = api_client.get(f'/api/file/{personal_file.id}/')
+        response = api_client.get(f'/api/files/{personal_file.id}/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['filename'] == 'personal.txt'
 
@@ -127,21 +125,21 @@ class TestFileDetail:
 class TestFileList:
     
     def test_requires_authentication(self, api_client):
-        response = api_client.get('/api/file/')
+        response = api_client.get('/api/files/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_member_sees_org_files(self, api_client, member_user, sample_file):
         api_client.force_authenticate(user=member_user)
-        response = api_client.get('/api/file/')
+        response = api_client.get('/api/files/')
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['id'] == str(sample_file.id)
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['id'] == str(sample_file.id)
     
     def test_outsider_does_not_see_org_files(self, api_client, outsider_user, sample_file):
         api_client.force_authenticate(user=outsider_user)
-        response = api_client.get('/api/file/')
+        response = api_client.get('/api/files/')
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 0
+        assert len(response.data['results']) == 0
     
     def test_filter_by_organization(self, api_client, owner_user, org_with_members):
         api_client.force_authenticate(user=owner_user)
@@ -165,10 +163,10 @@ class TestFileList:
             size=5
         )
         
-        response = api_client.get(f'/api/file/?org_id={org_with_members.id}')
+        response = api_client.get(f'/api/files/?owner={org_with_members.id}')
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['id'] == str(file1.id)
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['id'] == str(file1.id)
     
     def test_filter_by_file_type(self, api_client, owner_user, org_with_members):
         api_client.force_authenticate(user=owner_user)
@@ -190,7 +188,7 @@ class TestFileList:
             size=3
         )
         
-        response = api_client.get('/api/file/?file_type=log')
+        response = api_client.get('/api/files/?file_type=log')
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['file_type'] == 'log'
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['file_type'] == 'log'

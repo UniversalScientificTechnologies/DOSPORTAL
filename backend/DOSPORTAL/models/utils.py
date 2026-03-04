@@ -17,6 +17,33 @@ class UUIDMixin(models.Model):
     class Meta:
         abstract = True
 
+
+class ProcessingStatusMixin(models.Model):
+    """Mixin that adds async processing status tracking to a model."""
+
+    PROCESSING_PENDING = "pending"
+    PROCESSING_IN_PROGRESS = "processing"
+    PROCESSING_COMPLETED = "completed"
+    PROCESSING_FAILED = "failed"
+
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_PENDING, "Pending processing"),
+        (PROCESSING_IN_PROGRESS, "Processing in progress"),
+        (PROCESSING_COMPLETED, "Processing completed"),
+        (PROCESSING_FAILED, "Processing failed"),
+    )
+
+    processing_status = models.CharField(
+        max_length=16,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_PENDING,
+        help_text="Status of async background processing",
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(

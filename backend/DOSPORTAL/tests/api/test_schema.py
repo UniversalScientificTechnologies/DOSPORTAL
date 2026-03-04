@@ -38,7 +38,7 @@ def test_openapi_schema_contains_endpoints():
         "/api/organizations/{org_id}/" in paths
     ), "Organization detail endpoint should be documented"
     assert (
-        "/api/organizations/{org_id}/member/" in paths
+        "/api/organizations/{org_id}/members/" in paths
     ), "Organization member endpoint should be documented"
 
     # Test login endpoint has proper documentation

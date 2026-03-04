@@ -29,7 +29,7 @@ def test_measurement_detail_unauthenticated(api_client, user1, org1):
     """Test that unauthenticated users get 401."""
     m1 = Measurement.objects.create(name="Measurement 1", author=user1, owner=org1)
     
-    response = api_client.get(f"/api/measurement/{m1.id}/")
+    response = api_client.get(f"/api/measurements/{m1.id}/")
     assert response.status_code == 401
 
 
@@ -38,9 +38,8 @@ def test_measurement_detail_not_found(api_client, user1):
     """Test that non-existent measurement returns 404."""
     api_client.force_authenticate(user=user1)
     
-    response = api_client.get("/api/measurement/00000000-0000-0000-0000-000000000000/")
+    response = api_client.get("/api/measurements/00000000-0000-0000-0000-000000000000/")
     assert response.status_code == 404
-    assert 'not found' in response.data['error'].lower()
 
 
 @pytest.mark.django_db
@@ -54,7 +53,7 @@ def test_measurement_detail_member_can_access(api_client, user1, user2, org1):
     
     # user1 should have access (as member)
     api_client.force_authenticate(user=user1)
-    response = api_client.get(f"/api/measurement/{m1.id}/")
+    response = api_client.get(f"/api/measurements/{m1.id}/")
     assert response.status_code == 200
     assert response.data['name'] == "Measurement 1"
     assert response.data['id'] == str(m1.id)
@@ -71,7 +70,7 @@ def test_measurement_detail_author_can_access(api_client, user1, user2, org1):
     
     # user2 should have access (as author)
     api_client.force_authenticate(user=user2)
-    response = api_client.get(f"/api/measurement/{m1.id}/")
+    response = api_client.get(f"/api/measurements/{m1.id}/")
     assert response.status_code == 200
     assert response.data['name'] == "Measurement 1"
 
@@ -87,9 +86,8 @@ def test_measurement_detail_outsider_cannot_access(api_client, user1, user2, org
     
     # user2 is NOT member and NOT author - should NOT have access
     api_client.force_authenticate(user=user2)
-    response = api_client.get(f"/api/measurement/{m1.id}/")
-    assert response.status_code == 403
-    assert 'permission' in response.data['error'].lower()
+    response = api_client.get(f"/api/measurements/{m1.id}/")
+    assert response.status_code == 404
 
 
 @pytest.mark.django_db
@@ -109,7 +107,7 @@ def test_measurement_detail_all_member_types_can_access(api_client, org1):
     # All three org members should see the measurement
     for user in [owner_user, admin_user, member_user]:
         api_client.force_authenticate(user=user)
-        response = api_client.get(f"/api/measurement/{m1.id}/")
+        response = api_client.get(f"/api/measurements/{m1.id}/")
         assert response.status_code == 200
         assert response.data['id'] == str(m1.id)
 
@@ -122,11 +120,11 @@ def test_measurement_detail_without_owner(api_client, user1, user2):
     
     # user1 (author) should have access
     api_client.force_authenticate(user=user1)
-    response = api_client.get(f"/api/measurement/{m1.id}/")
+    response = api_client.get(f"/api/measurements/{m1.id}/")
     assert response.status_code == 200
     assert response.data['id'] == str(m1.id)
     
     # user2 should NOT have access
     api_client.force_authenticate(user=user2)
-    response = api_client.get(f"/api/measurement/{m1.id}/")
-    assert response.status_code == 403
+    response = api_client.get(f"/api/measurements/{m1.id}/")
+    assert response.status_code == 404

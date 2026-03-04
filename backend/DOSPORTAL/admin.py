@@ -14,6 +14,7 @@ from .models import (
     Flight,
     MeasurementDataFlight,
     MeasurementCampaign,
+    MeasurementSegment,
     Trajectory,
     TrajectoryPoint,
     SpectrumData,
@@ -95,6 +96,7 @@ admin.site.register(DetectorCalib)
 admin.site.register(Airports, AirportsAdmin)
 admin.site.register(Flight)
 admin.site.register(MeasurementDataFlight)
+admin.site.register(MeasurementSegment)
 admin.site.register(MeasurementCampaign)
 
 

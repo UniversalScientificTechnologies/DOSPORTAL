@@ -1,23 +1,64 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Test backend (all)",
-      "type": "shell",
-      "command": "docker",
-      "args": ["compose", "exec", "backend", "pytest", "DOSPORTAL/tests/"],
-      "group": "test",
-      "problemMatcher": []
-    },
-    {
-      "label": "Test backend (path)",
-      "type": "shell",
-      "command": "docker",
-      "args": ["compose", "exec", "backend", "pytest", "${input:testPath}"],
-      "group": "test",
-      "problemMatcher": []
-    }
-  ],
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Test backend",
+			"type": "shell",
+			"command": "docker compose exec backend pytest DOSPORTAL/tests/",
+			"problemMatcher": []
+		},
+		{
+			"label": "docker compose down",
+			"type": "shell",
+			"command": "docker compose down",
+			"problemMatcher": []
+		},
+		{
+			"label": "docker compose up build",
+			"type": "shell",
+			"command": "docker compose up -d --build",
+			"problemMatcher": []
+		},
+		{
+			"label": "rebuild project",
+			"dependsOn": [
+				"docker compose down",
+				"docker compose up build"
+			],
+			"dependsOrder": "sequence"
+		},
+		{
+			"label": "makemigrations & migrate",
+			"dependsOn": [
+				"docker compose makemigrations",
+				"docker compose migrate"
+			],
+			"dependsOrder": "sequence"
+		},
+		{
+			"label": "docker compose makemigrations",
+			"type": "shell",
+			"command": "docker compose exec backend python manage.py makemigrations"
+		},
+		{
+			"label": "docker compose migrate",
+			"type": "shell",
+			"command": "docker compose exec backend python manage.py migrate"
+		},
+		{
+			"label": "orval gen api",
+			"type": "shell",
+			"command": "docker compose exec frontend npm run generate-api"
+		},
+		{
+		"label": "Test backend (path)",
+		"type": "shell",
+		"command": "docker",
+		"args": ["compose", "exec", "backend", "pytest", "${input:testPath}"],
+		"group": "test",
+		"problemMatcher": []
+		}
+	],
   "inputs": [
     {
       "id": "testPath",

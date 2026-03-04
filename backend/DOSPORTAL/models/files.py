@@ -1,10 +1,11 @@
 from .utils import UUIDMixin
+from .soft_delete import SoftDeleteModel
 from django.db import models
 from ..models.organizations import Organization
 from django.conf import settings
 
 
-class File(UUIDMixin):
+class File(UUIDMixin, SoftDeleteModel):
     FILE_TYPE_LOG = "log"
     FILE_TYPE_TRAJECTORY = "trajectory"
     FILE_TYPE_DOCUMENT = "document"

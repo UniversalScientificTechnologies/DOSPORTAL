@@ -1,13 +1,13 @@
-from django.contrib.gis.db import models as geomodels
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.contrib.postgres.fields import ArrayField
-from ..models.utils import UUIDMixin
+from ..models.utils import UUIDMixin, ProcessingStatusMixin
+from ..models.soft_delete import SoftDeleteModel
 from martor.models import MartorField
 from DOSPORTAL.services.file_validation import validate_uploaded_file
-from .flights import Flight
+from .flights import Flight, TrajectoryPoint
 from .files import File
 from .spectrals import SpectralRecord
 from .organizations import Organization
@@ -66,7 +66,7 @@ class MeasurementCampaign(UUIDMixin):
         return "Campaign: {}".format(self.name)
 
 
-class Measurement(UUIDMixin):
+class Measurement(UUIDMixin, SoftDeleteModel, ProcessingStatusMixin):
     """
     Měřením se rozumí sada zaznamů (record), které analyzují jednu a tu samou věc a jsou změřeny jedním detektorem.
     Pokud jsou v latedle dva detektory, tak to jsou dvě měření. Pokud je ale záznam z jednoho detektoru
@@ -147,14 +147,6 @@ class Measurement(UUIDMixin):
     def user_directory_path(instance, filename):
         return "data/user_records/{0}/{1}".format(instance.user.id, filename)
 
-    records = models.ManyToManyField(
-        SpectralRecord,
-        related_name='measurements',
-        blank=True,
-        verbose_name=_('Spectral records'),
-        help_text=_('Spectral records associated with this measurement.'),
-    )
-
     files = models.ManyToManyField(
         File,
         related_name='measurements',
@@ -181,37 +173,83 @@ class Measurement(UUIDMixin):
         help_text=_('Measurement campaigns this measurement belongs to.'),
     )
 
+class MeasurementSegment(UUIDMixin):
+    """
+    A segment represents a (part of a) SpectralRecord within a Measurement.
+    A measurement can consist of multiple records or record parts sliced by time.
+    """
+
+    measurement = models.ForeignKey(
+        Measurement,
+        on_delete=models.CASCADE,
+        related_name='segments',
+        verbose_name=_('Measurement'),
+    )
+
+    spectral_record = models.ForeignKey(
+        SpectralRecord,
+        on_delete=models.CASCADE,
+        related_name='segments',
+        verbose_name=_('Spectral record'),
+    )
+
+    time_from = models.DateTimeField(
+        verbose_name=_('Segment start time'),
+        null=True,
+        blank=True,
+    )
+
+    time_to = models.DateTimeField(
+        verbose_name=_('Segment end time'),
+        null=True,
+        blank=True,
+    )
+
+    position = models.IntegerField(
+        verbose_name=_('Position / order within measurement'),
+        default=0,
+    )
+
+    def __str__(self):
+        return f"Segment {self.position} of {self.measurement} — {self.spectral_record}"
+
+class MeasurementArtifact(UUIDMixin):
+    SPECTRAL_FILE = "spectral"
+    MEASUREMENT_FILE = "measurement_file"
     
-
-
-class Trajectory(UUIDMixin):
-    name = models.CharField(max_length=80)
-
-    description = models.TextField(null=True, blank=True)
-
-    def __str__(self) -> str:
-        return "Trajectory: {}".format(self.name)
-
-
-class TrajectoryPoint(models.Model):
-    datetime = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name=_("Point timestamp"),
+    measurement = models.ForeignKey(
+        'Measurement',
+        on_delete=models.CASCADE,
+        related_name='artifacts',
+        verbose_name=_('Measurement'),
     )
 
-    location = geomodels.PointField(
-        null=True,
-        blank=True,
-        geography=True,
+    artifact = models.ForeignKey(
+        'File',
+        on_delete=models.CASCADE,
+        related_name='measurement_artifacts',
+        verbose_name=_('Artifact file'),
     )
 
-    trajectory = models.ForeignKey(
-        Trajectory, on_delete=models.CASCADE, related_name="points"
+    ARTIFACT_TYPES = (
+        (SPECTRAL_FILE, "Processed log file into spectral file (Parquet)"),
+        (MEASUREMENT_FILE, "Combined measurement parquet file"),
     )
 
-    def __str__(self) -> str:
-        return "Trajectory point: {}".format(self.trajectory)
+    artifact_type = models.CharField(
+        max_length=50,
+        choices=ARTIFACT_TYPES,
+        default=SPECTRAL_FILE,
+        verbose_name=_('Artifact type'),
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Creation time'),
+    )
+
+    def __str__(self):
+        return f"MeasurementArtifact: {self.artifact_type} for Measurement {self.measurement_id}"
 
 
 

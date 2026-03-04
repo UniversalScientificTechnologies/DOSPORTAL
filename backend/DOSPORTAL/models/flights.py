@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.contrib.gis.db import models as geomodels
 from ..models.utils import UUIDMixin
 
 
@@ -70,3 +71,33 @@ class Flight(UUIDMixin):
 
     class Meta:
         unique_together = ("flight_number", "departure_time")
+
+
+class Trajectory(UUIDMixin):
+    name = models.CharField(max_length=80)
+
+    description = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return "Trajectory: {}".format(self.name)
+
+
+class TrajectoryPoint(models.Model):
+    datetime = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Point timestamp"),
+    )
+
+    location = geomodels.PointField(
+        null=True,
+        blank=True,
+        geography=True,
+    )
+
+    trajectory = models.ForeignKey(
+        Trajectory, on_delete=models.CASCADE, related_name="points"
+    )
+
+    def __str__(self) -> str:
+        return "Trajectory point: {}".format(self.trajectory)

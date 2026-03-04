@@ -12,7 +12,6 @@ from DOSPORTAL.models import (
 
 @pytest.mark.django_db
 def test_create_detector_success():
-    # Setup user, org, manufacturer, type
     user = User.objects.create_user(username="admin", password="pass12345")
     org = Organization.objects.create(name="Test Org")
     OrganizationUser.objects.create(user=user, organization=org, user_type="OW")
@@ -26,9 +25,9 @@ def test_create_detector_success():
         "sn": "SN001",
         "name": "Detector1",
         "type_id": str(dtype.id),
-        "owner": str(org.id),
+        "owner_id": str(org.id),
     }
-    response = client.post("/api/detector/", data, format="json")
+    response = client.post("/api/detectors/", data, format="json")
     assert response.status_code == 201
     assert response.data["name"] == "Detector1"
     assert response.data["owner"] == str(org.id)
@@ -48,9 +47,9 @@ def test_create_detector_no_permission():
         "sn": "SN002",
         "name": "Detector2",
         "type_id": str(dtype.id),
-        "owner": str(org.id),
+        "owner_id": str(org.id),
     }
-    response = client.post("/api/detector/", data, format="json")
+    response = client.post("/api/detectors/", data, format="json")
     assert response.status_code == 403
     assert "permission" in response.data["detail"]
 
@@ -60,26 +59,10 @@ def test_create_detector_invalid_org():
     user = User.objects.create_user(username="admin2", password="pass12345")
     client = APIClient()
     client.force_authenticate(user=user)
-    data = {
-        "sn": "SN003",
-        "name": "Detector3",
-        "type_id": None,
-        "owner": "00000000-0000-0000-0000-000000000000",
-    }
-    response = client.post("/api/detector/", data, format="json")
-    assert response.status_code == 404
-    assert "Organization not found" in response.data["detail"]
-
-
-@pytest.mark.django_db
-def test_create_detector_missing_owner():
-    user = User.objects.create_user(username="admin3", password="pass12345")
-    client = APIClient()
-    client.force_authenticate(user=user)
-    data = {"sn": "SN004", "name": "Detector4", "type_id": None}
-    response = client.post("/api/detector/", data, format="json")
+    nonexistent_org_id = "00000000-0000-0000-0000-000000000000"
+    data = {"sn": "SN003", "name": "Detector3", "type_id": None, "owner_id": nonexistent_org_id}
+    response = client.post("/api/detectors/", data, format="json")
     assert response.status_code == 400
-    assert "Owner organization is required" in response.data["detail"]
 
 
 @pytest.mark.django_db
@@ -98,9 +81,9 @@ def test_create_detector_owner_in_other_org():
         "sn": "SN005",
         "name": "Detector5",
         "type_id": str(dtype.id),
-        "owner": str(org2.id),
+        "owner_id": str(org2.id),
     }
-    response = client.post("/api/detector/", data, format="json")
+    response = client.post("/api/detectors/", data, format="json")
     assert response.status_code == 403
     assert "permission" in response.data["detail"]
 
@@ -120,9 +103,9 @@ def test_create_detector_member_only():
         "sn": "SN006",
         "name": "Detector6",
         "type_id": str(dtype.id),
-        "owner": str(org.id),
+        "owner_id": str(org.id),
     }
-    response = client.post("/api/detector/", data, format="json")
+    response = client.post("/api/detectors/", data, format="json")
     assert response.status_code == 403
     assert "permission" in response.data["detail"]
 
@@ -135,42 +118,40 @@ def test_create_detector_invalid_data():
     client = APIClient()
     client.force_authenticate(user=user)
     data = {
-        "sn": "",  # Missing required fields
+        "sn": "",
         "name": "",
         "type_id": "",
-        "owner": str(org.id),
+        "owner_id": str(org.id),
     }
-    response = client.post("/api/detector/", data, format="json")
+    response = client.post("/api/detectors/", data, format="json")
     assert response.status_code == 400
     assert "sn" in response.data or "name" in response.data or "type" in response.data
 
 
 @pytest.mark.django_db
 def test_get_detectors_empty():
-    """GET /detector/ - empty list"""
     user = User.objects.create_user(username="user1", password="pass123")
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.get("/api/detector/")
+    response = client.get("/api/detectors/")
     assert response.status_code == 200
-    assert response.data == []
+    assert response.data["results"] == []
 
 
 @pytest.mark.django_db
 def test_get_detectors_with_data():
-    """GET /detector/ - with existing detectors"""
-    # Setup
     user = User.objects.create_user(username="user1", password="pass123")
     manuf = DetectorManufacturer.objects.create(name="Sony", url="http://sony.com")
     dtype = DetectorType.objects.create(name="Gamma", manufacturer=manuf)
     org = Organization.objects.create(name="TestOrg")
+    OrganizationUser.objects.create(user=user, organization=org, user_type="ME")
 
     Detector.objects.create(name="Detector 1", type=dtype, owner=org, sn="SN001")
     Detector.objects.create(name="Detector 2", type=dtype, owner=org, sn="SN002")
 
     client = APIClient()
     client.force_authenticate(user=user)
-    response = client.get("/api/detector/")
+    response = client.get("/api/detectors/")
     assert response.status_code == 200
-    assert len(response.data) == 2
-    assert response.data[0]["name"] in ["Detector 1", "Detector 2"]
+    assert len(response.data["results"]) == 2
+    assert response.data["results"][0]["name"] in ["Detector 1", "Detector 2"]
