@@ -17,7 +17,7 @@ export const InviteAcceptPage = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
 
-  const inviteQuery = useInvitesRetrieve(token ?? '');
+  const inviteQuery = useInvitesRetrieve(token ?? '', { enabled: !!token });
   const inviteInfo = inviteQuery.data?.data as unknown as { organization?: { id: string; name: string; description?: string }; user_type?: string; expires_at?: string; is_active?: boolean } | undefined;
   const inviteError = inviteQuery.isError
     ? axios.isAxiosError(inviteQuery.error)
