@@ -101,7 +101,7 @@ export const AddOrganizationMemberPopup = ({
           {error && <div style={{ color: theme.colors.danger, marginBottom: theme.spacing.sm }}>{error}</div>}
           <div style={{ display: 'flex', gap: theme.spacing.md }}>
             <Button variant='success' onClick={handleAdd} disabled={loading}>
-              {loading ? 'Adding...' : 'Invite'}
+              {loading ? 'Adding...' : 'Add member'}
             </Button>
             <Button variant='outline' onClick={handleInvite} disabled={loading}>
               {loading ? 'Generating...' : 'Generate Invite Link'}
