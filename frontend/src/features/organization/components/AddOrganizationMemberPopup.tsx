@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { theme } from '@/theme';
 import { useOrganizationsMembersCreate, useOrganizationsInvitesCreate } from '@/api/organizations/organizations';
-import type { OrganizationDetailRequest } from '@/api/model';
+import type { OrganizationsMembersCreateMutationBody, OrganizationsInvitesCreateMutationBody } from '@/api/organizations/organizations';
 import { Modal } from '@/shared/components/common/Modal';
 import { Button } from '@/shared/components/Button/Button';
 import { LabeledInput } from '@/shared/components/common/LabeledInput';
@@ -38,7 +38,7 @@ export const AddOrganizationMemberPopup = ({
     try {
       await addMemberMutation.mutateAsync({
         orgId,
-        data: { username: username.trim(), user_type: userType } as unknown as OrganizationDetailRequest,
+        data: { username: username.trim(), user_type: userType } as unknown as OrganizationsMembersCreateMutationBody,
       });
       if (onMemberAdded) onMemberAdded(username.trim());
       setUsername('');
@@ -57,7 +57,7 @@ export const AddOrganizationMemberPopup = ({
     try {
       const res = await createInviteMutation.mutateAsync({
         orgId,
-        data: { user_type: userType } as unknown as OrganizationDetailRequest,
+        data: { user_type: userType } as unknown as OrganizationsInvitesCreateMutationBody,
       });
       const data = res.data as unknown as { invite_url: string };
       setInviteLink(window.location.origin + data.invite_url);
